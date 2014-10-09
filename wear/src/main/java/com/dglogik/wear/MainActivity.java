@@ -15,7 +15,8 @@ public class MainActivity extends Activity {
         super.onCreate(bundle);
 
         for (Class<?> sensorClass : SENSORS) {
-            startActivity(new Intent(this, sensorClass));
+            Intent intent = new Intent(this, sensorClass);
+            startActivity(intent);
         }
     }
 }

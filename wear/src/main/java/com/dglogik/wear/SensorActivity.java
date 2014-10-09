@@ -9,10 +9,13 @@ import android.os.Bundle;
 
 public abstract class SensorActivity extends Activity implements SensorEventListener {
     protected SensorManager mSensorManager;
+    public Sensor sensor;
 
     public SensorActivity() {
+        SensorRegistry.register(getName(), this);
     }
 
+    public abstract String getName();
     public abstract void onSetup();
 
     @Override
@@ -23,6 +26,11 @@ public abstract class SensorActivity extends Activity implements SensorEventList
     }
 
     public void registerSensor(Sensor sensor) {
+        if (this.sensor != null) {
+            throw new IllegalStateException();
+        }
+
+        this.sensor = sensor;
         mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
@@ -39,7 +47,7 @@ public abstract class SensorActivity extends Activity implements SensorEventList
         return null;
     }
 
-    public abstract void collect(SensorEvent event);
+    public abstract float collect(SensorEvent event);
 
     @Override
     protected void onResume() {
@@ -55,7 +63,10 @@ public abstract class SensorActivity extends Activity implements SensorEventList
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         System.out.println("Accuracy Update for " + sensor.getName());
+        updateAccuracy(accuracy);
     }
+
+    protected void updateAccuracy(int accuracy) {}
 
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -63,6 +74,6 @@ public abstract class SensorActivity extends Activity implements SensorEventList
         for (float value : event.values) {
             System.out.println("Value: " + value);
         }
+        collect(event);
     }
 }
- 

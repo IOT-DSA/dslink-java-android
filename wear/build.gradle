@@ -1,5 +1,48 @@
 apply plugin: 'com.android.application'
 
+group = 'com.dglogik'
+version = '1.0.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.7.1'
+    }
+}
+ext {
+    repos = [
+            releases: 'http://git.dglogik.com:8081/content/repositories/releases',
+            snapshots: 'http://git.dglogik.com:8081/content/repositories/snapshots'
+    ]
+
+    // Credentials can be optionally specified in ~/.gradle/gradle.properties
+    if (!project.hasProperty("nexusUsername"))
+        nexusUsername = System.console().readLine("\nUsername: ");
+
+    if (!project.hasProperty("nexusPassword"))
+        nexusPassword = System.console().readPassword("\nPassword: ").toString();
+}
+
+repositories {
+    jcenter()
+    maven {
+        url repos.releases
+        credentials {
+            username nexusUsername
+            password nexusPassword
+        }
+    }
+    maven {
+        url repos.snapshots
+        credentials {
+            username nexusUsername
+            password nexusPassword
+        }
+    }
+}
 
 android {
     compileSdkVersion 20
@@ -24,4 +67,5 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.google.android.support:wearable:+'
     compile 'com.google.android.gms:play-services-wearable:+'
+    compile 'com.dglogik:dslink:0.0.1-SNAPSHOT'
 }

@@ -4,13 +4,18 @@ import android.hardware.SensorEvent;
 
 public class StepCounterSensor extends SensorActivity {
     @Override
+    public String getName() {
+        return "Step Counter";
+    }
+
+    @Override
     public void onSetup() {
         registerSensor(getSensorByName("Detailed Step Counter Sensor"));
     }
 
     @Override
-    public void collect(SensorEvent event) {
-        float steps = event.values[0];
+    public float collect(SensorEvent event) {
+        return event.values[0];
     }
 }
  
