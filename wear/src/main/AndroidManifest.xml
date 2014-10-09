@@ -3,21 +3,22 @@
     package="com.dglogik.wear" >
 
     <uses-feature android:name="android.hardware.type.watch" />
-
+    
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.DeviceDefault" >
-        <activity
-            android:name="com.dglogik.wear.MainActivity"
-            android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        android:theme="@android:style/Theme.DeviceDefault">
 
-                <category android:name="android.intent.category.LAUNCHER" />
+        <activity android:exported="true" android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" >
+                </action>
             </intent-filter>
         </activity>
+
+        <activity android:name=".StepCounterSensor" android:exported="true"></activity>
+        <activity android:name=".HeartRateSensor" android:exported="true"></activity>
     </application>
 
 </manifest>
