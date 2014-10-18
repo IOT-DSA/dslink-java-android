@@ -1,12 +1,10 @@
 package com.dglogik.wear;
 
 import android.app.Activity;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 
+import com.dglogik.wear.providers.StepsProvider;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Node;
@@ -21,12 +19,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends Activity {
-    private GoogleApiClient googleClient;
-    private SensorManager sensorManager;
+    public GoogleApiClient googleClient;
+    public static MainActivity INSTANCE;
+    public SensorManager sensorManager;
+    public List<Provider> providers = new ArrayList<Provider>();
 
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+
+        INSTANCE = this;
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -40,7 +42,6 @@ public class MainActivity extends Activity {
 
                     @Override
                     public void onConnectionSuspended(int i) {
-
                     }
                 })
                 .addApi(Wearable.API)
@@ -52,62 +53,17 @@ public class MainActivity extends Activity {
     }
 
     public void init() {
-        List<Sensor> allSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
+        Wearable.MessageApi.addListener(googleClient, new RequestListener());
 
-        Sensor healthSensor = null;
+        providers.add(new StepsProvider());
 
-        final List<String> names = new ArrayList<String>();
-
-        names.add("Health");
-
-        for (Sensor sensor : allSensors) {
-            System.out.println(sensor.getName());
-            if (sensor.getName().equals("Wellness Passive Sensor")) {
-                healthSensor = sensor;
-                break;
+        for (Provider provider : providers) {
+            if (!provider.supported()) {
+                return;
             }
+
+            provider.setup();
         }
-
-        if (healthSensor == null) {
-            return;
-        }
-
-        Wearable.NodeApi.addListener(googleClient, new NodeApi.NodeListener() {
-            @Override
-            public void onPeerConnected(Node node) {
-                System.out.println("Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
-                try {
-                    sendSingle(node, "sensors", new HashMap<String, Object>() {{
-                        put("sensors", names);
-                    }});
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onPeerDisconnected(Node node) {
-                System.out.println("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
-            }
-        });
-
-        sensorManager.registerListener(new SensorEventListener() {
-            @Override
-            public void onSensorChanged(final SensorEvent sensorEvent) {
-                try {
-                    send("update", new HashMap<String, Object>() {{
-                        put("value", ((double) sensorEvent.values[2]));
-                        put("node", "Health");
-                    }});
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int i) {
-            }
-        }, healthSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void send(String type, HashMap<String, Object> objects) throws JSONException {
@@ -125,11 +81,11 @@ public class MainActivity extends Activity {
         });
     }
 
-    public void sendSingle(Node node, String type, HashMap<String, Object> objects) throws JSONException {
+    public void sendSingle(String node, String type, HashMap<String, Object> objects) throws JSONException {
         final JSONObject object = new JSONObject(objects);
 
         object.put("type", type);
 
-        Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear", object.toString().getBytes());
+        Wearable.MessageApi.sendMessage(googleClient, node, "/wear", object.toString().getBytes());
     }
 }

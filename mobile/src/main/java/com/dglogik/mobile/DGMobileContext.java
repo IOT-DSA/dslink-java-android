@@ -10,7 +10,14 @@ import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
+
+import org.json.JSONObject;
+
+import java.util.List;
 
 public class DGMobileContext {
     public static final String TAG = "DGWear";
@@ -20,16 +27,30 @@ public class DGMobileContext {
     public final WearableSupport wearable;
     public final GoogleApiClient googleClient;
     public final Application link;
+    public boolean linkStarted = false;
+    public final RootNode rootNode;
 
     public DGMobileContext(final MainActivity mainActivity) {
         CONTEXT = this;
         this.mainActivity = mainActivity;
+        this.rootNode = new RootNode();
         this.wearable = new WearableSupport(this);
         this.googleClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(Bundle bundle) {
                         Log.i(TAG, "Google API Client Connected");
+
+                        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+                            @Override
+                            public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                                List<Node> nodes = getConnectedNodesResult.getNodes();
+
+                                for (Node node : nodes) {
+                                    Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear/init", null);
+                                }
+                            }
+                        });
                     }
 
                     @Override
@@ -53,22 +74,17 @@ public class DGMobileContext {
     }
 
     public void startLink() {
-        Runnable action = new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                link.addRootNode(new RootNode());
+                System.out.println("Starting Link");
 
+                linkStarted = true;
+
+                link.addRootNode(rootNode);
                 link.run(new String[0], false);
             }
-        };
-
-        Thread thread = new Thread(action);
-        thread.start();
+        }).start();
     }
 
     public Context getApplicationContext() {
