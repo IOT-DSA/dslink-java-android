@@ -34,7 +34,6 @@ public class DataValueNode extends ValuePoint {
 
     public void makeValue(DGValue value) {
         setValue(value);
-        System.out.println("Updating Value for "  + getName() + " to " + value);
     }
 
     public void update(Boolean value) {

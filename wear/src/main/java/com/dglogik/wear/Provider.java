@@ -1,5 +1,7 @@
 package com.dglogik.wear;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+
 import org.json.JSONException;
 
 import java.util.HashMap;
@@ -24,5 +26,9 @@ public abstract class Provider {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public GoogleApiClient googleClient() {
+        return MainActivity.INSTANCE.googleClient;
     }
 }

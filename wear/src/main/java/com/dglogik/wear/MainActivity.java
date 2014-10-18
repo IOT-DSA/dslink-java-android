@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 
+import com.dglogik.wear.providers.DeviceProvider;
+import com.dglogik.wear.providers.GyroscopeProvider;
+import com.dglogik.wear.providers.ScreenProvider;
 import com.dglogik.wear.providers.StepsProvider;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -56,6 +59,11 @@ public class MainActivity extends Activity {
         Wearable.MessageApi.addListener(googleClient, new RequestListener());
 
         providers.add(new StepsProvider());
+        providers.add(new DeviceProvider());
+        providers.add(new ScreenProvider());
+
+        /* TODO: Uncomment the following line when Gyroscope is ready */
+        //providers.add(new GyroscopeProvider());
 
         for (Provider provider : providers) {
             if (!provider.supported()) {
