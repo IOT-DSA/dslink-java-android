@@ -1,12 +1,61 @@
 apply plugin: 'com.android.application'
 
+group = 'com.dglogik'
+version = '1.0.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.7.1'
+    }
+}
+ext {
+    repos = [
+            releases: 'http://git.dglogik.com:8081/content/repositories/releases',
+            snapshots: 'http://git.dglogik.com:8081/content/repositories/snapshots'
+    ]
+
+    // Credentials can be optionally specified in ~/.gradle/gradle.properties
+    if (!project.hasProperty("nexusUsername"))
+        nexusUsername = System.console().readLine("\nUsername: ");
+
+    if (!project.hasProperty("nexusPassword"))
+        nexusPassword = System.console().readPassword("\nPassword: ").toString();
+}
+
+repositories {
+    jcenter()
+    maven {
+        url repos.releases
+        credentials {
+            username nexusUsername
+            password nexusPassword
+        }
+    }
+
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/jetty-snapshots/'
+    }
+
+    maven {
+        url repos.snapshots
+        credentials {
+            username nexusUsername
+            password nexusPassword
+        }
+    }
+}
+
 android {
     compileSdkVersion 20
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "com.dglogik.wear"
-        minSdkVersion 19
+        minSdkVersion 20
         targetSdkVersion 20
         versionCode 1
         versionName "1.0"
@@ -21,6 +70,9 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    wearApp project(':wear')
-    compile 'com.google.android.gms:play-services:+'
+    compile 'com.google.android.support:wearable:1.0.0'
+    compile 'com.google.android.gms:play-services:6.1.11'
+    compile 'com.dglogik:dslink:0.0.1-SNAPSHOT'
+    compile 'org.eclipse.jetty:jetty-server:9.3.0-SNAPSHOT'
+    compile 'org.eclipse.jetty:jetty-webapp:9.3.0-SNAPSHOT'
 }

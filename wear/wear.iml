@@ -81,25 +81,10 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 20 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="slf4j-simple-1.7.7" level="project" />
-    <orderEntry type="library" exported="" name="jetty-util-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="jetty-xml-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="jetty-servlet-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="jetty-webapp-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="jetty-server-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="jetty-io-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-20.0.0" level="project" />
-    <orderEntry type="library" exported="" name="dgapi-0.0.17" level="project" />
-    <orderEntry type="library" exported="" name="dslink-0.0.1-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="dgserver-0.0.18" level="project" />
     <orderEntry type="library" exported="" name="support-v4-20.0.0" level="project" />
     <orderEntry type="library" exported="" name="support-v13-20.0.0" level="project" />
-    <orderEntry type="library" exported="" name="jetty-http-9.2.3.v20140905" level="project" />
-    <orderEntry type="library" exported="" name="jetty-security-9.2.3.v20140905" level="project" />
     <orderEntry type="library" exported="" name="play-services-wearable-6.1.11" level="project" />
-    <orderEntry type="library" exported="" name="javax.servlet-api-3.1.0" level="project" />
-    <orderEntry type="library" exported="" name="dgutil-1.0.3" level="project" />
-    <orderEntry type="library" exported="" name="slf4j-api-1.7.7" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-20.0.0" level="project" />
     <orderEntry type="library" exported="" name="wearable-1.0.0" level="project" />
   </component>
 </module>
