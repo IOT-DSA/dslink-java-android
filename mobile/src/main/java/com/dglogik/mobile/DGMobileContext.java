@@ -29,8 +29,7 @@ import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.*;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
@@ -146,6 +145,7 @@ public class DGMobileContext {
 
             request.setFastestInterval(1000);
             request.setInterval(3000);
+            request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, new com.google.android.gms.location.LocationListener() {
                 @Override
@@ -171,8 +171,6 @@ public class DGMobileContext {
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
             final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-
-            boolean 
 
             if (batteryStatus != null) {
                 timer.scheduleAtFixedRate(new TimerTask() {
@@ -232,6 +230,7 @@ public class DGMobileContext {
 
                     builder.setContentTitle(args.get("title").toString());
                     builder.setContentText(args.get("content").toString());
+                    builder.setSmallIcon(R.drawable.ic_launcher);
 
                     Notification notification = builder.build();
 
@@ -265,9 +264,35 @@ public class DGMobileContext {
             node.addAction(createNotificationAction);
             node.addAction(destroyNotificationAction);
         }
+
+        // {
+        //     final BaseAction createGeofenceAction = new BaseAction("createGeofence") {
+        //         @Override
+        //         public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
+
+        //             double radius = args.get("radius").toDouble();
+        //             double latitude = args.get("latitude").toDouble();
+        //             double longitude = args.get("longitude").toDouble();
+
+        //             List<Geofence> geofences = new ArrayList<Geofence>();
+
+        //             Geofence.Builder builder = new Geofence.Builder();
+
+        //             builder.setCircularRegion(latitude, longitude, (float) radius);
+
+        //             builder.setRequestId(String.valueOf(geofenceId));
+
+        //             Geofence geofence = builder.build();
+
+        //             return new HashMap<String, DGValue>() {{
+        //             }};
+        //         }
+        //     };
+        // }
     }
 
     public int currentNotificationId = 0;
+    public int geofenceId = 0;
 
     public void startLink() {
         new Thread(new Runnable() {
