@@ -133,6 +133,9 @@ public class DGMobileContext {
 
     public final Timer timer = new Timer();
 
+    public double lastLatitude;
+    public double lastLongitude;
+
     public void setupCurrentDevice(DeviceNode node) {
 
         {
@@ -141,14 +144,21 @@ public class DGMobileContext {
 
             LocationRequest request = new LocationRequest();
 
-            request.setFastestInterval(250);
-            request.setInterval(1000);
+            request.setFastestInterval(1000);
+            request.setInterval(3000);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, new com.google.android.gms.location.LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    latitudeNode.update(location.getLatitude());
-                    longitudeNode.update(location.getLongitude());
+                    if (lastLatitude != location.getLatitude()) {
+                        latitudeNode.update(location.getLatitude());
+                        lastLatitude = location.getLatitude();
+                    }
+
+                    if (lastLongitude != location.getLongitude()) {
+                        longitudeNode.update(location.getLongitude());
+                        lastLongitude = location.getLatitude();
+                    }
                 }
             });
 
@@ -162,6 +172,8 @@ public class DGMobileContext {
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
             final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
+            boolean 
+
             if (batteryStatus != null) {
                 timer.scheduleAtFixedRate(new TimerTask() {
                     @Override
@@ -173,7 +185,7 @@ public class DGMobileContext {
                         boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
                         boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
 
-                        double percent = (level / (float) scale);
+                        double percent = (level / (float) scale) * 100;
 
                         batteryLevelNode.update(percent);
                         chargerConnectedNode.update(isChargerConnected);

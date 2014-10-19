@@ -7,6 +7,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Space;
+import android.widget.Toast;
 
 import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.R;
@@ -43,6 +45,7 @@ public class SettingsActivity extends Activity {
             @Override
             public void onClick(View view) {
                 startService(new Intent(getApplicationContext(), LinkService.class));
+                Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
                 stopButton.setEnabled(true);
                 startButton.setEnabled(false);
             }
@@ -52,6 +55,7 @@ public class SettingsActivity extends Activity {
             @Override
             public void onClick(View view) {
                 stopService(new Intent(getApplicationContext(), LinkService.class));
+                Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
                 stopButton.setEnabled(false);
                 startButton.setEnabled(true);
             }
@@ -68,6 +72,12 @@ public class SettingsActivity extends Activity {
 
         layout.addView(startButton);
         layout.addView(stopButton);
+
+        Space sep = new Space(getApplicationContext());
+
+        sep.setMinimumHeight(80);
+
+        layout.addView(sep);
     }
 
     public void syncButtons() {
