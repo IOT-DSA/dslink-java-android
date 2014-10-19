@@ -6,8 +6,9 @@ import com.dglogik.mobile.DGMobileContext;
 /**
  * Root node for the node API
  */
-public class RootNode extends BaseNode<DeviceNode> {
-    public RootNode() {
-        super("Android");
+public class DeviceNode extends BaseNode<DataValueNode> {
+
+    public DeviceNode(String name) {
+        super(name);
     }
 }

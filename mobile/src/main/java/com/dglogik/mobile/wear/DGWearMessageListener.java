@@ -3,7 +3,7 @@ package com.dglogik.mobile.wear;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.mobile.DGMobileContext;
-import com.dglogik.mobile.link.DataValueNode;
+import com.dglogik.mobile.link.*;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 
@@ -14,8 +14,11 @@ import org.json.JSONTokener;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.HashMap;
 
 public class DGWearMessageListener implements MessageApi.MessageListener {
+    private Map<String, DataValueNode> dataNodes = new HashMap<String, DataValueNode>();
+
     @Override
     public void onMessageReceived(MessageEvent event) {
         try {
@@ -34,8 +37,13 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
             //System.out.println(data.toString(2));
 
             String type = data.getString("type");
+            String device = data.getString("device");
+
+            System.out.println("Message from " + device);
 
             if (type.equals("points")) {
+                DeviceNode deviceNode = new DeviceNode(device);
+                DGMobileContext.CONTEXT.rootNode.addChild(deviceNode);
                 JSONObject points = data.getJSONObject("points");
 
                 Iterator<String> names = points.keys();
@@ -72,7 +80,11 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 throw new IllegalArgumentException();
                         }
 
-                        DGMobileContext.CONTEXT.rootNode.addChild(new DataValueNode(id, realType));
+                        DataValueNode node = new DataValueNode(id, realType);
+
+                        dataNodes.put(device + "@" + id, node);
+
+                        deviceNode.addChild(node);
                     }
                 }
 
@@ -96,7 +108,14 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                         id = pointName + "_" + name;
                     }
 
-                    DGMobileContext.CONTEXT.rootNode.getChild(id).update(values.get(name));
+                    DataValueNode node = dataNodes.get(device + "@" + id);
+
+                    if (node == null) {
+                        System.out.println("ERROR: Node not found: " + device + "@" + id);
+                        continue;
+                    }
+
+                    node.update(values.get(name));
                 }
             }
         } catch (JSONException e) {

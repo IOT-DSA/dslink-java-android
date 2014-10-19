@@ -9,6 +9,7 @@ public class MainActivity extends Activity {
         super.onCreate(bundle);
 
         DGMobileContext context = new DGMobileContext(this);
-        context.initialize();
+
+        context.onCreate();
     }
 }
