@@ -14,7 +14,7 @@ buildscript {
 }
 ext {
     repos = [
-            releases: 'http://git.dglogik.com:8081/content/repositories/releases',
+            releases : 'http://git.dglogik.com:8081/content/repositories/releases',
             snapshots: 'http://git.dglogik.com:8081/content/repositories/snapshots'
     ]
 
@@ -75,4 +75,5 @@ dependencies {
     compile 'com.dglogik:dslink:0.0.1-SNAPSHOT'
     compile 'org.eclipse.jetty:jetty-server:9.3.0-SNAPSHOT'
     compile 'org.eclipse.jetty:jetty-webapp:9.3.0-SNAPSHOT'
+    compile 'com.android.support:support-v4:21.0.0'
 }
