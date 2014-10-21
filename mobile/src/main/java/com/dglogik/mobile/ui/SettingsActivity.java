@@ -3,11 +3,9 @@ package com.dglogik.mobile.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.Space;
 import android.widget.Toast;
 
 import com.dglogik.mobile.LinkService;
@@ -22,6 +20,7 @@ public class SettingsActivity extends Activity {
     private Button startButton;
     private Button stopButton;
     private Timer timer;
+    private TimerTask syncButtonsTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,54 +29,29 @@ public class SettingsActivity extends Activity {
         timer = new Timer();
         setContentView(R.layout.settings);
 
-        LinearLayout layout = (LinearLayout) findViewById(R.id.settings);
-
-        startButton = new Button(getApplicationContext());
-        stopButton = new Button(getApplicationContext());
-
-        startButton.setGravity(Gravity.CENTER_HORIZONTAL);
-        stopButton.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        startButton.setText("Start");
-        stopButton.setText("Stop");
-
-        startButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startService(new Intent(getApplicationContext(), LinkService.class));
-                Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
-                stopButton.setEnabled(true);
-                startButton.setEnabled(false);
-            }
-        });
-
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stopService(new Intent(getApplicationContext(), LinkService.class));
-                Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
-                stopButton.setEnabled(false);
-                startButton.setEnabled(true);
-            }
-        });
+        startButton = (Button) findViewById(R.id.start_button);
+        stopButton = (Button) findViewById(R.id.stop_button);
 
         syncButtons();
 
-        timer.scheduleAtFixedRate(new TimerTask() {
+        syncButtonsTask = new TimerTask() {
             @Override
             public void run() {
                 syncButtons();
             }
-        }, 1000, 2000);
+        };
 
-        layout.addView(startButton);
-        layout.addView(stopButton);
+        timer.scheduleAtFixedRate(syncButtonsTask, 1000, 2000);
+    }
 
-        Space sep = new Space(getApplicationContext());
+    @Override
+    public void onResume() {
+        timer.scheduleAtFixedRate(syncButtonsTask, 1000, 2000);
+    }
 
-        sep.setMinimumHeight(80);
-
-        layout.addView(sep);
+    @Override
+    public void onPause() {
+        syncButtonsTask.cancel();
     }
 
     public void syncButtons() {
@@ -93,5 +67,19 @@ public class SettingsActivity extends Activity {
     @Override
     public void onDestroy() {
         timer.cancel();
+    }
+
+    public void onStartButtonClicked(View view) {
+        startService(new Intent(getApplicationContext(), LinkService.class));
+        Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
+        stopButton.setEnabled(true);
+        startButton.setEnabled(false);
+    }
+
+    public void onStopButtonClicked(View view) {
+        stopService(new Intent(getApplicationContext(), LinkService.class));
+        Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
+        stopButton.setEnabled(false);
+        startButton.setEnabled(true);
     }
 }

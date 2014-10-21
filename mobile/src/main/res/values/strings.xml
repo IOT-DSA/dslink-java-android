@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DGMobile</string>
-    <string name="start_button">New Button</string>
+    <string name="start_button">Start</string>
+    <string name="stop_button">Stop</string>
 </resources>
