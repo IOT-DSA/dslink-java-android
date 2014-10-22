@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
-public class StartReceiver extends BroadcastReceiver {
+public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         SharedPreferences settings = context.getSharedPreferences("settings", Context.MODE_PRIVATE);

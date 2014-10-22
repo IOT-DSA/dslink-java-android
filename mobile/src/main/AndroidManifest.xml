@@ -13,7 +13,7 @@
         <service android:name=".LinkService" />
 
         <receiver
-            android:name=".StartReceiver"
+            android:name=".BootReceiver"
             android:enabled="true"
             android:exported="false" >
             <intent-filter>

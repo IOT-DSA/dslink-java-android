@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
@@ -29,7 +30,9 @@ import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.*;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
@@ -56,12 +59,14 @@ public class DGMobileContext {
     public final SensorManager sensorManager;
     public final LocationManager locationManager;
     public final Client client;
+    public final SharedPreferences preferences;
 
     public DGMobileContext(final LinkService service) {
         CONTEXT = this;
         this.service = service;
         this.rootNode = new RootNode();
         this.wearable = new WearableSupport(this);
+        this.preferences = service.getSharedPreferences("settings", Context.MODE_PRIVATE);
         this.googleClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
@@ -123,10 +128,14 @@ public class DGMobileContext {
     }
 
     public void initialize() {
-        wearable.initialize();
+        if (preferences.getBoolean("feature.wearable", true)) {
+            wearable.initialize();
+        }
+
         DeviceNode device = new DeviceNode(Build.MODEL);
         setupCurrentDevice(device);
         rootNode.addChild(device);
+
         startLink();
     }
 
@@ -136,8 +145,9 @@ public class DGMobileContext {
     public double lastLongitude;
 
     public void setupCurrentDevice(DeviceNode node) {
+        final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
 
-        {
+        if (preferences.getBoolean("providers.location", true)) {
             final DataValueNode latitudeNode = new DataValueNode("Location_Latitude", BasicMetaData.SIMPLE_INT);
             final DataValueNode longitudeNode = new DataValueNode("Location_Longitude", BasicMetaData.SIMPLE_INT);
 
@@ -166,7 +176,7 @@ public class DGMobileContext {
             node.addChild(longitudeNode);
         }
 
-        {
+        if (preferences.getBoolean("providers.battery", true)) {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
@@ -197,9 +207,8 @@ public class DGMobileContext {
             }
         }
 
-        {
+        if (preferences.getBoolean("providers.screen", true)) {
             final DataValueNode screenOn = new DataValueNode("Screen_On", BasicMetaData.SIMPLE_BOOL);
-            final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
 
             displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
                 @Override
@@ -220,7 +229,7 @@ public class DGMobileContext {
             node.addChild(screenOn);
         }
 
-        {
+        if (preferences.getBoolean("actions.notifications", true)) {
             final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
 
             final BaseAction createNotificationAction = new BaseAction("createNotification") {
@@ -264,35 +273,9 @@ public class DGMobileContext {
             node.addAction(createNotificationAction);
             node.addAction(destroyNotificationAction);
         }
-
-        // {
-        //     final BaseAction createGeofenceAction = new BaseAction("createGeofence") {
-        //         @Override
-        //         public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
-
-        //             double radius = args.get("radius").toDouble();
-        //             double latitude = args.get("latitude").toDouble();
-        //             double longitude = args.get("longitude").toDouble();
-
-        //             List<Geofence> geofences = new ArrayList<Geofence>();
-
-        //             Geofence.Builder builder = new Geofence.Builder();
-
-        //             builder.setCircularRegion(latitude, longitude, (float) radius);
-
-        //             builder.setRequestId(String.valueOf(geofenceId));
-
-        //             Geofence geofence = builder.build();
-
-        //             return new HashMap<String, DGValue>() {{
-        //             }};
-        //         }
-        //     };
-        // }
     }
 
     public int currentNotificationId = 0;
-    public int geofenceId = 0;
 
     public void startLink() {
         new Thread(new Runnable() {
