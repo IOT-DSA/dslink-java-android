@@ -54,7 +54,7 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "com.dglogik.wear"
+        applicationId "com.dglogik.mobile"
         minSdkVersion 20
         targetSdkVersion 20
         versionCode 1
