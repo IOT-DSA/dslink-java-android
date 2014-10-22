@@ -4,8 +4,9 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:id="@+id/settings"
     android:orientation="vertical"
-    tools:context=".ui.SettingsActivity">
-    
+    tools:context=".ui.SettingsActivity"
+    android:weightSum="1">
+
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -21,5 +22,5 @@
         android:gravity="center_horizontal"
         android:id="@+id/stop_button"
         android:onClick="onStopButtonClicked"></Button>
-    
+
 </LinearLayout>
