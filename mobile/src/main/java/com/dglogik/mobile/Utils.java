@@ -16,4 +16,10 @@ public class Utils {
 
         return false;
     }
+
+    public static Thread startThread(Runnable action) {
+        Thread thread = new Thread(action);
+        thread.start();
+        return thread;
+    }
 }

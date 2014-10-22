@@ -147,7 +147,7 @@ public class DGMobileContext {
             request.setInterval(3000);
             request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, new com.google.android.gms.location.LocationListener() {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, new LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
                     if (lastLatitude != location.getLatitude()) {
