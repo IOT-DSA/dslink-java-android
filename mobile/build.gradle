@@ -76,4 +76,5 @@ dependencies {
     compile 'org.eclipse.jetty:jetty-server:9.3.0-SNAPSHOT'
     compile 'org.eclipse.jetty:jetty-webapp:9.3.0-SNAPSHOT'
     compile 'com.android.support:support-v4:21.0.0'
+    compile 'org.jetbrains:annotations:13.0'
 }
