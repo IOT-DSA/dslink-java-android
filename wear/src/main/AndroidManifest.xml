@@ -3,6 +3,7 @@
     package="com.dglogik.wear" >
 
     <uses-feature android:name="android.hardware.type.watch" />
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
     
     <application
         android:allowBackup="true"
@@ -12,8 +13,8 @@
 
         <activity android:exported="true" android:name=".MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" >
-                </action>
+                <action android:name="android.intent.action.MAIN"></action>
+                <category android:name="android.intent.category.LAUNCHER"></category>
             </intent-filter>
         </activity>
 

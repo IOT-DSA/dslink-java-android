@@ -6,6 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
@@ -273,6 +276,42 @@ public class DGMobileContext {
             node.addAction(createNotificationAction);
             node.addAction(destroyNotificationAction);
         }
+
+        if (enableSensor(Sensor.TYPE_STEP_COUNTER, "steps")) {
+            final DataValueNode stepsNode = new DataValueNode("Steps", BasicMetaData.SIMPLE_INT);
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    stepsNode.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_HEART_RATE, "heart_rate")) {
+            final DataValueNode stepsNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    stepsNode.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    public boolean enableSensor(int type, String name) {
+        return !sensorManager.getSensorList(type).isEmpty() && preferences.getBoolean("providers.sensors." + name, true);
     }
 
     public int currentNotificationId = 0;

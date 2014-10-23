@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import com.dglogik.wear.providers.DeviceProvider;
 import com.dglogik.wear.providers.GyroscopeProvider;
+import com.dglogik.wear.providers.HealthProvider;
 import com.dglogik.wear.providers.ScreenProvider;
 import com.dglogik.wear.providers.StepsProvider;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,6 +36,8 @@ public class MainActivity extends Activity {
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
+        Utils.printSensorList(sensorManager);
+
         googleClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
@@ -61,6 +64,7 @@ public class MainActivity extends Activity {
         providers.add(new StepsProvider());
         providers.add(new DeviceProvider());
         providers.add(new ScreenProvider());
+        providers.add(new HealthProvider());
 
         /* TODO: Uncomment the following line when Gyroscope is ready */
         //providers.add(new GyroscopeProvider());
