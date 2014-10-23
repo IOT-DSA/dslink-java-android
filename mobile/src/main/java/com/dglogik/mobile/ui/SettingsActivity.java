@@ -39,17 +39,19 @@ public class SettingsActivity extends Activity {
                 syncButtons();
             }
         };
-
-        timer.scheduleAtFixedRate(syncButtonsTask, 1000, 2000);
     }
 
     @Override
     public void onResume() {
+        super.onResume();
+
         timer.scheduleAtFixedRate(syncButtonsTask, 1000, 2000);
     }
 
     @Override
     public void onPause() {
+        super.onPause();
+
         syncButtonsTask.cancel();
     }
 

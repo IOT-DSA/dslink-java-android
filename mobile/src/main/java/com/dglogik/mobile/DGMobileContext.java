@@ -17,6 +17,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Display;
 
@@ -41,6 +42,7 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import org.eclipse.jetty.server.Server;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -50,21 +52,28 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class DGMobileContext {
-    public static final String TAG = "DGWear";
+    public static final String TAG = "DGMobile";
     public static DGMobileContext CONTEXT;
 
+    @NonNull
     public final LinkService service;
+    @NonNull
     public final WearableSupport wearable;
     public final GoogleApiClient googleClient;
+    @NonNull
     public final Application link;
     public boolean linkStarted = false;
+    @NonNull
     public final RootNode rootNode;
+    @NonNull
     public final SensorManager sensorManager;
+    @NonNull
     public final LocationManager locationManager;
+    @NonNull
     public final Client client;
     public final SharedPreferences preferences;
 
-    public DGMobileContext(final LinkService service) {
+    public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
         this.service = service;
         this.rootNode = new RootNode();
@@ -80,7 +89,7 @@ public class DGMobileContext {
 
                         Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
                             @Override
-                            public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                            public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
                                 List<Node> nodes = getConnectedNodesResult.getNodes();
 
                                 for (Node node : nodes) {
@@ -147,7 +156,7 @@ public class DGMobileContext {
     public double lastLatitude;
     public double lastLongitude;
 
-    public void setupCurrentDevice(DeviceNode node) {
+    public void setupCurrentDevice(@NonNull DeviceNode node) {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
 
         if (preferences.getBoolean("providers.location", true)) {
@@ -162,7 +171,7 @@ public class DGMobileContext {
 
             LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, new LocationListener() {
                 @Override
-                public void onLocationChanged(Location location) {
+                public void onLocationChanged(@NonNull Location location) {
                     if (lastLatitude != location.getLatitude()) {
                         latitudeNode.update(location.getLatitude());
                         lastLatitude = location.getLatitude();
@@ -236,8 +245,9 @@ public class DGMobileContext {
             final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
 
             final BaseAction createNotificationAction = new BaseAction("createNotification") {
+                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     Notification.Builder builder = new Notification.Builder(getApplicationContext());
 
                     builder.setContentTitle(args.get("title").toString());
@@ -261,8 +271,9 @@ public class DGMobileContext {
             createNotificationAction.addResult("id", BasicMetaData.SIMPLE_INT);
 
             final BaseAction destroyNotificationAction = new BaseAction("destroyNotification") {
+                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     int id = args.get("id").toInt();
 
                     notificationManager.cancel(id);
@@ -283,7 +294,7 @@ public class DGMobileContext {
 
             sensorManager.registerListener(new SensorEventListener() {
                 @Override
-                public void onSensorChanged(SensorEvent event) {
+                public void onSensorChanged(@NonNull SensorEvent event) {
                     stepsNode.update((double) event.values[0]);
                 }
 
@@ -299,7 +310,7 @@ public class DGMobileContext {
 
             sensorManager.registerListener(new SensorEventListener() {
                 @Override
-                public void onSensorChanged(SensorEvent event) {
+                public void onSensorChanged(@NonNull SensorEvent event) {
                     stepsNode.update((double) event.values[0]);
                 }
 
@@ -320,7 +331,7 @@ public class DGMobileContext {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                System.out.println("Starting Link");
+                log("Starting Link");
 
                 linkStarted = true;
 
@@ -341,5 +352,9 @@ public class DGMobileContext {
     public void destroy() {
         googleClient.disconnect();
         client.stop();
+    }
+
+    public void log(String message) {
+        Log.i(TAG, message);
     }
 }

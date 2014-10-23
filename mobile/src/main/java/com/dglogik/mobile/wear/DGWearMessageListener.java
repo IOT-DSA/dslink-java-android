@@ -1,5 +1,7 @@
 package com.dglogik.mobile.wear;
 
+import android.support.annotation.NonNull;
+
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.mobile.DGMobileContext;
@@ -17,10 +19,11 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class DGWearMessageListener implements MessageApi.MessageListener {
+    @NonNull
     private Map<String, DataValueNode> dataNodes = new HashMap<String, DataValueNode>();
 
     @Override
-    public void onMessageReceived(MessageEvent event) {
+    public void onMessageReceived(@NonNull MessageEvent event) {
         try {
             String path = event.getPath();
 
@@ -34,12 +37,10 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
             JSONObject data = new JSONObject(new JSONTokener(content));
 
-            //System.out.println(data.toString(2));
-
             String type = data.getString("type");
             String device = data.getString("device");
 
-            System.out.println("Message from " + device);
+            DGMobileContext.CONTEXT.log("Message from " + device);
 
             if (type.equals("points")) {
                 DeviceNode deviceNode = new DeviceNode(device);
@@ -111,7 +112,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                     DataValueNode node = dataNodes.get(device + "@" + id);
 
                     if (node == null) {
-                        System.out.println("ERROR: Node not found: " + device + "@" + id);
+                        DGMobileContext.CONTEXT.log("ERROR: Node not found: " + device + "@" + id);
                         continue;
                     }
 
