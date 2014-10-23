@@ -42,7 +42,6 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import org.eclipse.jetty.server.Server;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -288,7 +287,7 @@ public class DGMobileContext {
             node.addAction(destroyNotificationAction);
         }
 
-        if (enableSensor(Sensor.TYPE_STEP_COUNTER, "steps")) {
+        if (enableSensor(Sensor.TYPE_STEP_COUNTER)) {
             final DataValueNode stepsNode = new DataValueNode("Steps", BasicMetaData.SIMPLE_INT);
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
 
@@ -304,7 +303,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_HEART_RATE, "heart_rate")) {
+        if (enableSensor(Sensor.TYPE_HEART_RATE)) {
             final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
 
@@ -320,7 +319,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_AMBIENT_TEMPERATURE, "ambient_temp")) {
+        if (enableSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)) {
             final DataValueNode tempCNode = new DataValueNode("Ambient_Temperature_Celsius", BasicMetaData.SIMPLE_INT);
             final DataValueNode tempFNode = new DataValueNode("Ambient_Temperature_Fahrenheit", BasicMetaData.SIMPLE_INT);
 
@@ -341,7 +340,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_LIGHT, "light")) {
+        if (enableSensor(Sensor.TYPE_LIGHT)) {
             final DataValueNode lux = new DataValueNode("Light_Level", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
@@ -358,7 +357,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_PRESSURE, "air_pressure")) {
+        if (enableSensor(Sensor.TYPE_PRESSURE)) {
             final DataValueNode pressure = new DataValueNode("Air_Pressure", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
@@ -375,7 +374,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_RELATIVE_HUMIDITY, "humidity")) {
+        if (enableSensor(Sensor.TYPE_RELATIVE_HUMIDITY)) {
             final DataValueNode humidity = new DataValueNode("Humidity", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
@@ -392,7 +391,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_PROXIMITY, "proximity")) {
+        if (enableSensor(Sensor.TYPE_PROXIMITY)) {
             final DataValueNode proximity = new DataValueNode("Proximity", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
@@ -409,7 +408,7 @@ public class DGMobileContext {
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        if (enableSensor(Sensor.TYPE_GYROSCOPE, "gyroscope")) {
+        if (enableSensor(Sensor.TYPE_GYROSCOPE)) {
             final DataValueNode x = new DataValueNode("Gyroscope_X", BasicMetaData.SIMPLE_INT);
             final DataValueNode y = new DataValueNode("Gyroscope_Y", BasicMetaData.SIMPLE_INT);
             final DataValueNode z = new DataValueNode("Gyroscope_Z", BasicMetaData.SIMPLE_INT);
@@ -432,8 +431,8 @@ public class DGMobileContext {
         }
     }
 
-    public boolean enableSensor(int type, String name) {
-        return !sensorManager.getSensorList(type).isEmpty() && preferences.getBoolean("providers.sensors." + name, true);
+    public boolean enableSensor(int type) {
+        return !sensorManager.getSensorList(type).isEmpty();
     }
 
     public int currentNotificationId = 0;
