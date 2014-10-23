@@ -305,13 +305,124 @@ public class DGMobileContext {
         }
 
         if (enableSensor(Sensor.TYPE_HEART_RATE, "heart_rate")) {
-            final DataValueNode stepsNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+            final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
 
             sensorManager.registerListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
-                    stepsNode.update((double) event.values[0]);
+                    rateNode.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_AMBIENT_TEMPERATURE, "ambient_temp")) {
+            final DataValueNode tempCNode = new DataValueNode("Ambient_Temperature_Celsius", BasicMetaData.SIMPLE_INT);
+            final DataValueNode tempFNode = new DataValueNode("Ambient_Temperature_Fahrenheit", BasicMetaData.SIMPLE_INT);
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    double celsius = (double) event.values[0];
+                    double fahrenheit = 32 + (celsius * 9 / 5);
+                    tempCNode.update(celsius);
+                    tempFNode.update(fahrenheit);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_LIGHT, "light")) {
+            final DataValueNode lux = new DataValueNode("Light_Level", BasicMetaData.SIMPLE_INT);
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    lux.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_PRESSURE, "air_pressure")) {
+            final DataValueNode pressure = new DataValueNode("Air_Pressure", BasicMetaData.SIMPLE_INT);
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    pressure.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_RELATIVE_HUMIDITY, "humidity")) {
+            final DataValueNode humidity = new DataValueNode("Humidity", BasicMetaData.SIMPLE_INT);
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    humidity.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_PROXIMITY, "proximity")) {
+            final DataValueNode proximity = new DataValueNode("Proximity", BasicMetaData.SIMPLE_INT);
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    proximity.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        if (enableSensor(Sensor.TYPE_GYROSCOPE, "gyroscope")) {
+            final DataValueNode x = new DataValueNode("Gyroscope_X", BasicMetaData.SIMPLE_INT);
+            final DataValueNode y = new DataValueNode("Gyroscope_Y", BasicMetaData.SIMPLE_INT);
+            final DataValueNode z = new DataValueNode("Gyroscope_Z", BasicMetaData.SIMPLE_INT);
+
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    x.update((double) event.values[0]);
+                    y.update((double) event.values[1]);
+                    z.update((double) event.values[2]);
                 }
 
                 @Override
