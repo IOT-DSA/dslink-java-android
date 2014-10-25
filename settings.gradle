@@ -1,1 +1,2 @@
 include ':mobile', ':wear'
+rootProject.name = "DGMobile"
