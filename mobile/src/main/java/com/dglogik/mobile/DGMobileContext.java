@@ -22,7 +22,6 @@ import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 
@@ -46,6 +45,8 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -256,9 +257,9 @@ public class DGMobileContext {
             node.addAction(destroyNotificationAction);
         }
 
-        if (enableSensor(Sensor.TYPE_STEP_COUNTER)) {
+        if (enableSensor(19)) {
             final DataValueNode stepsNode = new DataValueNode("Steps", BasicMetaData.SIMPLE_INT);
-            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+            Sensor sensor = sensorManager.getDefaultSensor(19);
 
             sensorManager.registerListener(new SensorEventListener() {
                 @Override
@@ -510,11 +511,11 @@ public class DGMobileContext {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.CUR_DEVELOPMENT)
+    @TargetApi(20)
     private void setupHeartRateMonitor(DeviceNode node) {
-        if (enableSensor(Sensor.TYPE_HEART_RATE)) {
+        if (enableSensor(21)) {
             final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
-            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+            Sensor sensor = sensorManager.getDefaultSensor(21);
 
             sensorManager.registerListener(new SensorEventListener() {
                 @Override
@@ -530,7 +531,7 @@ public class DGMobileContext {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.CUR_DEVELOPMENT)
+    @TargetApi(20)
     private void setupScreenProvider(DeviceNode node) {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
         final DataValueNode screenOn = new DataValueNode("Screen_On", BasicMetaData.SIMPLE_BOOL);
@@ -546,8 +547,17 @@ public class DGMobileContext {
 
             @Override
             public void onDisplayChanged(int i) {
-                boolean on = displayManager.getDisplay(i).getState() == Display.STATE_ON;
-                screenOn.update(on);
+                Display display = displayManager.getDisplay(i);
+                try {
+                    Method method = display.getClass().getMethod("getState");
+                    boolean on = (Boolean) method.invoke(display);
+                    screenOn.update(on);
+                } catch (NoSuchMethodException ignored) {
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
             }
         }, new Handler());
 
