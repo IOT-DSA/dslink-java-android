@@ -1,5 +1,6 @@
 package com.dglogik.mobile;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -17,7 +18,11 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.RecognitionListener;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 
@@ -41,9 +46,7 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import org.eclipse.jetty.server.Server;
-
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,19 +122,7 @@ public class DGMobileContext {
         this.client = new Client(false) {
             @Override
             protected void onStop() {
-                try {
-                    Field field = link.getClass().getDeclaredField("server");
-                    Server server = (Server) field.get(link);
-                    if (server != null) {
-                        server.stop();
-                    }
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                link.stop();
             }
         };
 
@@ -139,9 +130,7 @@ public class DGMobileContext {
     }
 
     public void initialize() {
-        if (preferences.getBoolean("feature.wearable", true)) {
-            wearable.initialize();
-        }
+        wearable.initialize();
 
         DeviceNode device = new DeviceNode(Build.MODEL);
         setupCurrentDevice(device);
@@ -156,8 +145,6 @@ public class DGMobileContext {
     public double lastLongitude;
 
     public void setupCurrentDevice(@NonNull DeviceNode node) {
-        final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
-
         if (preferences.getBoolean("providers.location", true)) {
             final DataValueNode latitudeNode = new DataValueNode("Location_Latitude", BasicMetaData.SIMPLE_INT);
             final DataValueNode longitudeNode = new DataValueNode("Location_Longitude", BasicMetaData.SIMPLE_INT);
@@ -218,26 +205,8 @@ public class DGMobileContext {
             }
         }
 
-        if (preferences.getBoolean("providers.screen", true)) {
-            final DataValueNode screenOn = new DataValueNode("Screen_On", BasicMetaData.SIMPLE_BOOL);
-
-            displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
-                @Override
-                public void onDisplayAdded(int i) {
-                }
-
-                @Override
-                public void onDisplayRemoved(int i) {
-                }
-
-                @Override
-                public void onDisplayChanged(int i) {
-                    boolean on = displayManager.getDisplay(i).getState() == Display.STATE_ON;
-                    screenOn.update(on);
-                }
-            }, new Handler());
-
-            node.addChild(screenOn);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUR_DEVELOPMENT && preferences.getBoolean("providers.screen", true)) {
+            setupScreenProvider(node);
         }
 
         if (preferences.getBoolean("actions.notifications", true)) {
@@ -301,22 +270,11 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(stepsNode);
         }
 
-        if (enableSensor(Sensor.TYPE_HEART_RATE)) {
-            final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
-            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
-
-            sensorManager.registerListener(new SensorEventListener() {
-                @Override
-                public void onSensorChanged(@NonNull SensorEvent event) {
-                    rateNode.update((double) event.values[0]);
-                }
-
-                @Override
-                public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                }
-            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CUR_DEVELOPMENT) {
+            setupHeartRateMonitor(node);
         }
 
         if (enableSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)) {
@@ -338,6 +296,8 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(tempCNode);
+            node.addChild(tempFNode);
         }
 
         if (enableSensor(Sensor.TYPE_LIGHT)) {
@@ -355,6 +315,7 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(lux);
         }
 
         if (enableSensor(Sensor.TYPE_PRESSURE)) {
@@ -372,6 +333,7 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(pressure);
         }
 
         if (enableSensor(Sensor.TYPE_RELATIVE_HUMIDITY)) {
@@ -389,6 +351,7 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(humidity);
         }
 
         if (enableSensor(Sensor.TYPE_PROXIMITY)) {
@@ -406,6 +369,7 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(proximity);
         }
 
         if (enableSensor(Sensor.TYPE_GYROSCOPE)) {
@@ -429,6 +393,165 @@ public class DGMobileContext {
                 }
             }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         }
+
+        if (preferences.getBoolean("actions.speak", true)) {
+            final TextToSpeech speech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                }
+            });
+
+            final BaseAction speakAction = new BaseAction("Speak") {
+                @SuppressWarnings("deprecation")
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    speech.speak(args.get("text").toString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            speakAction.addParam("text", BasicMetaData.SIMPLE_STRING);
+
+            node.addAction(speakAction);
+        }
+
+        if (preferences.getBoolean("providers.speech", true)) {
+            final SpeechRecognizer recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
+            final BaseAction startRecognizerAction = new BaseAction("StartSpeechRecognition") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    recognizer.startListening(new Intent());
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction stopRecognizerAction = new BaseAction("StopSpeechRecognition") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    recognizer.stopListening();
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final DataValueNode lastSpeechNode = new DataValueNode("Recognized_Speech", BasicMetaData.SIMPLE_STRING);
+
+            recognizer.setRecognitionListener(new RecognitionListener() {
+                @Override
+                public void onReadyForSpeech(Bundle params) {
+                }
+
+                @Override
+                public void onBeginningOfSpeech() {
+                    log("Beginning of Speech");
+                }
+
+                @Override
+                public void onRmsChanged(float rmsdB) {
+
+                }
+
+                @Override
+                public void onBufferReceived(byte[] buffer) {
+
+                }
+
+                @Override
+                public void onEndOfSpeech() {
+                    log("End of Speech");
+                }
+
+                @Override
+                public void onError(int error) {
+                    log("Speech Error");
+                }
+
+                @Override
+                public void onResults(Bundle results) {
+                    log("Speech Results");
+                    List<Float> scores = new ArrayList<Float>();
+                    List<String> possibles = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    {
+                        float[] sc = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+                        for (float score : sc) {
+                            scores.add(score);
+                        }
+                    }
+                    int highestScore = 0;
+                    for (String possible : possibles) {
+                        int index = possibles.indexOf(possible);
+                        float lastHighest = scores.get(highestScore);
+                        if (scores.get(index) > lastHighest) {
+                            highestScore = index;
+                        }
+                    }
+
+                    String value = possibles.get(highestScore);
+                    lastSpeechNode.update(value);
+                    recognizer.stopListening();
+                }
+
+                @Override
+                public void onPartialResults(Bundle partialResults) {
+                    log("Partial Results");
+                }
+
+                @Override
+                public void onEvent(int eventType, Bundle params) {
+
+                }
+            });
+
+            node.addAction(startRecognizerAction);
+            node.addAction(stopRecognizerAction);
+            node.addChild(lastSpeechNode);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.CUR_DEVELOPMENT)
+    private void setupHeartRateMonitor(DeviceNode node) {
+        if (enableSensor(Sensor.TYPE_HEART_RATE)) {
+            final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
+
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    rateNode.update((double) event.values[0]);
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            node.addChild(rateNode);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.CUR_DEVELOPMENT)
+    private void setupScreenProvider(DeviceNode node) {
+        final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
+        final DataValueNode screenOn = new DataValueNode("Screen_On", BasicMetaData.SIMPLE_BOOL);
+
+        displayManager.registerDisplayListener(new DisplayManager.DisplayListener() {
+            @Override
+            public void onDisplayAdded(int i) {
+            }
+
+            @Override
+            public void onDisplayRemoved(int i) {
+            }
+
+            @Override
+            public void onDisplayChanged(int i) {
+                boolean on = displayManager.getDisplay(i).getState() == Display.STATE_ON;
+                screenOn.update(on);
+            }
+        }, new Handler());
+
+        node.addChild(screenOn);
     }
 
     public boolean enableSensor(int type) {

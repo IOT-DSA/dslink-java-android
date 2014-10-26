@@ -79,7 +79,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
-    <orderEntry type="jdk" jdkName="Android API 21 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="jetty-xml-9.3.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="jetty-security-9.3.0-SNAPSHOT" level="project" />
@@ -92,7 +92,6 @@
     <orderEntry type="library" exported="" name="dgapi-0.0.17" level="project" />
     <orderEntry type="library" exported="" name="dslink-0.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="dgserver-0.0.18" level="project" />
-    <orderEntry type="library" exported="" name="support-v13-20.0.0" level="project" />
     <orderEntry type="library" exported="" name="jetty-http-9.3.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="jetty-webapp-9.3.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="javax.servlet-api-3.1.0" level="project" />
@@ -101,7 +100,6 @@
     <orderEntry type="library" exported="" name="dgutil-1.0.3" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-21.0.0" level="project" />
     <orderEntry type="library" exported="" name="slf4j-api-1.7.7" level="project" />
-    <orderEntry type="library" exported="" name="wearable-1.0.0" level="project" />
   </component>
 </module>
 
