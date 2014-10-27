@@ -13,8 +13,8 @@ allprojects {
     }
 }
 
-task dist(type: Copy) {
-	dependsOn "mobile:assembleRelease"
+task dist(type: Copy, description: "Builds DGMobile", group: "build") {
+    dependsOn "mobile:assembleRelease"
     from 'mobile/build/outputs/apk/mobile-release.apk'
     into 'build/apk'
 
