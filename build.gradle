@@ -1,3 +1,5 @@
+defaultTasks "dist"
+
 buildscript {
     repositories {
         jcenter()
@@ -11,12 +13,37 @@ allprojects {
     repositories {
         jcenter()
     }
+
+    tasks.withType(JavaCompile) {
+        options.incremental = true
+    }
 }
 
-task dist(type: Copy, description: "Builds DGMobile", group: "build") {
-    dependsOn "mobile:assembleRelease"
+project.ext.preDexLibs = !project.hasProperty('disablePreDex')
+
+subprojects {
+    project.plugins.whenPluginAdded { plugin ->
+        if ("com.android.build.gradle.AppPlugin".equals(plugin.class.name)) {
+            project.android.dexOptions.preDexLibraries = rootProject.ext.preDexLibs
+            project.android {
+                lintOptions {
+                    disable "InvalidPackage", "IconColors", "OldTargetApi"
+                    checkReleaseBuilds true
+                }
+            }
+        } else if ("com.android.build.gradle.LibraryPlugin".equals(plugin.class.name)) {
+            project.android.dexOptions.preDexLibraries = rootProject.ext.preDexLibs
+        }
+    }
+}
+
+task distCopyApk(type: Copy) {
+    dependsOn "mobile:lint", "mobile:assembleRelease"
     from 'mobile/build/outputs/apk/mobile-release.apk'
     into 'build/apk'
-
     rename "mobile-release.apk", "DGMobile.apk"
+}
+
+task dist(description: "Builds DGMobile", group: "build") {
+    dependsOn "distCopyApk"
 }
