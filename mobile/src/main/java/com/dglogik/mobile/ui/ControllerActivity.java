@@ -3,6 +3,9 @@ package com.dglogik.mobile.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -47,6 +50,39 @@ public class ControllerActivity extends Activity {
         };
 
         timer.scheduleAtFixedRate(syncTask, 0, 2000);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.controller_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                openSettings();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void openSettings() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), SettingsActivity.class);
+        startActivityForResult(intent, 50);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 50) { // Settings Activity
+            onSettingsClosed();
+        }
+    }
+
+    private void onSettingsClosed() {
     }
 
     @Override

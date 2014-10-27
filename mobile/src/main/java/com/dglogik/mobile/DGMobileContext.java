@@ -18,6 +18,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
@@ -82,7 +83,7 @@ public class DGMobileContext {
         this.service = service;
         this.rootNode = new RootNode();
         this.wearable = new WearableSupport(this);
-        this.preferences = service.getSharedPreferences("settings", Context.MODE_PRIVATE);
+        this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         this.googleClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
@@ -145,6 +146,23 @@ public class DGMobileContext {
         startLink();
     }
 
+    public boolean enableNode(String id) {
+        NodeDescriptor desc = null;
+        for (NodeDescriptor descriptor : DGConstants.NODES) {
+            if (descriptor.getId().equals(id)) {
+                desc = descriptor;
+            }
+        }
+
+        if (desc == null) {
+            log("No Descriptor found for node: " + id);
+            log("Defaulting to Disabled");
+            return false;
+        }
+
+        return preferences.getBoolean(id, desc.isDefaultEnabled());
+    }
+
     public final Timer timer = new Timer();
 
     public double lastLatitude;
@@ -163,7 +181,7 @@ public class DGMobileContext {
     }
 
     public void setupCurrentDevice(@NonNull DeviceNode node) {
-        if (preferences.getBoolean("providers.location", true)) {
+        if (preferences.getBoolean("providers.location", false)) {
             final DataValueNode latitudeNode = new DataValueNode("Location_Latitude", BasicMetaData.SIMPLE_INT);
             final DataValueNode longitudeNode = new DataValueNode("Location_Longitude", BasicMetaData.SIMPLE_INT);
 
@@ -201,7 +219,7 @@ public class DGMobileContext {
             node.addChild(longitudeNode);
         }
 
-        if (preferences.getBoolean("providers.battery", true)) {
+        if (preferences.getBoolean("providers.battery", false)) {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
@@ -232,7 +250,7 @@ public class DGMobileContext {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", true)) {
+        if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
             setupScreenProvider(node);
         }
 
@@ -290,7 +308,7 @@ public class DGMobileContext {
             node.addAction(destroyNotificationAction);
         }
 
-        if (enableSensor(19)) {
+        if (enableSensor("steps", 19)) {
             final DataValueNode stepsNode = new DataValueNode("Steps", BasicMetaData.SIMPLE_INT);
             Sensor sensor = sensorManager.getDefaultSensor(19);
 
@@ -307,11 +325,11 @@ public class DGMobileContext {
             node.addChild(stepsNode);
         }
 
-        if (Build.VERSION.SDK_INT >= 20) {
+        if (enableSensor("heart_rate", 21)) {
             setupHeartRateMonitor(node);
         }
 
-        if (enableSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)) {
+        if (enableSensor("temperature", Sensor.TYPE_AMBIENT_TEMPERATURE)) {
             final DataValueNode tempCNode = new DataValueNode("Ambient_Temperature_Celsius", BasicMetaData.SIMPLE_INT);
             final DataValueNode tempFNode = new DataValueNode("Ambient_Temperature_Fahrenheit", BasicMetaData.SIMPLE_INT);
 
@@ -335,7 +353,7 @@ public class DGMobileContext {
         }
 
         //noinspection PointlessBooleanExpression,ConstantConditions
-        if (enableSensor(Sensor.TYPE_LIGHT) && Settings.ENABLE_LIGHT_LEVEL) {
+        if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
             final DataValueNode lux = new DataValueNode("Light_Level", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
@@ -353,7 +371,7 @@ public class DGMobileContext {
             node.addChild(lux);
         }
 
-        if (enableSensor(Sensor.TYPE_PRESSURE)) {
+        if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
             final DataValueNode pressure = new DataValueNode("Air_Pressure", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
@@ -371,7 +389,7 @@ public class DGMobileContext {
             node.addChild(pressure);
         }
 
-        if (enableSensor(Sensor.TYPE_RELATIVE_HUMIDITY)) {
+        if (enableSensor("humidity", Sensor.TYPE_RELATIVE_HUMIDITY)) {
             final DataValueNode humidity = new DataValueNode("Humidity", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
@@ -389,7 +407,7 @@ public class DGMobileContext {
             node.addChild(humidity);
         }
 
-        if (enableSensor(Sensor.TYPE_PROXIMITY)) {
+        if (enableSensor("proximity", Sensor.TYPE_PROXIMITY)) {
             final DataValueNode proximity = new DataValueNode("Proximity", BasicMetaData.SIMPLE_INT);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
@@ -408,7 +426,7 @@ public class DGMobileContext {
         }
 
         //noinspection ConstantConditions,PointlessBooleanExpression
-        if (enableSensor(Sensor.TYPE_GYROSCOPE) && Settings.ENABLE_GYROSCOPE) {
+        if (enableSensor("gyroscope", Sensor.TYPE_GYROSCOPE)) {
             final DataValueNode x = new DataValueNode("Gyroscope_X", BasicMetaData.SIMPLE_INT);
             final DataValueNode y = new DataValueNode("Gyroscope_Y", BasicMetaData.SIMPLE_INT);
             final DataValueNode z = new DataValueNode("Gyroscope_Z", BasicMetaData.SIMPLE_INT);
@@ -568,22 +586,20 @@ public class DGMobileContext {
 
     @TargetApi(20)
     private void setupHeartRateMonitor(DeviceNode node) {
-        if (enableSensor(21)) {
-            final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
-            Sensor sensor = sensorManager.getDefaultSensor(21);
+        final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+        Sensor sensor = sensorManager.getDefaultSensor(21);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
-                @Override
-                public void onSensorChanged(@NonNull SensorEvent event) {
-                    rateNode.update((double) event.values[0]);
-                }
+        sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            @Override
+            public void onSensorChanged(@NonNull SensorEvent event) {
+                rateNode.update((double) event.values[0]);
+            }
 
-                @Override
-                public void onAccuracyChanged(Sensor sensor, int accuracy) {
-                }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
-            node.addChild(rateNode);
-        }
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        node.addChild(rateNode);
     }
 
     @TargetApi(20)
@@ -628,8 +644,8 @@ public class DGMobileContext {
         node.addChild(screenOn);
     }
 
-    public boolean enableSensor(int type) {
-        return !sensorManager.getSensorList(type).isEmpty();
+    public boolean enableSensor(String id, int type) {
+        return enableNode(id) && !sensorManager.getSensorList(type).isEmpty();
     }
 
     public int currentNotificationId = 0;
