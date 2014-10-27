@@ -11,10 +11,15 @@ import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.R;
 import com.dglogik.mobile.Utils;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class ControllerActivity extends Activity {
 
     private Button startButton;
     private Button stopButton;
+    private Timer timer;
+    private TimerTask syncTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,10 +27,26 @@ public class ControllerActivity extends Activity {
 
         setContentView(R.layout.controller);
 
+        timer = new Timer();
+
         startButton = (Button) findViewById(R.id.start_button);
         stopButton = (Button) findViewById(R.id.stop_button);
 
         syncButtons();
+
+        syncTask = new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        syncButtons();
+                    }
+                });
+            }
+        };
+
+        timer.scheduleAtFixedRate(syncTask, 0, 2000);
     }
 
     @Override
@@ -54,14 +75,18 @@ public class ControllerActivity extends Activity {
     }
 
     public void onStartButtonClicked(View view) {
-        startService(new Intent(getApplicationContext(), LinkService.class));
-        Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
+        if (!Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
+            startService(new Intent(getApplicationContext(), LinkService.class));
+            Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
+        }
         syncButtons();
     }
 
     public void onStopButtonClicked(View view) {
-        stopService(new Intent(getApplicationContext(), LinkService.class));
-        Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
+        if (Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
+            stopService(new Intent(getApplicationContext(), LinkService.class));
+            Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
+        }
         syncButtons();
     }
 }

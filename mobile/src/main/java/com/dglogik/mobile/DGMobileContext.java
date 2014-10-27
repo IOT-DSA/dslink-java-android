@@ -123,8 +123,11 @@ public class DGMobileContext {
 
         this.client = new Client(false) {
             @Override
+            public void run() {
+            }
+
+            @Override
             protected void onStop() {
-                link.stop();
             }
         };
         this.handler = new Handler(getApplicationContext().getMainLooper());
@@ -631,8 +634,11 @@ public class DGMobileContext {
 
     public int currentNotificationId = 0;
 
+    @SuppressWarnings("FieldCanBeLocal")
+    private Thread linkThread;
+
     public void startLink() {
-        new Thread(new Runnable() {
+        linkThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 log("Starting Link");
@@ -642,7 +648,8 @@ public class DGMobileContext {
                 link.addRootNode(rootNode);
                 link.run(new String[0], false);
             }
-        }).start();
+        });
+        linkThread.start();
     }
 
     public Context getApplicationContext() {
@@ -656,19 +663,27 @@ public class DGMobileContext {
     }
 
     public void destroy() {
+        log("Running Destruction Actions");
         for (Action action : cleanups) {
             action.run();
         }
 
+        log("Unregistering Sensor Event Listeners");
         for (SensorEventListener eventListener : sensorListeners) {
             sensorManager.unregisterListener(eventListener);
         }
 
         if (recognizer != null) {
+            log("Destroying Speech Recognizer");
             recognizer.destroy();
         }
+
+        log("Canceling Timer");
         timer.cancel();
-        client.stop();
+
+        log("Stopping Server");
+        link.stop();
+        log("Disconnecting Google API Client");
         googleClient.disconnect();
     }
 

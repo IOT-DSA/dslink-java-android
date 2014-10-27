@@ -1,7 +1,6 @@
 package com.dglogik.mobile.link;
 
 import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGContext;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.dslink.node.ValuePoint;
 import com.dglogik.value.DGValue;
