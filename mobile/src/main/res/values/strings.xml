@@ -8,4 +8,5 @@
     <string name="prefs_nodes_category">Nodes</string>
     <string name="prefs_control_category">Control</string>
     <string name="prefs_start_on_boot">Start on Boot</string>
+    <string name="settings_label">DGMobile Settings</string>
 </resources>
