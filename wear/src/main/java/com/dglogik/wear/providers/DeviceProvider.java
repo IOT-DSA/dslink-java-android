@@ -1,13 +1,7 @@
 package com.dglogik.wear.providers;
 
-import android.app.admin.DeviceAdminInfo;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Build;
 
-import com.dglogik.wear.MainActivity;
 import com.dglogik.wear.Provider;
 import com.dglogik.wear.ValueType;
 
@@ -17,6 +11,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class DeviceProvider extends Provider {
+    private Timer timer;
     @Override
     public String name() {
         return "Device";
@@ -24,7 +19,7 @@ public class DeviceProvider extends Provider {
 
     @Override
     public void setup() {
-        Timer timer = new Timer();
+        timer = new Timer();
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -60,5 +55,10 @@ public class DeviceProvider extends Provider {
             put("Manufacturer", ValueType.STRING);
             put("Type", ValueType.STRING);
         }};
+    }
+
+    @Override
+    public void destroy() {
+        timer.cancel();
     }
 }

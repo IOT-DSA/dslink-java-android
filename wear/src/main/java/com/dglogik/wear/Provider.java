@@ -19,7 +19,7 @@ public abstract class Provider {
         currentValues = values;
 
         try {
-            MainActivity.INSTANCE.send("update", new HashMap<String, Object>() {{
+            LinkService.INSTANCE.send("update", new HashMap<String, Object>() {{
                 put("values", values);
                 put("point", name());
             }});
@@ -29,6 +29,8 @@ public abstract class Provider {
     }
 
     public GoogleApiClient googleClient() {
-        return MainActivity.INSTANCE.googleClient;
+        return LinkService.INSTANCE.googleClient;
     }
+
+    public abstract void destroy();
 }

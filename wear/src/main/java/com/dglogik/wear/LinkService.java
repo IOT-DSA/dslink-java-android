@@ -1,11 +1,13 @@
 package com.dglogik.wear;
 
-import android.app.Activity;
+import android.app.Service;
+import android.content.Intent;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 
 import com.dglogik.wear.providers.DeviceProvider;
-import com.dglogik.wear.providers.GyroscopeProvider;
 import com.dglogik.wear.providers.HealthProvider;
 import com.dglogik.wear.providers.ScreenProvider;
 import com.dglogik.wear.providers.StepsProvider;
@@ -22,16 +24,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends Activity {
-    public GoogleApiClient googleClient;
-    public static MainActivity INSTANCE;
+public class LinkService extends Service {
     public SensorManager sensorManager;
+    public GoogleApiClient googleClient;
+    public static LinkService INSTANCE;
     public List<Provider> providers = new ArrayList<Provider>();
 
     @Override
-    public void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
+    @Override
+    public void onCreate() {
         INSTANCE = this;
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -42,7 +47,7 @@ public class MainActivity extends Activity {
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(Bundle bundle) {
-                        System.out.println("DGWear Connected to the Google API Client");
+                        Utils.log("DGWear Connected to the Google API Client");
                         init();
                     }
 
@@ -52,10 +57,13 @@ public class MainActivity extends Activity {
                 })
                 .addApi(Wearable.API)
                 .build();
+    }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
         googleClient.connect();
-
-        System.out.println("Starting DGWear");
+        Utils.log("Starting DGWear");
+        return START_STICKY;
     }
 
     public void init() {
@@ -78,9 +86,18 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        googleClient.disconnect();
+        for (Provider provider : providers) {
+            provider.destroy();
+        }
+    }
+
     public void send(String type, HashMap<String, Object> objects) throws JSONException {
         final JSONObject object = new JSONObject(objects);
 
+        object.put("device", Build.MODEL);
         object.put("type", type);
 
         Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
@@ -96,6 +113,7 @@ public class MainActivity extends Activity {
     public void sendSingle(String node, String type, HashMap<String, Object> objects) throws JSONException {
         final JSONObject object = new JSONObject(objects);
 
+        object.put("device", Build.MODEL);
         object.put("type", type);
 
         Wearable.MessageApi.sendMessage(googleClient, node, "/wear", object.toString().getBytes());

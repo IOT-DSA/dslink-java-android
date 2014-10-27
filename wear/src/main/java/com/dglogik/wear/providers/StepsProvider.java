@@ -5,7 +5,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.dglogik.wear.MainActivity;
+import com.dglogik.wear.LinkService;
 import com.dglogik.wear.Provider;
 import com.dglogik.wear.ValueType;
 
@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StepsProvider extends Provider {
+    private SensorEventListener eventListener;
+
     @Override
     public String name() {
         return "Steps";
@@ -20,7 +22,7 @@ public class StepsProvider extends Provider {
 
     @Override
     public void setup() {
-        MainActivity.INSTANCE.sensorManager.registerListener(new SensorEventListener() {
+        eventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(final SensorEvent sensorEvent) {
                 update(new HashMap<String, Object>() {{
@@ -31,12 +33,13 @@ public class StepsProvider extends Provider {
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
-        }, MainActivity.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER), SensorManager.SENSOR_DELAY_NORMAL);
+        };
+        LinkService.INSTANCE.sensorManager.registerListener(eventListener, LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER), SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     public boolean supported() {
-        return MainActivity.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null;
+        return LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null;
     }
 
     @Override
@@ -44,5 +47,10 @@ public class StepsProvider extends Provider {
         return new HashMap<String, Integer>() {{
             put("value", ValueType.NUMBER);
         }};
+    }
+
+    @Override
+    public void destroy() {
+        LinkService.INSTANCE.sensorManager.unregisterListener(eventListener);
     }
 }

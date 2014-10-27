@@ -12,8 +12,9 @@ import java.util.Map;
 public class RequestListener implements MessageApi.MessageListener {
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
+        Utils.log("Wearable Message Received on path " + messageEvent.getPath());
         if (messageEvent.getPath().equals("/wear/init")) {
-            List<Provider> providers = MainActivity.INSTANCE.providers;
+            List<Provider> providers = LinkService.INSTANCE.providers;
             final HashMap<String, Map<String, Integer>> points = new HashMap<String, Map<String, Integer>>();
 
             for (Provider provider : providers) {
@@ -21,7 +22,7 @@ public class RequestListener implements MessageApi.MessageListener {
             }
 
             try {
-                MainActivity.INSTANCE.sendSingle(messageEvent.getSourceNodeId(), "points", new HashMap<String, Object>() {{
+                LinkService.INSTANCE.sendSingle(messageEvent.getSourceNodeId(), "points", new HashMap<String, Object>() {{
                     put("points", points);
                 }});
             } catch (JSONException e) {

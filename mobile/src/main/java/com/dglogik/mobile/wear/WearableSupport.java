@@ -2,6 +2,7 @@ package com.dglogik.mobile.wear;
 
 import android.support.annotation.NonNull;
 
+import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.mobile.link.DataValueNode;
 import com.google.android.gms.wearable.Node;
@@ -15,6 +16,7 @@ public class WearableSupport {
     public final DGMobileContext context;
     @NonNull
     public final Map<String, DataValueNode> nodes;
+    public Map<String, String> namesMap = new HashMap<String, String>();
 
     public WearableSupport(DGMobileContext context) {
         this.context = context;
@@ -22,14 +24,17 @@ public class WearableSupport {
     }
 
     public void initialize() {
-        Wearable.MessageApi.addListener(context.googleClient, new DGWearMessageListener());
+        final DGWearMessageListener messageListener = new DGWearMessageListener();
+        Wearable.MessageApi.addListener(context.googleClient, messageListener);
 
-        Wearable.NodeApi.addListener(context.googleClient, new NodeApi.NodeListener() {
+        final NodeApi.NodeListener nodeListener = new NodeApi.NodeListener() {
             @Override
             public void onPeerConnected(@NonNull Node node) {
                 context.log("Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
 
-                if (context.rootNode.hasChild(node.getDisplayName())) {
+                String deviceName = namesMap.get(node.getId());
+
+                if (deviceName != null && context.rootNode.hasChild(deviceName)) {
                     context.log("Node Already Found: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
                     return;
                 }
@@ -39,10 +44,21 @@ public class WearableSupport {
 
             @Override
             public void onPeerDisconnected(@NonNull Node node) {
-                if (context.rootNode.hasChild(node.getDisplayName())) {
-                    context.rootNode.removeChild(node.getDisplayName());
+                String deviceName = namesMap.get(node.getId());
+                if (deviceName != null && context.rootNode.hasChild(deviceName)) {
+                    context.rootNode.removeChild(deviceName);
                 }
                 context.log("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
+            }
+        };
+
+        Wearable.NodeApi.addListener(context.googleClient, nodeListener);
+
+        context.onCleanup(new Action() {
+            @Override
+            public void run() {
+                Wearable.NodeApi.removeListener(context.googleClient, nodeListener);
+                Wearable.MessageApi.removeListener(context.googleClient, messageListener);
             }
         });
     }

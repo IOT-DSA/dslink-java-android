@@ -1,4 +1,4 @@
-package com.dglogik.mobile.ui;
+package com.dglogik.wear;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,14 +7,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.R;
-import com.dglogik.mobile.Utils;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class SettingsActivity extends Activity {
+public class ControllerActivity extends Activity {
 
     private Button startButton;
     private Button stopButton;
@@ -23,7 +18,7 @@ public class SettingsActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.settings);
+        setContentView(R.layout.controller);
 
         startButton = (Button) findViewById(R.id.start_button);
         stopButton = (Button) findViewById(R.id.stop_button);
@@ -58,13 +53,13 @@ public class SettingsActivity extends Activity {
 
     public void onStartButtonClicked(View view) {
         startService(new Intent(getApplicationContext(), LinkService.class));
-        Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Started DGWear Link", Toast.LENGTH_LONG).show();
         syncButtons();
     }
 
     public void onStopButtonClicked(View view) {
         stopService(new Intent(getApplicationContext(), LinkService.class));
-        Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Stopped DGWear Link", Toast.LENGTH_LONG).show();
         syncButtons();
     }
 }

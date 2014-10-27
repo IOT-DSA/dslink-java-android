@@ -5,18 +5,18 @@ import android.support.annotation.NonNull;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.mobile.DGMobileContext;
-import com.dglogik.mobile.link.*;
+import com.dglogik.mobile.link.DataValueNode;
+import com.dglogik.mobile.link.DeviceNode;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.HashMap;
 
 public class DGWearMessageListener implements MessageApi.MessageListener {
     @NonNull
@@ -40,23 +40,22 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
             String type = data.getString("type");
             String device = data.getString("device");
 
-            DGMobileContext.CONTEXT.log("Message from " + device);
-
             if (type.equals("points")) {
+                DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
                 DeviceNode deviceNode = new DeviceNode(device);
                 DGMobileContext.CONTEXT.rootNode.addChild(deviceNode);
                 JSONObject points = data.getJSONObject("points");
 
-                Iterator<String> names = points.keys();
+                Iterator names = points.keys();
 
                 while (names.hasNext()) {
-                    String pointName = names.next();
+                    String pointName = (String) names.next();
                     JSONObject pointValues = points.getJSONObject(pointName);
 
-                    Iterator<String> pointValueNames = pointValues.keys();
+                    Iterator pointValueNames = pointValues.keys();
 
                     while (pointValueNames.hasNext()) {
-                        String pointValueName = pointValueNames.next();
+                        String pointValueName = (String) pointValueNames.next();
                         int valueType = pointValues.getInt(pointValueName);
                         String id;
                         if (pointValues.length() == 1 && pointValueName.equals("value")) {
@@ -97,10 +96,10 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
                 JSONObject values = data.getJSONObject("values");
 
-                Iterator<String> names = values.keys();
+                Iterator names = values.keys();
 
                 while (names.hasNext()) {
-                    String name = names.next();
+                    String name = (String) names.next();
 
                     String id;
                     if (values.length() == 1 && name.equals("value")) {

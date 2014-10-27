@@ -4,5 +4,7 @@
     <string name="app_name">DGWear</string>
     <string name="hello_round">Hello Round World!</string>
     <string name="hello_square">Hello Square World!</string>
+    <string name="start_button">Start</string>
+    <string name="stop_button">Stop</string>
 
 </resources>

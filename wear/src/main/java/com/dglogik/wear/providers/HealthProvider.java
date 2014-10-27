@@ -5,7 +5,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.dglogik.wear.MainActivity;
+import com.dglogik.wear.LinkService;
 import com.dglogik.wear.Provider;
 import com.dglogik.wear.ValueType;
 
@@ -14,6 +14,7 @@ import java.util.Map;
 
 public class HealthProvider extends Provider {
     private double lastHeartRate = -1.0;
+    private SensorEventListener eventListener;
 
     @Override
     public String name() {
@@ -22,11 +23,11 @@ public class HealthProvider extends Provider {
 
     @Override
     public void setup() {
-        final SensorManager sensorManager = MainActivity.INSTANCE.sensorManager;
+        final SensorManager sensorManager = LinkService.INSTANCE.sensorManager;
 
         Sensor heartRateSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
 
-        sensorManager.registerListener(new SensorEventListener() {
+        eventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
                 final double heartRate = sensorEvent.values[0];
@@ -41,12 +42,14 @@ public class HealthProvider extends Provider {
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
-        }, heartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        };
+
+        sensorManager.registerListener(eventListener, heartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     public boolean supported() {
-        return MainActivity.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null;
+        return LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null;
     }
 
     @Override
@@ -54,5 +57,10 @@ public class HealthProvider extends Provider {
         return new HashMap<String, Integer>() {{
             put("HeartRate", ValueType.NUMBER);
         }};
+    }
+
+    @Override
+    public void destroy() {
+        LinkService.INSTANCE.sensorManager.unregisterListener(eventListener);
     }
 }

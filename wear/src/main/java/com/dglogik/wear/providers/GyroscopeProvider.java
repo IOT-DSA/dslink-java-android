@@ -5,7 +5,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.dglogik.wear.MainActivity;
+import com.dglogik.wear.LinkService;
 import com.dglogik.wear.Provider;
 import com.dglogik.wear.ValueType;
 
@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GyroscopeProvider extends Provider {
+    private SensorEventListener eventListener;
+
     @Override
     public String name() {
         return "Gyroscope";
@@ -20,7 +22,7 @@ public class GyroscopeProvider extends Provider {
 
     @Override
     public void setup() {
-        MainActivity.INSTANCE.sensorManager.registerListener(new SensorEventListener() {
+        eventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(final SensorEvent sensorEvent) {
                 update(new HashMap<String, Object>() {{
@@ -33,12 +35,14 @@ public class GyroscopeProvider extends Provider {
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
-        }, MainActivity.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL);
+        };
+
+        LinkService.INSTANCE.sensorManager.registerListener(eventListener, LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     public boolean supported() {
-        return MainActivity.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null;
+        return LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null;
     }
 
     @Override
@@ -48,5 +52,10 @@ public class GyroscopeProvider extends Provider {
             put("Y", ValueType.NUMBER);
             put("Z", ValueType.NUMBER);
         }};
+    }
+
+    @Override
+    public void destroy() {
+        LinkService.INSTANCE.sensorManager.unregisterListener(eventListener);
     }
 }
