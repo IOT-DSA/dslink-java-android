@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen android:id="@+id/prefs" xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/prefs_nodes_category"
+        android:key="@string/key_nodes_category"/>
+</PreferenceScreen>
