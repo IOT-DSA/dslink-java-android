@@ -1,0 +1,20 @@
+android {
+    signingConfigs {
+        release {
+            keyAlias prop("android.signing.alias")
+            keyPassword prop("android.signing.password")
+            storeFile file(prop("android.signing.store"))
+            storePassword prop("android.signing.password")
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
+
+String prop(String name) {
+    return project.hasProperty(name) ? project.getProperty(name) : ""
+}

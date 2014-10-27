@@ -68,3 +68,5 @@ dependencies {
     compile 'com.google.android.support:wearable:1.0.0'
     compile 'com.google.android.gms:play-services-wearable:6.1.11'
 }
+
+apply from: "../gradle/signing.gradle"
