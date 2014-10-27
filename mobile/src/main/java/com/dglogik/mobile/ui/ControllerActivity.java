@@ -21,7 +21,10 @@ public class ControllerActivity extends Activity {
 
     private Button startButton;
     private Button stopButton;
+
+    @SuppressWarnings("FieldCanBeLocal")
     private Timer timer;
+    @SuppressWarnings("FieldCanBeLocal")
     private TimerTask syncTask;
 
     @Override

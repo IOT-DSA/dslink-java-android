@@ -3,4 +3,12 @@
     <PreferenceCategory
         android:title="@string/prefs_nodes_category"
         android:key="@string/key_nodes_category"/>
+
+    <PreferenceCategory
+        android:title="@string/prefs_control_category">
+        <CheckBoxPreference
+            android:title="@string/prefs_start_on_boot"
+            android:defaultValue="false"
+            android:key="start.on.boot"/>
+    </PreferenceCategory>
 </PreferenceScreen>

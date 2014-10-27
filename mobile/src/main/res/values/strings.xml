@@ -6,4 +6,6 @@
     <string name="action_settings">Settings</string>
     <string name="key_nodes_category">nodes</string>
     <string name="prefs_nodes_category">Nodes</string>
+    <string name="prefs_control_category">Control</string>
+    <string name="prefs_start_on_boot">Start on Boot</string>
 </resources>
