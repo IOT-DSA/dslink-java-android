@@ -3,13 +3,20 @@ package com.dglogik.mobile.wear;
 import android.support.annotation.NonNull;
 
 import com.dglogik.api.BasicMetaData;
+import com.dglogik.api.DGContext;
 import com.dglogik.api.DGMetaData;
+import com.dglogik.dslink.node.base.BaseAction;
+import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.DGMobileContext;
+import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
+import com.dglogik.value.DGValue;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Wearable;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -23,7 +30,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
     private Map<String, DataValueNode> dataNodes = new HashMap<String, DataValueNode>();
 
     @Override
-    public void onMessageReceived(@NonNull MessageEvent event) {
+    public void onMessageReceived(@NonNull final MessageEvent event) {
         try {
             String path = event.getPath();
 
@@ -33,7 +40,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
             byte[] bytes = event.getData();
 
-            String content = new String(bytes);
+            final String content = new String(bytes);
 
             JSONObject data = new JSONObject(new JSONTokener(content));
 
@@ -45,6 +52,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                 DeviceNode deviceNode = new DeviceNode(device);
                 DGMobileContext.CONTEXT.rootNode.addChild(deviceNode);
                 JSONObject points = data.getJSONObject("points");
+                JSONArray actions = data.getJSONArray("actions");
 
                 Iterator names = points.keys();
 
@@ -86,6 +94,27 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
                         deviceNode.addChild(node);
                     }
+                }
+
+                for (int i = 0; i < actions.length(); i++) {
+                    final String name = actions.getString(i);
+
+                    final BaseAction action = new BaseAction(name) {
+                        @Override
+                        public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
+                            JSONObject object = new JSONObject();
+                            try {
+                                object.put("action", name);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                return new HashMap<String, DGValue>();
+                            }
+                            Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
+                            return new HashMap<String, DGValue>();
+                        }
+                    };
+
+                    deviceNode.addAction(action);
                 }
 
                 if (!DGMobileContext.CONTEXT.linkStarted) {

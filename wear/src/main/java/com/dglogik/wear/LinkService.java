@@ -10,6 +10,7 @@ import android.os.IBinder;
 import com.dglogik.wear.providers.DeviceProvider;
 import com.dglogik.wear.providers.HealthProvider;
 import com.dglogik.wear.providers.ScreenProvider;
+import com.dglogik.wear.providers.SpeechProvider;
 import com.dglogik.wear.providers.StepsProvider;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -24,11 +25,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class LinkService extends Service {
     public SensorManager sensorManager;
     public GoogleApiClient googleClient;
     public static LinkService INSTANCE;
     public List<Provider> providers = new ArrayList<Provider>();
+    public List<Action> actions = new ArrayList<Action>();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -66,13 +69,43 @@ public class LinkService extends Service {
         return START_STICKY;
     }
 
+    public <T> T getProviderByClass(Class<? extends Provider> providerClass) {
+        for (Provider provider : providers) {
+            if (provider.getClass() == providerClass && provider.supported()) {
+                return (T) provider;
+            }
+        }
+        return null;
+    }
+
     public void init() {
         Wearable.MessageApi.addListener(googleClient, new RequestListener());
+
+        actions.add(new Action("StartSpeechRecognition") {
+            @Override
+            public void invoke() {
+                SpeechProvider provider = getProviderByClass(SpeechProvider.class);
+                if (provider != null) {
+                    provider.recognizer.startListening(new Intent());
+                }
+            }
+        });
+
+        actions.add(new Action("StopSpeechRecognition") {
+            @Override
+            public void invoke() {
+                SpeechProvider provider = getProviderByClass(SpeechProvider.class);
+                if (provider != null) {
+                    provider.recognizer.stopListening();
+                }
+            }
+        });
 
         providers.add(new StepsProvider());
         providers.add(new DeviceProvider());
         providers.add(new ScreenProvider());
         providers.add(new HealthProvider());
+        providers.add(new SpeechProvider());
 
         /* TODO: Uncomment the following line when Gyroscope is ready */
         //providers.add(new GyroscopeProvider());
