@@ -11,4 +11,12 @@
             android:defaultValue="false"
             android:key="start.on.boot"/>
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Features">
+        <CheckBoxPreference
+            android:title="Android Wear"
+            android:defaultValue="false"
+            android:key="features.wear"/>
+    </PreferenceCategory>
 </PreferenceScreen>

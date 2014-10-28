@@ -137,7 +137,9 @@ public class DGMobileContext {
     }
 
     public void initialize() {
-        wearable.initialize();
+        if (preferences.getBoolean("features.wear", false)) {
+            wearable.initialize();
+        }
 
         DeviceNode device = new DeviceNode(Build.MODEL);
         setupCurrentDevice(device);
