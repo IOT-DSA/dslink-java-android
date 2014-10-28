@@ -33,6 +33,8 @@ public class ControllerActivity extends Activity {
 
         setContentView(R.layout.controller);
 
+        Utils.applyDGTheme(this);
+
         timer = new Timer();
 
         startButton = (Button) findViewById(R.id.start_button);
