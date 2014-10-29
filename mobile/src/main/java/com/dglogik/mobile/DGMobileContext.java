@@ -707,7 +707,7 @@ public class DGMobileContext {
 
     public SpeechRecognizer recognizer;
 
-    public void log(String message) {
+    public static void log(String message) {
         Log.i(TAG, message);
     }
 }

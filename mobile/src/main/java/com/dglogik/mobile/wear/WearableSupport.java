@@ -30,12 +30,12 @@ public class WearableSupport {
         final NodeApi.NodeListener nodeListener = new NodeApi.NodeListener() {
             @Override
             public void onPeerConnected(@NonNull Node node) {
-                context.log("Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
+                DGMobileContext.log("Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
 
                 String deviceName = namesMap.get(node.getId());
 
                 if (deviceName != null && context.rootNode.hasChild(deviceName)) {
-                    context.log("Node Already Found: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
+                    DGMobileContext.log("Node Already Found: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
                     return;
                 }
 
@@ -48,7 +48,7 @@ public class WearableSupport {
                 if (deviceName != null && context.rootNode.hasChild(deviceName)) {
                     context.rootNode.removeChild(deviceName);
                 }
-                context.log("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
+                DGMobileContext.log("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
             }
         };
 

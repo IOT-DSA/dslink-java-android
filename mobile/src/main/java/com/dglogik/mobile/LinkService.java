@@ -4,7 +4,6 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.IBinder;
 
 import com.dglogik.mobile.ui.ControllerActivity;
@@ -42,7 +41,16 @@ public class LinkService extends Service {
     @Override
     public void onDestroy() {
         stopForeground(true);
-        context.log("Destroying Context");
+        DGMobileContext.log("Destroying Context");
         context.destroy();
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        boolean stopOnLowMemory = context.preferences.getBoolean("stop.on.low.memory", false);
+
+        if ((level == TRIM_MEMORY_RUNNING_LOW || level == TRIM_MEMORY_RUNNING_CRITICAL) && stopOnLowMemory) {
+            stopSelf();
+        }
     }
 }

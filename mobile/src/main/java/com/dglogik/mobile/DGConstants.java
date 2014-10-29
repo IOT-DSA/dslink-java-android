@@ -1,6 +1,7 @@
 package com.dglogik.mobile;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.preference.Preference;
 
 import java.util.ArrayList;
@@ -9,6 +10,8 @@ import java.util.List;
 
 public class DGConstants {
     public static final String START_ON_BOOT = "start.on.boot";
+
+    public static final int BRAND_COLOR = Color.parseColor("#4dd0e1");
 
     @SuppressWarnings("RedundantArrayCreation")
     public static final List<NodeDescriptor> NODES = Arrays.asList(new NodeDescriptor[]{

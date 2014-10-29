@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.dglogik.mobile">
+    package="com.dglogik.mobile" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -11,14 +11,13 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.DeviceDefault">
-
-        <service android:name=".LinkService" />
+        android:theme="@android:style/Theme.DeviceDefault" >
+        <service android:name="com.dglogik.mobile.LinkService" />
 
         <receiver
-            android:name=".BootReceiver"
+            android:name="com.dglogik.mobile.BootReceiver"
             android:enabled="true"
-            android:exported="false">
+            android:exported="false" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
@@ -29,18 +28,22 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".ui.ControllerActivity"
-            android:label="@string/app_name">
+            android:name="com.dglogik.mobile.ui.ControllerActivity"
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name=".ui.SettingsActivity"
+            android:name="com.dglogik.mobile.ui.SettingsActivity"
             android:exported="true"
-            android:label="@string/settings_label"/>
+            android:label="@string/settings_label" />
+        <activity
+            android:name=".ui.AboutActivity"
+            android:label="@string/title_activity_about" >
+        </activity>
     </application>
 
 </manifest>

@@ -2,21 +2,29 @@
 <PreferenceScreen android:id="@+id/prefs" xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:title="@string/prefs_nodes_category"
-        android:key="@string/key_nodes_category"/>
+        android:key="nodes"/>
 
     <PreferenceCategory
         android:title="@string/prefs_control_category">
         <CheckBoxPreference
             android:title="@string/prefs_start_on_boot"
             android:defaultValue="false"
-            android:key="start.on.boot"/>
+            android:key="start.on.boot"
+            android:summary="@string/prefs_start_on_boot_summary"/>
+
+        <CheckBoxPreference
+            android:title="@string/prefs_stop_low_memory"
+            android:defaultValue="false"
+            android:key="stop.on.low.memory"
+            android:summary="@string/prefs_stop_low_memory_summary"/>
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="Features">
         <CheckBoxPreference
-            android:title="Android Wear"
+            android:title="@string/android_wear"
             android:defaultValue="false"
-            android:key="features.wear"/>
+            android:key="features.wear"
+            android:summary="@string/prefs_android_wear_summary"/>
     </PreferenceCategory>
 </PreferenceScreen>

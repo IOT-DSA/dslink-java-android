@@ -3,12 +3,10 @@ package com.dglogik.mobile.wear;
 import android.support.annotation.NonNull;
 
 import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGContext;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.DGMobileContext;
-import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.value.DGValue;
@@ -140,7 +138,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                     DataValueNode node = dataNodes.get(device + "@" + id);
 
                     if (node == null) {
-                        DGMobileContext.CONTEXT.log("ERROR: Node not found: " + device + "@" + id);
+                        DGMobileContext.log("ERROR: Node not found: " + device + "@" + id);
                         continue;
                     }
 

@@ -3,14 +3,16 @@ package com.dglogik.mobile.ui;
 import android.app.Activity;
 import android.os.Bundle;
 
+import com.dglogik.mobile.R;
 import com.dglogik.mobile.Utils;
 
-public class SettingsActivity extends Activity {
+public class AboutActivity extends Activity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("DGMobile Settings");
+        setTitle("About DGMobile");
         Utils.applyDGTheme(this);
-        getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
+        setContentView(R.layout.about);
     }
 }

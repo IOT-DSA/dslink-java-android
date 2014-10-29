@@ -83,6 +83,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="jetty-xml-9.3.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="jetty-security-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-6.1.11" level="project" />
     <orderEntry type="library" exported="" name="slf4j-simple-1.7.7" level="project" />
     <orderEntry type="library" exported="" name="jetty-server-9.3.0-SNAPSHOT" level="project" />

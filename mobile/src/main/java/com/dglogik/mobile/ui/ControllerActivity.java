@@ -70,8 +70,17 @@ public class ControllerActivity extends Activity {
             case R.id.action_settings:
                 openSettings();
                 break;
+            case R.id.action_about:
+                openAboutActivity();
+                break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openAboutActivity() {
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), AboutActivity.class);
+        startActivityForResult(intent, 51);
     }
 
     public void openSettings() {
