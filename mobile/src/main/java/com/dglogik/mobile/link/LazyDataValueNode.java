@@ -2,17 +2,20 @@ package com.dglogik.mobile.link;
 
 import com.dglogik.api.DGContext;
 import com.dglogik.api.DGMetaData;
+import com.dglogik.dslink.node.Poller;
+import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.value.DGValue;
 
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public abstract class LazyDataValueNode extends DataValueNode {
     public boolean setup = false;
 
     public LazyDataValueNode(String name, DGMetaData metaData) {
         super(name, metaData);
-        DGMobileContext.CONTEXT.timer.scheduleAtFixedRate(new TimerTask() {
+        DGMobileContext.CONTEXT.poller(new Action() {
             @Override
             public void run() {
                 if (!hasSubscriptions() && setup) {
@@ -20,7 +23,7 @@ public abstract class LazyDataValueNode extends DataValueNode {
                     setup = false;
                 }
             }
-        }, 1000, 2000);
+        }).poll(TimeUnit.SECONDS, 2, false);
     }
 
     @Override

@@ -29,6 +29,7 @@ import android.view.Display;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.dslink.Application;
 import com.dglogik.dslink.client.Client;
+import com.dglogik.dslink.node.Poller;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.link.DataValueNode;
@@ -53,8 +54,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class DGMobileContext {
     public static final String TAG = "DGMobile";
@@ -165,8 +165,6 @@ public class DGMobileContext {
         return preferences.getBoolean(id, desc.isDefaultEnabled());
     }
 
-    public final Timer timer = new Timer();
-
     public double lastLatitude;
     public double lastLongitude;
 
@@ -228,7 +226,7 @@ public class DGMobileContext {
             final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
             if (batteryStatus != null) {
-                timer.scheduleAtFixedRate(new TimerTask() {
+                poller(new Action() {
                     @Override
                     public void run() {
                         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -244,7 +242,7 @@ public class DGMobileContext {
                         chargerConnectedNode.update(isChargerConnected);
                         batteryFullNode.update(isFull);
                     }
-                }, 100, 4000);
+                }).poll(TimeUnit.SECONDS, 4, false);
 
                 node.addChild(batteryLevelNode);
                 node.addChild(batteryFullNode);
@@ -696,9 +694,6 @@ public class DGMobileContext {
             recognizer.destroy();
         }
 
-        log("Canceling Timer");
-        timer.cancel();
-
         log("Stopping Server");
         link.stop();
         log("Disconnecting Google API Client");
@@ -706,6 +701,19 @@ public class DGMobileContext {
     }
 
     public SpeechRecognizer recognizer;
+
+    public Poller poller(Action action) {
+        final Poller poller = new Poller(action);
+        onCleanup(new Action() {
+            @Override
+            public void run() {
+                if (poller.running()) {
+                    poller.cancel();
+                }
+            }
+        });
+        return poller;
+    }
 
     public static void log(String message) {
         Log.i(TAG, message);

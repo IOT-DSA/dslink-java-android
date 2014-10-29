@@ -10,22 +10,20 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.dglogik.dslink.node.Poller;
+import com.dglogik.mobile.Action;
 import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.R;
 import com.dglogik.mobile.Utils;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class ControllerActivity extends Activity {
 
     private Button startButton;
     private Button stopButton;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private Timer timer;
-    @SuppressWarnings("FieldCanBeLocal")
-    private TimerTask syncTask;
+    private Poller poller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,14 +33,7 @@ public class ControllerActivity extends Activity {
 
         Utils.applyDGTheme(this);
 
-        timer = new Timer();
-
-        startButton = (Button) findViewById(R.id.start_button);
-        stopButton = (Button) findViewById(R.id.stop_button);
-
-        syncButtons();
-
-        syncTask = new TimerTask() {
+        poller = new Poller(new Action() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
@@ -52,9 +43,18 @@ public class ControllerActivity extends Activity {
                     }
                 });
             }
-        };
+        });
 
-        timer.scheduleAtFixedRate(syncTask, 0, 2000);
+        startButton = (Button) findViewById(R.id.start_button);
+        stopButton = (Button) findViewById(R.id.stop_button);
+
+        syncButtons();
+
+        startPolling();
+    }
+
+    private void startPolling() {
+        poller.poll(TimeUnit.SECONDS, 2, false);
     }
 
     @Override
