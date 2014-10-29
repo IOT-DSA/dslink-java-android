@@ -30,6 +30,9 @@ public class Utils {
 
     public static void applyDGTheme(Activity activity) {
         ActionBar bar = activity.getActionBar();
-        bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#4dd0e1")));
+        if (bar != null) {
+            bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#4dd0e1")));
+        }
+
     }
 }
