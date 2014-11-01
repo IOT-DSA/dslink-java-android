@@ -92,7 +92,8 @@ public class DGMobileContext {
 
                         initialize();
 
-                        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+                        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new 
+ResultCallback<NodeApi.GetConnectedNodesResult>() {
                             @Override
                             public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
                                 List<Node> nodes = getConnectedNodesResult.getNodes();
@@ -223,7 +224,8 @@ public class DGMobileContext {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
-            final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            final Intent batteryStatus = getApplicationContext().registerReceiver(null, new 
+IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
             if (batteryStatus != null) {
                 poller(new Action() {
@@ -233,7 +235,8 @@ public class DGMobileContext {
                         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
                         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
-                        boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+                        boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == 
+BatteryManager.BATTERY_STATUS_FULL;
                         boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
 
                         double percent = (level / (float) scale) * 100;
@@ -255,7 +258,8 @@ public class DGMobileContext {
         }
 
         if (preferences.getBoolean("actions.notifications", true)) {
-            final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
+            final NotificationManager notificationManager = (NotificationManager) 
+service.getSystemService(Context.NOTIFICATION_SERVICE);
 
             final BaseAction createNotificationAction = new BaseAction("CreateNotification") {
                 @NonNull

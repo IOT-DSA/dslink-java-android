@@ -3,7 +3,7 @@
     <item
         android:title="@string/action_settings"
         android:id="@+id/action_settings"
-        android:icon="@drawable/ic_action_settings_light"
+        android:icon="@drawable/ic_action_settings"
         android:showAsAction="ifRoom"
     />
 
