@@ -46,7 +46,7 @@ repositories {
 
 android {
     compileSdkVersion 20
-    buildToolsVersion "20.0.0"
+    buildToolsVersion "21.1.0"
 
     defaultConfig {
         applicationId "com.dglogik.mobile"
@@ -55,6 +55,7 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             runProguard false
