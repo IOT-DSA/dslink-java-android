@@ -1,29 +1,25 @@
 package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.content.Intent;
+import android.app.*;
+import android.content.*;
+import android.content.pm.*;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import android.hardware.*;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.BatteryManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
+import android.os.*;
 import android.preference.PreferenceManager;
 import android.speech.RecognitionListener;
+import android.provider.*;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.net.*;
 import android.view.Display;
 
 import com.dglogik.api.BasicMetaData;
@@ -92,8 +88,7 @@ public class DGMobileContext {
 
                         initialize();
 
-                        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new 
-ResultCallback<NodeApi.GetConnectedNodesResult>() {
+                        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
                             @Override
                             public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
                                 List<Node> nodes = getConnectedNodesResult.getNodes();
@@ -137,6 +132,21 @@ ResultCallback<NodeApi.GetConnectedNodesResult>() {
         link.setClient(client);
     }
 
+    public void playSearchArtist(final String artist) {
+        execute(new Action() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH);
+                intent.putExtra(MediaStore.EXTRA_MEDIA_FOCUS, MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE);
+                intent.putExtra(MediaStore.EXTRA_MEDIA_ARTIST, artist);
+                intent.putExtra(SearchManager.QUERY, artist);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
     public void initialize() {
         if (preferences.getBoolean("features.wear", false)) {
             wearable.initialize();
@@ -147,6 +157,21 @@ ResultCallback<NodeApi.GetConnectedNodesResult>() {
         rootNode.addChild(device);
 
         startLink();
+    }
+
+    public PackageManager getPackageManager() {
+        return getApplicationContext().getPackageManager();
+    }
+
+    public void sendMusicCommand(final String command) {
+        execute(new Action() {
+            @Override
+            public void run() {
+                Intent intent = new Intent("com.android.music.musicservicecommand");
+                intent.putExtra("command", command);
+                getApplicationContext().sendBroadcast(intent);
+            }
+        });
     }
 
     public boolean enableNode(String id) {
@@ -164,6 +189,11 @@ ResultCallback<NodeApi.GetConnectedNodesResult>() {
         }
 
         return preferences.getBoolean(id, desc.isDefaultEnabled());
+    }
+
+    public void startActivity(Intent intent) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getApplicationContext().startActivity(intent);
     }
 
     public double lastLatitude;
@@ -224,8 +254,7 @@ ResultCallback<NodeApi.GetConnectedNodesResult>() {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
-            final Intent batteryStatus = getApplicationContext().registerReceiver(null, new 
-IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
             if (batteryStatus != null) {
                 poller(new Action() {
@@ -235,8 +264,7 @@ IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
                         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
-                        boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == 
-BatteryManager.BATTERY_STATUS_FULL;
+                        boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
                         boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
 
                         double percent = (level / (float) scale) * 100;
@@ -258,8 +286,7 @@ BatteryManager.BATTERY_STATUS_FULL;
         }
 
         if (preferences.getBoolean("actions.notifications", true)) {
-            final NotificationManager notificationManager = (NotificationManager) 
-service.getSystemService(Context.NOTIFICATION_SERVICE);
+            final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
 
             final BaseAction createNotificationAction = new BaseAction("CreateNotification") {
                 @NonNull
@@ -480,6 +507,169 @@ service.getSystemService(Context.NOTIFICATION_SERVICE);
             node.addAction(speakAction);
         }
 
+        if (preferences.getBoolean("actions.open_url", true)) {
+            final BaseAction openUrlAction = new BaseAction("OpenUrl") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    final Uri url = Uri.parse(args.get("url").toString());
+                    execute(new Action() {
+                        @Override
+                        public void run() {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, url);
+                            if (intent.resolveActivity(getPackageManager()) != null) {
+                                getApplicationContext().startActivity(intent);
+                            }
+                        }
+                    });
+                    return new HashMap<String, DGValue>();
+                }
+            };
+            openUrlAction.addParam("url", BasicMetaData.SIMPLE_STRING);
+
+            node.addAction(openUrlAction);
+        }
+
+        if (preferences.getBoolean("actions.search", true)) {
+            final BaseAction searchWebAction = new BaseAction("SearchWeb") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    final String query = args.get("query").toString();
+                    execute(new Action() {
+                        @Override
+                        public void run() {
+                            Intent intent = new Intent(Intent.ACTION_SEARCH);
+                            intent.putExtra(SearchManager.QUERY, query);
+                            if (intent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
+                                getApplicationContext().startActivity(intent);
+                            }
+                        }
+                    });
+                    return new HashMap<String, DGValue>();
+                }
+            };
+            searchWebAction.addParam("query", BasicMetaData.SIMPLE_STRING);
+
+            node.addAction(searchWebAction);
+        }
+
+        if (preferences.getBoolean("actions.music", true)) {
+            final BaseAction playArtistAction = new BaseAction("PlayArtist") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    String artist = args.get("artist").toString();
+                    log("Playing Artist: " + artist);
+                    playSearchArtist(artist);
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction playAction = new BaseAction("PlayMusic") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    sendMusicCommand("play");
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction pauseAction = new BaseAction("PauseMusic") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    sendMusicCommand("pause");
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction togglePauseAction = new BaseAction("TogglePauseMusic") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    sendMusicCommand("togglepause");
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction stopAction = new BaseAction("StopMusic") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    sendMusicCommand("play");
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction nextAction = new BaseAction("NextSong") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    sendMusicCommand("next");
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            final BaseAction previousAction = new BaseAction("PreviousSong") {
+                @NonNull
+                @Override
+                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    sendMusicCommand("previous");
+                    return new HashMap<String, DGValue>();
+                }
+            };
+
+            playArtistAction.addParam("artist", BasicMetaData.SIMPLE_STRING);
+
+            node.addAction(playArtistAction);
+            node.addAction(playAction);
+            node.addAction(pauseAction);
+            node.addAction(togglePauseAction);
+            node.addAction(stopAction);
+            node.addAction(nextAction);
+            node.addAction(previousAction);
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("com.android.music.metachanged");
+            filter.addAction("com.htc.music.metachanged");
+            filter.addAction("fm.last.android.metachanged");
+            filter.addAction("com.sec.android.app.music.metachanged");
+            filter.addAction("com.nullsoft.winamp.metachanged");
+            filter.addAction("com.amazon.mp3.metachanged");     
+            filter.addAction("com.miui.player.metachanged");        
+            filter.addAction("com.real.IMP.metachanged");
+            filter.addAction("com.sonyericsson.music.metachanged");
+            filter.addAction("com.rdio.android.metachanged");
+            filter.addAction("com.samsung.sec.android.MusicPlayer.metachanged");
+            filter.addAction("com.andrew.apollo.metachanged");
+
+            final DataValueNode artistNode = new DataValueNode("Song_Artist", BasicMetaData.SIMPLE_STRING);
+            final DataValueNode albumNode = new DataValueNode("Song_Album", BasicMetaData.SIMPLE_STRING);
+            final DataValueNode trackNode = new DataValueNode("Song_Track", BasicMetaData.SIMPLE_STRING);
+
+            final BroadcastReceiver receiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    String action = intent.getAction();
+                    String cmd = intent.getStringExtra("command");
+                    String artist = intent.getStringExtra("artist");
+                    String album = intent.getStringExtra("album");
+                    String track = intent.getStringExtra("track");
+
+                    artistNode.update(artist);
+                    albumNode.update(album);
+                    trackNode.update(track);
+                }
+            };
+
+            getApplicationContext().registerReceiver(receiver, filter);
+
+            node.addChild(artistNode);
+            node.addChild(albumNode);
+            node.addChild(trackNode);
+        }
+
         if (preferences.getBoolean("providers.speech", true)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
 
@@ -670,6 +860,10 @@ service.getSystemService(Context.NOTIFICATION_SERVICE);
             }
         });
         linkThread.start();
+    }
+
+    public void execute(Action action) {
+        handler.post(action);
     }
 
     public Context getApplicationContext() {

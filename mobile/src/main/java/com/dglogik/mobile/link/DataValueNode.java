@@ -1,11 +1,15 @@
 package com.dglogik.mobile.link;
 
+import com.dglogik.mobile.*;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.dslink.node.ValuePoint;
 import com.dglogik.value.DGValue;
+import com.dglogik.api.DGContext;
 
 public class DataValueNode extends ValuePoint {
+    public Action initializeValue;
+
     public DataValueNode(String name, DGMetaData metaData) {
         super(name, metaData);
 
@@ -50,5 +54,18 @@ public class DataValueNode extends ValuePoint {
 
     public void update(String value) {
         makeValue(DGValue.make(value));
+    }
+
+    @Override
+    public DGValue getValue(DGContext context) {
+        DGValue value = super.getValue(context);
+        if (value == null) {
+            DGMobileContext.CONTEXT.log("Node Value is null for " + getName());
+
+            if (initializeValue != null) {
+                initializeValue.run();
+            }
+        }
+        return value;
     }
 }
