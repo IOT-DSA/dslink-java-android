@@ -82,26 +82,36 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="jetty-xml-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="jetty-security-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
-    <orderEntry type="library" exported="" name="play-services-6.1.11" level="project" />
-    <orderEntry type="library" exported="" name="slf4j-simple-1.7.7" level="project" />
-    <orderEntry type="library" exported="" name="jetty-server-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-21.0.0" level="project" />
-    <orderEntry type="library" exported="" name="jetty-util-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
-    <orderEntry type="library" exported="" name="dgapi-0.0.17" level="project" />
-    <orderEntry type="library" exported="" name="dslink-0.0.1-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="dgserver-0.0.18" level="project" />
-    <orderEntry type="library" exported="" name="jetty-http-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="jetty-webapp-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="javax.servlet-api-3.1.0" level="project" />
-    <orderEntry type="library" exported="" name="jetty-servlet-9.3.0-SNAPSHOT" level="project" />
-    <orderEntry type="library" exported="" name="jetty-io-9.3.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="dgutil-1.0.3" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-21.0.0" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-21.0.0" level="project" />
+    <orderEntry type="library" exported="" name="dslink-0.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="jetty-server-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="websocket-servlet-9.2.3.v20140905" level="project" />
+    <orderEntry type="library" exported="" name="play-services-6.1.11" level="project" />
+    <orderEntry type="library" exported="" name="javaee-api-7.0" level="project" />
+    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
+    <orderEntry type="library" exported="" name="slf4j-simple-1.7.7" level="project" />
+    <orderEntry type="library" exported="" name="jetty-http-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="jetty-io-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="jetty-webapp-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="websocket-api-9.2.3.v20140905" level="project" />
+    <orderEntry type="library" exported="" name="websocket-server-9.2.3.v20140905" level="project" />
+    <orderEntry type="library" exported="" name="websocket-client-9.2.3.v20140905" level="project" />
+    <orderEntry type="library" exported="" name="websocket-common-9.2.3.v20140905" level="project" />
+    <orderEntry type="library" exported="" name="javax.mail-1.5.0" level="project" />
+    <orderEntry type="library" exported="" name="jetty-util-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="activation-1.1" level="project" />
+    <orderEntry type="library" exported="" name="jetty-xml-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="javax.websocket-api-1.0" level="project" />
+    <orderEntry type="library" exported="" name="javax-websocket-client-impl-9.2.3.v20140905" level="project" />
+    <orderEntry type="library" exported="" name="javax.servlet-api-3.1.0" level="project" />
     <orderEntry type="library" exported="" name="slf4j-api-1.7.7" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-21.0.0" level="project" />
+    <orderEntry type="library" exported="" name="jetty-servlet-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
+    <orderEntry type="library" exported="" name="jetty-security-9.3.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="dgserver-0.0.21-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="dgapi-0.0.21-SNAPSHOT" level="project" />
   </component>
 </module>
 
