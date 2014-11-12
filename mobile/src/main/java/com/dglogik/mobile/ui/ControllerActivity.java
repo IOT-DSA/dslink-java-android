@@ -1,8 +1,13 @@
 package com.dglogik.mobile.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -51,6 +56,42 @@ public class ControllerActivity extends Activity {
         syncButtons();
 
         startPolling();
+    }
+
+    public boolean checkSettings() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String brokerUrl = preferences.getString("broker.url", "");
+
+        if (brokerUrl == null || brokerUrl.isEmpty()) {
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getApplicationContext());
+
+            dialogBuilder.setTitle("Broker URL not specified.");
+
+            dialogBuilder.setMessage(R.string.error_broker_url_not_specified);
+
+            final AlertDialog dialog = dialogBuilder.create();
+
+            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialogInterface) {
+                    dialogInterface.dismiss();
+                    openSettings();
+                }
+            });
+
+            dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialogInterface) {
+                    dialogInterface.cancel();
+                    finish();
+                }
+            });
+
+            dialog.show();
+
+            return false;
+        }
+        return true;
     }
 
     private void startPolling() {
@@ -125,6 +166,10 @@ public class ControllerActivity extends Activity {
     }
 
     public void onStartButtonClicked(View view) {
+        if (!checkSettings()) {
+            return;
+        }
+
         if (!Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
             startService(new Intent(getApplicationContext(), LinkService.class));
             Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();

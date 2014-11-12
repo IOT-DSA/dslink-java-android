@@ -18,5 +18,9 @@
     <string name="title_activity_about">About</string>
     <string name="hello_world">Hello world!</string>
     <string name="about">DGMobile is a Data Source Link for DGLux5</string>
+    <string name="prefs_broker_category">Broker</string>
+    <string name="prefs_broker_url">Broker URL</string>
+    <string name="prefs_broker_url_summary">The Broker\'s URL</string>
+    <string name="error_broker_url_not_specified">Broker URL was not specified. Please input a valid Broker URL in the settings.</string>
 
 </resources>

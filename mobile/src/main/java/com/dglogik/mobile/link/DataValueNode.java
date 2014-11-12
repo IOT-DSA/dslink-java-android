@@ -60,7 +60,7 @@ public class DataValueNode extends ValuePoint {
     public DGValue getValue(DGContext context) {
         DGValue value = super.getValue(context);
         if (value == null) {
-            DGMobileContext.CONTEXT.log("Node Value is null for " + getName());
+            DGMobileContext.log("Node Value is null for " + getName());
 
             if (initializeValue != null) {
                 initializeValue.run();

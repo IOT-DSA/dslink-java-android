@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen android:id="@+id/prefs" xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="@string/prefs_nodes_category"
-        android:key="nodes"/>
+        android:title="@string/prefs_broker_category">
+
+        <EditTextPreference
+            android:title="@string/prefs_broker_url"
+            android:defaultValue=""
+            android:key="broker.url"
+            android:summary="@string/prefs_broker_url_summary"/>
+    </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/prefs_control_category">
@@ -27,4 +33,8 @@
             android:key="features.wear"
             android:summary="@string/prefs_android_wear_summary"/>
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/prefs_nodes_category"
+        android:key="nodes"/>
 </PreferenceScreen>
