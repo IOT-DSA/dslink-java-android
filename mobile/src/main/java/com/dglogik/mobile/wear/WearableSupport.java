@@ -2,9 +2,12 @@ package com.dglogik.mobile.wear;
 
 import android.support.annotation.NonNull;
 
+import com.dglogik.api.DGNode;
+import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.mobile.link.DataValueNode;
+import com.dglogik.mobile.link.DeviceNode;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
@@ -34,7 +37,13 @@ public class WearableSupport {
 
                 String deviceName = namesMap.get(node.getId());
 
-                if (deviceName != null && context.rootNode.hasChild(deviceName)) {
+                DeviceNode deviceNode = null;
+                for (DGNode bn : context.link.getRootNodes()) {
+                    if (bn.getName().equals(deviceName)) {
+                        deviceNode = (DeviceNode) bn;
+                    }
+                }
+                if (deviceName != null && deviceNode != null) {
                     DGMobileContext.log("Node Already Found: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
                     return;
                 }
@@ -45,8 +54,15 @@ public class WearableSupport {
             @Override
             public void onPeerDisconnected(@NonNull Node node) {
                 String deviceName = namesMap.get(node.getId());
-                if (deviceName != null && context.rootNode.hasChild(deviceName)) {
-                    context.rootNode.removeChild(deviceName);
+                DeviceNode deviceNode = null;
+                for (DGNode bn : context.link.getRootNodes()) {
+                    if (bn.getName().equals(deviceName)) {
+                        deviceNode = (DeviceNode) bn;
+                    }
+                }
+
+                if (deviceName != null && deviceNode != null) {
+                    context.link.getRootNodes().remove(deviceNode);
                 }
                 DGMobileContext.log("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
             }

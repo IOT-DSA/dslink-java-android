@@ -1,26 +1,36 @@
 package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
-import android.app.*;
-import android.content.*;
-import android.content.pm.*;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.SearchManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.hardware.*;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.BatteryManager;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.speech.RecognitionListener;
-import android.provider.*;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.net.*;
 import android.view.Display;
+import android.widget.Toast;
 
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.dslink.Application;
@@ -33,7 +43,6 @@ import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
-import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
@@ -45,7 +54,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
-import android.widget.Toast;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,8 +75,7 @@ public class DGMobileContext {
     @NonNull
     public final Application link;
     public boolean linkStarted = false;
-    @NonNull
-    public final RootNode rootNode;
+
     @NonNull
     public final SensorManager sensorManager;
     @NonNull
@@ -80,7 +87,6 @@ public class DGMobileContext {
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
         this.service = service;
-        this.rootNode = new RootNode();
         this.wearable = new WearableSupport(this);
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         this.googleClient = new GoogleApiClient.Builder(getApplicationContext())
@@ -157,7 +163,7 @@ public class DGMobileContext {
 
         DeviceNode device = new DeviceNode(Build.MODEL);
         setupCurrentDevice(device);
-        rootNode.addChild(device);
+        link.addRootNode(device);
 
         startLink();
     }
@@ -221,7 +227,7 @@ public class DGMobileContext {
 
             LocationRequest request = new LocationRequest();
 
-            request.setFastestInterval(1000);
+            request.setFastestInterval(500);
             request.setInterval(3000);
             request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
@@ -682,8 +688,6 @@ public class DGMobileContext {
             final BroadcastReceiver receiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    String action = intent.getAction();
-                    String cmd = intent.getStringExtra("command");
                     String artist = intent.getStringExtra("artist");
                     String album = intent.getStringExtra("album");
                     String track = intent.getStringExtra("track");
@@ -897,7 +901,6 @@ public class DGMobileContext {
                 final String name = preferences.getString("link.name", "Android");
                 final String brokerUrl = preferences.getString("broker.url", "");
 
-                link.addRootNode(rootNode);
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
                     put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
