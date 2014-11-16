@@ -67,9 +67,11 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     //noinspection GradleDynamicVersion
+    compile 'com.android.support:support-v13:+'
+    //noinspection GradleDynamicVersion
     compile 'com.google.android.support:wearable:+'
-    compile 'com.android.support:support-v4:+'
-    compile 'com.google.android.gms:play-services-wearable:6.1.71'
+    //noinspection GradleDynamicVersion
+    compile 'com.google.android.gms:play-services-wearable:+'
 }
 
 apply from: "../gradle/signing.gradle"
