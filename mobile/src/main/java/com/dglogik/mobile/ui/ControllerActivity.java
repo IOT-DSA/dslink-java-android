@@ -2,7 +2,6 @@ package com.dglogik.mobile.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -120,7 +119,7 @@ public class ControllerActivity extends Activity {
 
     private void openAboutActivity() {
         Intent intent = new Intent();
-        intent.setClass(getApplicationContext(), AboutActivity.class);
+        intent.setClass(getApplicationContext(), InfoActivity.class);
         startActivityForResult(intent, 51);
     }
 

@@ -33,6 +33,7 @@ import android.view.Display;
 import android.widget.Toast;
 
 import com.dglogik.api.BasicMetaData;
+import com.dglogik.api.DGContext;
 import com.dglogik.dslink.Application;
 import com.dglogik.dslink.client.Client;
 import com.dglogik.dslink.client.command.base.ArgValue;
@@ -44,6 +45,9 @@ import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.wear.WearableSupport;
+import com.dglogik.rollup.RollupType;
+import com.dglogik.time.Interval;
+import com.dglogik.time.TimeRange;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -960,6 +964,7 @@ public class DGMobileContext {
                 }
             }
         });
+
         return poller;
     }
 
