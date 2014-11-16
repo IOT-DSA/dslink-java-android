@@ -22,5 +22,8 @@
     <string name="prefs_broker_url">Broker URL</string>
     <string name="prefs_broker_url_summary">The Broker\'s URL</string>
     <string name="error_broker_url_not_specified">Broker URL was not specified. Please input a valid Broker URL in the settings.</string>
+    <string name="prefs_link_category">Link</string>
+    <string name="prefs_link_name">Link Name</string>
+    <string name="prefs_link_name_summary">Name of the Link</string>
 
 </resources>

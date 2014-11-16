@@ -1,14 +1,16 @@
 package com.dglogik.mobile.link;
 
-import com.dglogik.mobile.*;
 import com.dglogik.api.BasicMetaData;
+import com.dglogik.api.DGContext;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.dslink.node.ValuePoint;
+import com.dglogik.mobile.Action;
+import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.value.DGValue;
-import com.dglogik.api.DGContext;
 
 public class DataValueNode extends ValuePoint {
     public Action initializeValue;
+    public DGMobileContext context = DGMobileContext.CONTEXT;
 
     public DataValueNode(String name, DGMetaData metaData) {
         super(name, metaData);

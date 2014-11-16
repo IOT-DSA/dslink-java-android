@@ -25,6 +25,9 @@ import android.view.Display;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.dslink.Application;
 import com.dglogik.dslink.client.Client;
+import com.dglogik.dslink.client.command.base.ArgValue;
+import com.dglogik.dslink.client.command.base.ArgValueMetadata;
+import com.dglogik.dslink.client.command.base.Options;
 import com.dglogik.dslink.node.Poller;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
@@ -116,7 +119,7 @@ public class DGMobileContext {
 
         this.sensorManager = (SensorManager) service.getSystemService(LinkService.SENSOR_SERVICE);
         this.locationManager = (LocationManager) service.getSystemService(LinkService.LOCATION_SERVICE);
-        this.link = new Application();
+        this.link = Application.get();
 
         this.client = new Client(false) {
             @Override
@@ -555,6 +558,7 @@ public class DGMobileContext {
         }
 
         if (preferences.getBoolean("actions.music", true)) {
+
             final BaseAction playArtistAction = new BaseAction("PlayArtist") {
                 @NonNull
                 @Override
@@ -648,6 +652,33 @@ public class DGMobileContext {
             final DataValueNode albumNode = new DataValueNode("Song_Album", BasicMetaData.SIMPLE_STRING);
             final DataValueNode trackNode = new DataValueNode("Song_Track", BasicMetaData.SIMPLE_STRING);
 
+            artistNode.initializeValue = new Action() {
+                @Override
+                public void run() {
+                    if (songArtist != null) {
+                        artistNode.update(songArtist);
+                    }
+                }
+            };
+
+            albumNode.initializeValue = new Action() {
+                @Override
+                public void run() {
+                    if (songAlbum != null) {
+                        albumNode.update(songAlbum);
+                    }
+                }
+            };
+
+            trackNode.initializeValue = new Action() {
+                @Override
+                public void run() {
+                    if (songTitle != null) {
+                        trackNode.update(songTitle);
+                    }
+                }
+            };
+
             final BroadcastReceiver receiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -660,6 +691,10 @@ public class DGMobileContext {
                     artistNode.update(artist);
                     albumNode.update(album);
                     trackNode.update(track);
+
+                    songArtist = artist;
+                    songAlbum = album;
+                    songTitle = track;
                 }
             };
 
@@ -838,6 +873,10 @@ public class DGMobileContext {
         node.addChild(screenOn);
     }
 
+    private String songArtist;
+    private String songTitle;
+    private String songAlbum;
+
     public boolean enableSensor(String id, int type) {
         return enableNode(id) && !sensorManager.getSensorList(type).isEmpty();
     }
@@ -855,8 +894,16 @@ public class DGMobileContext {
 
                 linkStarted = true;
 
+                final String name = preferences.getString("link.name", "Android");
+                final String brokerUrl = preferences.getString("broker.url", "");
+
                 link.addRootNode(rootNode);
-                link.run(new String[0], false);
+                link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
+                    put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
+                    put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
+                }}, false));
+
+                linkStarted = false;
             }
         });
         linkThread.start();

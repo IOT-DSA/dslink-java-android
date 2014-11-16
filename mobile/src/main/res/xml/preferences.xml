@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen android:id="@+id/prefs" xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="@string/prefs_broker_category">
+        android:title="@string/prefs_link_category">
+
+        <EditTextPreference
+            android:title="@string/prefs_link_name"
+            android:defaultValue="Android"
+            android:key="link.name"
+            android:summary="@string/prefs_link_name_summary"/>
 
         <EditTextPreference
             android:title="@string/prefs_broker_url"
