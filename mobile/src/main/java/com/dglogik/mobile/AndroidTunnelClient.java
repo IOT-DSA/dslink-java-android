@@ -39,6 +39,8 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
                 }
 
                 socket = webSocket;
+
+                pingOk();
             }
         });
 
