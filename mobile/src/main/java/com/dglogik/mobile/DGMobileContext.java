@@ -33,7 +33,6 @@ import android.view.Display;
 import android.widget.Toast;
 
 import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGContext;
 import com.dglogik.dslink.Application;
 import com.dglogik.dslink.client.Client;
 import com.dglogik.dslink.client.command.base.ArgValue;
@@ -44,10 +43,8 @@ import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
+import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.wear.WearableSupport;
-import com.dglogik.rollup.RollupType;
-import com.dglogik.time.Interval;
-import com.dglogik.time.TimeRange;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -87,6 +84,8 @@ public class DGMobileContext {
     @NonNull
     public final Client client;
     public final SharedPreferences preferences;
+
+    private final RootNode<DeviceNode> devicesNode = new RootNode<DeviceNode>("Devices");
 
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
@@ -165,9 +164,12 @@ public class DGMobileContext {
             wearable.initialize();
         }
 
+        link.addRootNode(devicesNode);
+
         DeviceNode device = new DeviceNode(Build.MODEL);
         setupCurrentDevice(device);
-        link.addRootNode(device);
+
+        devicesNode.addChild(device);
 
         startLink();
     }
@@ -936,7 +938,7 @@ public class DGMobileContext {
             action.run();
         }
 
-        log("Unregistering Sensor Event Listeners");
+        log("Un-registering Sensor Event Listeners");
         for (SensorEventListener eventListener : sensorListeners) {
             sensorManager.unregisterListener(eventListener);
         }
@@ -946,8 +948,16 @@ public class DGMobileContext {
             recognizer.destroy();
         }
 
-        log("Stopping Server");
-        link.stop();
+        log("Stopping Link");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                link.stop();
+                log("Link Stopped");
+                log("Clearing Nodes");
+                link.getRootNodes().clear();
+            }
+        }).start();
         log("Disconnecting Google API Client");
         googleClient.disconnect();
     }
