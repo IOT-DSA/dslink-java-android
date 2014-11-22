@@ -104,6 +104,7 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
 
     @Override
     protected void responseEnd(Writer out) throws IOException {
+        out.close();
         String str = out.toString();
         socket.send(str);
         DGMobileContext.log("Android Tunnel Client Sent: " + str);
