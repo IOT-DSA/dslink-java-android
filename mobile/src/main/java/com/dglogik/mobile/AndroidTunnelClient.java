@@ -58,8 +58,10 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
             @Override
             public void onStringAvailable(String s) {
                 DGMobileContext.log("Android Tunnel Client Received: " + s);
-                try (StringReader reader = new StringReader(s)) {
-                    processRequest(new StringReader(s));
+                try {
+                    StringReader reader = new StringReader(s);
+                    processRequest(reader);
+                    reader.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
