@@ -63,7 +63,7 @@ public class ControllerActivity extends Activity {
         String brokerUrl = preferences.getString("broker.url", "");
 
         if (brokerUrl == null || brokerUrl.isEmpty()) {
-            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getApplicationContext());
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 
             dialogBuilder.setTitle("Broker URL not specified.");
 

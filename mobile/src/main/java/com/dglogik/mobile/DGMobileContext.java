@@ -133,16 +133,29 @@ public class DGMobileContext {
         this.client = new Client(false) {
             @Override
             public void run() {
+              stop = false;
+              while (!stop) {
+                try {
+                  Thread.sleep(500);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              }
             }
 
             @Override
             protected void onStop() {
+              stop = true;
             }
         };
         this.handler = new Handler(getApplicationContext().getMainLooper());
 
         link.setClient(client);
+
+        Application.TUNNEL_TYPE = AndroidTunnelClient.class;
     }
+
+    private boolean stop = false;
 
     public void playSearchArtist(final String artist) {
         execute(new Action() {
