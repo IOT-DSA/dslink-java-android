@@ -8,7 +8,6 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.future.Future;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
-import com.koushikdutta.async.*;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -59,13 +58,10 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
             @Override
             public void onStringAvailable(String s) {
                 DGMobileContext.log("Android Tunnel Client Received: " + s);
-                StringReader reader = new StringReader(s);
-                try {
+                try (StringReader reader = new StringReader(s)) {
                     processRequest(new StringReader(s));
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    reader.close();
                 }
             }
         });

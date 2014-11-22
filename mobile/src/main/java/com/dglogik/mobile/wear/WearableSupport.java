@@ -18,11 +18,11 @@ public class WearableSupport {
     public final DGMobileContext context;
     @NonNull
     public final Map<String, DataValueNode> nodes;
-    public final Map<String, String> namesMap = new HashMap<String, String>();
+    public final Map<String, String> namesMap = new HashMap<>();
 
     public WearableSupport(DGMobileContext context) {
         this.context = context;
-        this.nodes = new HashMap<String, DataValueNode>();
+        this.nodes = new HashMap<>();
     }
 
     public void initialize() {
@@ -37,7 +37,7 @@ public class WearableSupport {
                 String deviceName = namesMap.get(node.getId());
 
                 DeviceNode deviceNode = null;
-                for (DGNode bn : context.link.getRootNodes()) {
+                for (DGNode bn : context.devicesNode.getChildren()) {
                     if (bn.getName().equals(deviceName)) {
                         deviceNode = (DeviceNode) bn;
                     }
@@ -54,14 +54,14 @@ public class WearableSupport {
             public void onPeerDisconnected(@NonNull Node node) {
                 String deviceName = namesMap.get(node.getId());
                 DeviceNode deviceNode = null;
-                for (DGNode bn : context.link.getRootNodes()) {
+                for (DGNode bn : context.devicesNode.getChildren()) {
                     if (bn.getName().equals(deviceName)) {
                         deviceNode = (DeviceNode) bn;
                     }
                 }
 
                 if (deviceName != null && deviceNode != null) {
-                    context.link.getRootNodes().remove(deviceNode);
+                    context.devicesNode.removeChild(deviceNode.getName());
                 }
                 DGMobileContext.log("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
             }

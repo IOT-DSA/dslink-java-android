@@ -25,7 +25,7 @@ import java.util.Map;
 
 public class DGWearMessageListener implements MessageApi.MessageListener {
     @NonNull
-    private final Map<String, DataValueNode> dataNodes = new HashMap<String, DataValueNode>();
+    private final Map<String, DataValueNode> dataNodes = new HashMap<>();
 
     @Override
     public void onMessageReceived(@NonNull final MessageEvent event) {
@@ -48,7 +48,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
             if (type.equals("points")) {
                 DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
                 DeviceNode deviceNode = new DeviceNode(device);
-                DGMobileContext.CONTEXT.link.addRootNode(deviceNode);
+                DGMobileContext.CONTEXT.devicesNode.addChild(deviceNode);
                 JSONObject points = data.getJSONObject("points");
                 JSONArray actions = data.getJSONArray("actions");
 
@@ -105,10 +105,10 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 object.put("action", name);
                             } catch (JSONException e) {
                                 e.printStackTrace();
-                                return new HashMap<String, DGValue>();
+                                return new HashMap<>();
                             }
                             Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
-                            return new HashMap<String, DGValue>();
+                            return new HashMap<>();
                         }
                     };
 

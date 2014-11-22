@@ -85,7 +85,7 @@ public class DGMobileContext {
     public final Client client;
     public final SharedPreferences preferences;
 
-    private final RootNode<DeviceNode> devicesNode = new RootNode<DeviceNode>("Devices");
+    public final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
 
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
@@ -219,8 +219,8 @@ public class DGMobileContext {
     public double lastLatitude;
     public double lastLongitude;
 
-    public final List<Action> cleanups = new ArrayList<Action>();
-    public final List<SensorEventListener> sensorListeners = new ArrayList<SensorEventListener>();
+    public final List<Action> cleanups = new ArrayList<>();
+    public final List<SensorEventListener> sensorListeners = new ArrayList<>();
 
     public void onCleanup(Action action) {
         cleanups.add(action);
@@ -342,7 +342,7 @@ public class DGMobileContext {
 
                     notificationManager.cancel(id);
 
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -511,7 +511,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     speech.speak(args.get("text").toString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -542,7 +542,7 @@ public class DGMobileContext {
                             }
                         }
                     });
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
             openUrlAction.addParam("url", BasicMetaData.SIMPLE_STRING);
@@ -566,7 +566,7 @@ public class DGMobileContext {
                             }
                         }
                     });
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
             searchWebAction.addParam("query", BasicMetaData.SIMPLE_STRING);
@@ -583,7 +583,7 @@ public class DGMobileContext {
                     String artist = args.get("artist").toString();
                     log("Playing Artist: " + artist);
                     playSearchArtist(artist);
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -592,7 +592,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("play");
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -601,7 +601,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("pause");
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -610,7 +610,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("togglepause");
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -619,7 +619,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("play");
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -628,7 +628,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("next");
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -637,7 +637,7 @@ public class DGMobileContext {
                 @Override
                 public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("previous");
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -736,7 +736,7 @@ public class DGMobileContext {
                             recognizer.startListening(new Intent());
                         }
                     });
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -751,7 +751,7 @@ public class DGMobileContext {
                             recognizer.stopListening();
                         }
                     });
-                    return new HashMap<String, DGValue>();
+                    return new HashMap<>();
                 }
             };
 
@@ -789,7 +789,7 @@ public class DGMobileContext {
                 @Override
                 public void onResults(Bundle results) {
                     log("Speech Results");
-                    List<Float> scores = new ArrayList<Float>();
+                    List<Float> scores = new ArrayList<>();
                     List<String> possibles = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                     {
                         float[] sc = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
@@ -868,9 +868,7 @@ public class DGMobileContext {
                     boolean on = (Boolean) method.invoke(display);
                     screenOn.update(on);
                 } catch (NoSuchMethodException ignored) {
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
+                } catch (InvocationTargetException | IllegalAccessException e) {
                     e.printStackTrace();
                 }
             }

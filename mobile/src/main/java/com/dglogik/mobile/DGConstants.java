@@ -27,7 +27,7 @@ public class DGConstants {
     });
 
     public static List<Preference> createNodePreferences(Context context) {
-        List<Preference> preferences = new ArrayList<Preference>();
+        List<Preference> preferences = new ArrayList<>();
         for (NodeDescriptor descriptor : DGConstants.NODES) {
             Preference preference = descriptor.createCheckboxPreference(context);
             preferences.add(preference);
