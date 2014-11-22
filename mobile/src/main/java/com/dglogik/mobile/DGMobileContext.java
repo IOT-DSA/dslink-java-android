@@ -133,7 +133,9 @@ public class DGMobileContext {
         this.client = new Client(false) {
             @Override
             public void run() {
-                while(isRunning()) { try { Thread.sleep(100); } catch (Exception e) {} }
+                //log("Running Client");
+                //while(isRunning()) { try { Thread.sleep(100); } catch (Exception ignored) {} }
+                //log("Client Complete");
             }
 
             @Override
@@ -909,6 +911,7 @@ public class DGMobileContext {
 
                 final String name = preferences.getString("link.name", "Android");
                 final String brokerUrl = preferences.getString("broker.url", "");
+                Application.TUNNEL_TYPE = AndroidTunnelClient.class;
 
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));

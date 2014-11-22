@@ -8,6 +8,7 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.future.Future;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
+import com.koushikdutta.async.*;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -33,8 +34,8 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
     @Override
     public void stop() {
         super.stop();
-        DGMobileContext.log("Android Tunnel Client: Stop");
-        if (socket != null) socket.end();
+        DGMobileContext.log("Android Tunnel Client Stopping");
+        if (socket != null) socket.close();
         socket = null;
     }
 
@@ -52,7 +53,7 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
     }
 
     private void init() {
-        DGMobileContext.log("Android Tunnel Client Initialized");
+        DGMobileContext.log("Android Tunnel Client Connected");
 
         socket.setStringCallback(new WebSocket.StringCallback() {
             @Override
@@ -66,6 +67,13 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
                 } finally {
                     reader.close();
                 }
+            }
+        });
+
+        socket.setDataCallback(new DataCallback() {
+            @Override
+            public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
+                byteBufferList.recycle();
             }
         });
 
