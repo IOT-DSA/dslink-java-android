@@ -43,6 +43,9 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
         Future<WebSocket> future = AsyncHttpClient.getDefaultInstance().websocket(servlet.getInitParameter("tunnel"), null, new AsyncHttpClient.WebSocketConnectCallback() {
             @Override
             public void onCompleted(Exception e, WebSocket webSocket) {
+                if (e != null) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
