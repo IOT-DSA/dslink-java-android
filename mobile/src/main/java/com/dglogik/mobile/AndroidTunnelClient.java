@@ -44,14 +44,14 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
             @Override
             public void onCompleted(Exception e, WebSocket webSocket) {
                 if (e != null) {
-                    throw new RuntimeException(e);
+                    try { Thread.sleep(1000); } catch (Exception ex) {}
                 }
             }
         });
 
         socket = future.get();
         init();
-        pingOk();
+        sendPing();
     }
 
     private void init() {

@@ -36,12 +36,16 @@ public class InfoActivity extends Activity {
         poller = new Poller(new Runnable() {
             @Override
             public void run() {
-                updateTree();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateTree();
+                    }
+                });
             }
         });
 
         poller.poll(TimeUnit.SECONDS, 5, false);
-        poller.cancel();
     }
 
     public void updateTree() {

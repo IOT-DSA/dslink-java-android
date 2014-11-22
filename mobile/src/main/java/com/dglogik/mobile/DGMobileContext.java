@@ -149,7 +149,7 @@ public class DGMobileContext {
 
         link.setClient(client);
 
-        Application.TUNNEL_TYPE = AndroidTunnelClient.class;
+        link.TUNNEL_TYPE = AndroidTunnelClient.class;
     }
 
     public void playSearchArtist(final String artist) {
@@ -291,12 +291,11 @@ public class DGMobileContext {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
-            final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
 
-            if (batteryStatus != null) {
                 poller(new Action() {
                     @Override
                     public void run() {
+                        final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
                         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
                         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
@@ -315,7 +314,7 @@ public class DGMobileContext {
                 node.addChild(batteryLevelNode);
                 node.addChild(batteryFullNode);
                 node.addChild(chargerConnectedNode);
-            }
+
         }
 
         if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
@@ -927,12 +926,14 @@ public class DGMobileContext {
 
                 final String name = preferences.getString("link.name", "Android");
                 final String brokerUrl = preferences.getString("broker.url", "");
-                Application.TUNNEL_TYPE = AndroidTunnelClient.class;
+                link.TUNNEL_TYPE = AndroidTunnelClient.class;
 
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
                     put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
                 }}, false));
+
+                log("Link Stopped");
 
                 linkStarted = false;
             }

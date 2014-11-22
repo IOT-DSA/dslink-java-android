@@ -29,14 +29,13 @@ public class LinkService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 1, new Intent(getApplicationContext(), ControllerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
         notification = builder.build();
-        Application.TUNNEL_TYPE = AndroidTunnelClient.class;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(0, notification);
         context.start();
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
