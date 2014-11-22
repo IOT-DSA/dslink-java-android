@@ -12,6 +12,7 @@ import android.text.Html;
 import com.dglogik.api.DGAction;
 import com.dglogik.api.DGNode;
 import com.dglogik.dslink.node.base.BaseNode;
+import com.dglogik.dslink.util.FakeContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -92,7 +93,7 @@ public class Utils {
             String part = createNodeTree(node, level + 1);
             builder.append(part);
 
-            for (Object i : root.getActions(null)) {
+            for (Object i : node.getActions(FakeContext.INSTANCE)) {
                 DGAction action = (DGAction) i;
                 String name = action.getName();
                 builder.append("@ ").append(name).append("\n");
