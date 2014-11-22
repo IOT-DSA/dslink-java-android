@@ -35,7 +35,7 @@ public class LinkService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(0, notification);
         context.start();
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override

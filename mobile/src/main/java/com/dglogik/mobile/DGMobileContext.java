@@ -46,7 +46,6 @@ import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.value.DGValue;
-import com.google.android.gms.cast.Cast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -136,21 +135,26 @@ public class DGMobileContext {
         this.client = new Client(false) {
             @Override
             public void run() {
-                //log("Running Client");
-                //while(isRunning()) { try { Thread.sleep(100); } catch (Exception ignored) {} }
-                //log("Client Complete");
+                stop = false;
+                try { Thread.sleep(2000); } catch (Exception e) {}
+                log("Running Client");
+                while(!stop) { try { Thread.sleep(100); } catch (Exception ignored) {} }
+                log("Client Complete");
             }
 
             @Override
             protected void onStop() {
+                stop = true;
             }
         };
         this.handler = new Handler(getApplicationContext().getMainLooper());
 
         link.setClient(client);
 
-        link.TUNNEL_TYPE = AndroidTunnelClient.class;
+        link.TUNNEL_TYPE = AsyncTunnelClient.class;
     }
+
+    private boolean stop = false;
 
     public void playSearchArtist(final String artist) {
         execute(new Action() {
@@ -926,7 +930,7 @@ public class DGMobileContext {
 
                 final String name = preferences.getString("link.name", "Android");
                 final String brokerUrl = preferences.getString("broker.url", "");
-                link.TUNNEL_TYPE = AndroidTunnelClient.class;
+                link.TUNNEL_TYPE = AsyncTunnelClient.class;
 
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
