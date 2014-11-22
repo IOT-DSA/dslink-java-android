@@ -1,2 +1,2 @@
-include ':mobile', ':wear'
+include ':mobile', ':wear', ':common'
 rootProject.name = "DGMobile"
