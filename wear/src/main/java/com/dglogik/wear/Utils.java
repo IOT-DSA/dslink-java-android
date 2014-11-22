@@ -20,16 +20,4 @@ public class Utils {
             log("Sensor: " + sensor.getName() + " by " + sensor.getVendor() + " (version: " + sensor.getVersion() + ", type: " + sensor.getStringType() + ")");
         }
     }
-
-    public static boolean isServiceRunning(@NonNull Context context, @NonNull Class<? extends Service> clazz) {
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (service.service.getClassName().equals(clazz.getName())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

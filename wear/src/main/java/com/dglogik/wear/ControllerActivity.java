@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.dglogik.common.Services;
 import com.dglogik.mobile.R;
 
 public class ControllerActivity extends Activity {
@@ -37,7 +38,7 @@ public class ControllerActivity extends Activity {
     }
 
     public void syncButtons() {
-        if (Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
+        if (Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             stopButton.setEnabled(true);
             startButton.setEnabled(false);
         } else {

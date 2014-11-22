@@ -7,12 +7,14 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
+import com.dglogik.common.Services;
+
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(@NonNull Context context, Intent intent) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 
-        if (settings.getBoolean(DGConstants.START_ON_BOOT, false) && !Utils.isServiceRunning(context, LinkService.class)) {
+        if (settings.getBoolean(DGConstants.START_ON_BOOT, false) && !Services.isServiceRunning(context, LinkService.class)) {
             Intent linkIntent = new Intent(context, LinkService.class);
             context.startService(linkIntent);
         }

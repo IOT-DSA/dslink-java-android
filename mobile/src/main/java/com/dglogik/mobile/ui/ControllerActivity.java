@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.dglogik.common.Services;
 import com.dglogik.dslink.node.Poller;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.LinkService;
@@ -151,7 +152,7 @@ public class ControllerActivity extends Activity {
     }
 
     public void syncButtons() {
-        if (Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
+        if (Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             stopButton.setEnabled(true);
             startButton.setEnabled(false);
         } else {
@@ -170,7 +171,7 @@ public class ControllerActivity extends Activity {
             return;
         }
 
-        if (!Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
+        if (!Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             startService(new Intent(getApplicationContext(), LinkService.class));
             Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
         }
@@ -178,7 +179,7 @@ public class ControllerActivity extends Activity {
     }
 
     public void onStopButtonClicked(View view) {
-        if (Utils.isServiceRunning(getApplicationContext(), LinkService.class)) {
+        if (Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             stopService(new Intent(getApplicationContext(), LinkService.class));
             Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
         }
