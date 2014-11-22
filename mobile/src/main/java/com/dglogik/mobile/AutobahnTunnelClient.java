@@ -27,6 +27,12 @@ public class AutobahnTunnelClient extends AbstractTunnelClient {
 
     private boolean c = false;
 
+    @Override
+    public void stop() {
+        super.stop();
+        connection.disconnect();
+    }
+
     public void setUri(String uri) {}
 
     @Override
@@ -36,61 +42,46 @@ public class AutobahnTunnelClient extends AbstractTunnelClient {
 
         final String url = context.getInitParameter("tunnel");
 
-        new Thread(new Runnable() {
+        connection.onPong = new Runnable() {
             @Override
             public void run() {
-                connection.onPong = new Runnable() {
-                    @Override
-                    public void run() {
-                        DGMobileContext.log("WS Pong");
-                        pingOk();
-                    }
-                };
+                pingOk();
+            }
+        };
 
+        connection.connect(new URI(url), new WebSocket.WebSocketConnectionObserver() {
+            @Override
+            public void onOpen() {
+                DGMobileContext.log("WS Open");
+                pingOk();
+            }
+
+            @Override
+            public void onClose(WebSocketCloseNotification code, String reason) {
+                DGMobileContext.log("WS Close: code = " + code.name() + ", reason = " + reason);
+                disconnected();
+            }
+
+            @Override
+            public void onTextMessage(String payload) {
+                DGMobileContext.log("WS Message: " + payload);
                 try {
-                    connection.connect(new URI(url), new WebSocket.WebSocketConnectionObserver() {
-                        @Override
-                        public void onOpen() {
-                            c = true;
-                            DGMobileContext.log("WS Open");
-                        }
-
-                        @Override
-                        public void onClose(WebSocketCloseNotification code, String reason) {
-                            DGMobileContext.log("WS Close");
-                            disconnected();
-                        }
-
-                        @Override
-                        public void onTextMessage(String payload) {
-                            DGMobileContext.log("WS Message: " + payload);
-                            try {
-                                processRequest(new StringReader(payload));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        @Override
-                        public void onRawTextMessage(byte[] payload) {
-                        }
-
-                        @Override
-                        public void onBinaryMessage(byte[] payload) {
-                        }
-                    });
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                } catch (URISyntaxException e) {
+                    processRequest(new StringReader(payload));
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
-        }).start();
 
+            @Override
+            public void onRawTextMessage(byte[] payload) {
+                DGMobileContext.log("WS Raw Text Message: " + new String(payload));
+            }
 
-        while (!c) {
-            Thread.sleep(10);
-        }
+            @Override
+            public void onBinaryMessage(byte[] payload) {
+                DGMobileContext.log("WS Binary Message: " + new String(payload));
+            }
+        });
 
         pingOk();
     }

@@ -89,6 +89,7 @@ public class AsyncTunnelClient extends AbstractTunnelClient {
         socket.setClosedCallback(new CompletedCallback() {
             @Override
             public void onCompleted(Exception e) {
+                //Thread.dumpStack();
                 if (e != null) {
                     e.printStackTrace();
                 }
@@ -109,7 +110,7 @@ public class AsyncTunnelClient extends AbstractTunnelClient {
 
     @Override
     protected void responseEnd(Writer out) throws IOException {
-        out.close();
+        out.flush();
         String str = out.toString();
         socket.send(str);
         DGMobileContext.log("Android Tunnel Client Sent: " + str);
