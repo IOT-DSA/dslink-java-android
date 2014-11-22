@@ -46,6 +46,7 @@ import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.value.DGValue;
+import com.google.android.gms.cast.Cast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -86,6 +87,8 @@ public class DGMobileContext {
     public final SharedPreferences preferences;
 
     public final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
+
+    public DeviceNode currentDeviceNode;
 
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
@@ -171,10 +174,10 @@ public class DGMobileContext {
 
         link.addRootNode(devicesNode);
 
-        DeviceNode device = new DeviceNode(Build.MODEL);
-        setupCurrentDevice(device);
+        currentDeviceNode = new DeviceNode(Build.MODEL);
+        setupCurrentDevice(currentDeviceNode);
 
-        devicesNode.addChild(device);
+        devicesNode.addChild(currentDeviceNode);
 
         startLink();
     }
