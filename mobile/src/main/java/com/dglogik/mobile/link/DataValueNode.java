@@ -14,6 +14,8 @@ public class DataValueNode extends ValuePoint {
     public DataValueNode(String name, DGMetaData metaData) {
         super(name, metaData);
 
+        setValue(DGValue.make(null));
+
 //        if (metaData == BasicMetaData.SIMPLE_INT) {
 //            makeValue(DGValue.make(0));
 //        } else if (metaData == BasicMetaData.SIMPLE_BOOL) {

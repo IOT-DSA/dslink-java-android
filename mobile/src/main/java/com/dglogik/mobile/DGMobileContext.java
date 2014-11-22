@@ -239,6 +239,20 @@ public class DGMobileContext {
             final DataValueNode latitudeNode = new DataValueNode("Location_Latitude", BasicMetaData.SIMPLE_INT);
             final DataValueNode longitudeNode = new DataValueNode("Location_Longitude", BasicMetaData.SIMPLE_INT);
 
+            latitudeNode.initializeValue = new Action () {
+                @Override
+                public void run() {
+                    latitudeNode.update(LocationServices.FusedLocationApi.getLastLocation(googleClient).getLatitude());
+                }
+            };
+
+            longitudeNode.initializeValue = new Action () {
+                @Override
+                public void run() {
+                    longitudeNode.update(LocationServices.FusedLocationApi.getLastLocation(googleClient).getLongitude());
+                }
+            };
+
             LocationRequest request = new LocationRequest();
 
             request.setFastestInterval(500);
@@ -540,6 +554,7 @@ public class DGMobileContext {
                         @Override
                         public void run() {
                             Intent intent = new Intent(Intent.ACTION_VIEW, url);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             if (intent.resolveActivity(getPackageManager()) != null) {
                                 getApplicationContext().startActivity(intent);
                             }
@@ -868,7 +883,7 @@ public class DGMobileContext {
                 Display display = displayManager.getDisplay(i);
                 try {
                     Method method = display.getClass().getMethod("getState");
-                    boolean on = (Boolean) method.invoke(display);
+                    boolean on = ((Integer) method.invoke(display)) == 2;
                     screenOn.update(on);
                 } catch (NoSuchMethodException ignored) {
                 } catch (InvocationTargetException | IllegalAccessException e) {
