@@ -214,8 +214,8 @@ public class DGMobileContext {
     public double lastLatitude;
     public double lastLongitude;
 
-    public List<Action> cleanups = new ArrayList<Action>();
-    public List<SensorEventListener> sensorListeners = new ArrayList<SensorEventListener>();
+    public final List<Action> cleanups = new ArrayList<Action>();
+    public final List<SensorEventListener> sensorListeners = new ArrayList<SensorEventListener>();
 
     public void onCleanup(Action action) {
         cleanups.add(action);
@@ -926,7 +926,7 @@ public class DGMobileContext {
         return service.getApplicationContext();
     }
 
-    public Handler handler;
+    public final Handler handler;
 
     public void start() {
         googleClient.connect();

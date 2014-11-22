@@ -10,7 +10,6 @@ import android.support.annotation.NonNull;
 import android.text.Html;
 
 import com.dglogik.api.DGAction;
-import com.dglogik.api.DGContext;
 import com.dglogik.api.DGNode;
 import com.dglogik.dslink.node.base.BaseNode;
 

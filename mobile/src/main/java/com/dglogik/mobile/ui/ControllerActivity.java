@@ -22,6 +22,7 @@ import com.dglogik.mobile.Utils;
 
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("EmptyMethod")
 public class ControllerActivity extends Activity {
 
     private Button startButton;

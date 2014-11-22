@@ -1,6 +1,5 @@
 package com.dglogik.mobile.link;
 
-import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGContext;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.dslink.node.ValuePoint;
@@ -15,13 +14,13 @@ public class DataValueNode extends ValuePoint {
     public DataValueNode(String name, DGMetaData metaData) {
         super(name, metaData);
 
-        if (metaData == BasicMetaData.SIMPLE_INT) {
-            makeValue(DGValue.make(0));
-        } else if (metaData == BasicMetaData.SIMPLE_BOOL) {
-            makeValue(DGValue.make(false));
-        } else if (metaData == BasicMetaData.SIMPLE_STRING) {
-            makeValue(DGValue.make(""));
-        }
+//        if (metaData == BasicMetaData.SIMPLE_INT) {
+//            makeValue(DGValue.make(0));
+//        } else if (metaData == BasicMetaData.SIMPLE_BOOL) {
+//            makeValue(DGValue.make(false));
+//        } else if (metaData == BasicMetaData.SIMPLE_STRING) {
+//            makeValue(DGValue.make(""));
+//        }
     }
 
     public void update(Object obj) {

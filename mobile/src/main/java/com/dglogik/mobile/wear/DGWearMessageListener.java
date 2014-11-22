@@ -25,7 +25,7 @@ import java.util.Map;
 
 public class DGWearMessageListener implements MessageApi.MessageListener {
     @NonNull
-    private Map<String, DataValueNode> dataNodes = new HashMap<String, DataValueNode>();
+    private final Map<String, DataValueNode> dataNodes = new HashMap<String, DataValueNode>();
 
     @Override
     public void onMessageReceived(@NonNull final MessageEvent event) {

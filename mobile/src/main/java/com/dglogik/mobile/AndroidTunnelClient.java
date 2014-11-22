@@ -3,7 +3,6 @@ package com.dglogik.mobile;
 import com.dglogik.api.server.AbstractTunnelClient;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.future.Future;
-import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
 

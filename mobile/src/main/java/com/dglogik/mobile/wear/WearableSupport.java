@@ -3,7 +3,6 @@ package com.dglogik.mobile.wear;
 import android.support.annotation.NonNull;
 
 import com.dglogik.api.DGNode;
-import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.mobile.link.DataValueNode;
@@ -19,7 +18,7 @@ public class WearableSupport {
     public final DGMobileContext context;
     @NonNull
     public final Map<String, DataValueNode> nodes;
-    public Map<String, String> namesMap = new HashMap<String, String>();
+    public final Map<String, String> namesMap = new HashMap<String, String>();
 
     public WearableSupport(DGMobileContext context) {
         this.context = context;
