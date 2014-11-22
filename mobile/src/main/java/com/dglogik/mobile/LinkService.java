@@ -5,7 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-
+import com.dglogik.dslink.Application;
 import com.dglogik.mobile.ui.ControllerActivity;
 
 import org.jetbrains.annotations.Nullable;
@@ -29,13 +29,14 @@ public class LinkService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 1, new Intent(getApplicationContext(), ControllerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
         notification = builder.build();
+        Application.TUNNEL_TYPE = AndroidTunnelClient.class;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground(0, notification);
         context.start();
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
