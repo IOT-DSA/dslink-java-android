@@ -24,7 +24,7 @@ public class SpeechProvider extends Provider {
 
     @Override
     public void setup() {
-        recognizer = SpeechRecognizer.createSpeechRecognizer(LinkService.INSTANCE.getApplicationContext());
+        recognizer = SpeechRecognizer.createSpeechRecognizer(LinkService.INSTANCE);
 
         recognizer.setRecognitionListener(new RecognitionListener() {
             @Override
@@ -109,6 +109,6 @@ public class SpeechProvider extends Provider {
 
     @Override
     public void destroy() {
-        recognizer.destroy();
+        if (recognizer != null) recognizer.destroy();
     }
 }

@@ -12,7 +12,8 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.DeviceDefault" >
+        android:theme="@android:style/Theme.DeviceDefault"
+        android:name="com.dglogik.common.DGApplication">
         <service android:name="com.dglogik.mobile.LinkService" />
 
         <receiver
