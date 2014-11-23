@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import com.dglogik.wear.providers.DeviceProvider;
+import com.dglogik.wear.providers.GyroscopeProvider;
 import com.dglogik.wear.providers.HealthProvider;
 import com.dglogik.wear.providers.ScreenProvider;
 import com.dglogik.wear.providers.SpeechProvider;
@@ -30,8 +31,8 @@ public class LinkService extends Service {
     public SensorManager sensorManager;
     public GoogleApiClient googleClient;
     public static LinkService INSTANCE;
-    public List<Provider> providers = new ArrayList<Provider>();
-    public List<Action> actions = new ArrayList<Action>();
+    public List<Provider> providers = new ArrayList<>();
+    public List<Action> actions = new ArrayList<>();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -78,7 +79,26 @@ public class LinkService extends Service {
         return null;
     }
 
+    private List<String> connected = new ArrayList<>();
+
     public void init() {
+        Wearable.NodeApi.addListener(googleClient, new NodeApi.NodeListener() {
+            @Override
+            public void onPeerConnected(Node node) {
+                try {
+                    sendSingle(node.getId(), "ready", new HashMap<String, Object>() {{
+                    }});
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onPeerDisconnected(Node node) {
+
+            }
+        });
+
         Wearable.MessageApi.addListener(googleClient, new RequestListener());
 
         actions.add(new Action("StartSpeechRecognition") {
@@ -107,8 +127,7 @@ public class LinkService extends Service {
         providers.add(new HealthProvider());
         providers.add(new SpeechProvider());
 
-        /* TODO: Uncomment the following line when Gyroscope is ready */
-        //providers.add(new GyroscopeProvider());
+        providers.add(new GyroscopeProvider());
 
         for (Provider provider : providers) {
             if (!provider.supported()) {

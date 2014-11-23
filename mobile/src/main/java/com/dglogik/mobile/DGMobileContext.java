@@ -108,6 +108,7 @@ public class DGMobileContext {
                                 List<Node> nodes = getConnectedNodesResult.getNodes();
 
                                 for (Node node : nodes) {
+                                    DGMobileContext.log("Existing Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
                                     Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear/init", null);
                                 }
                             }
@@ -136,7 +137,7 @@ public class DGMobileContext {
             @Override
             public void run() {
                 stop = false;
-                try { Thread.sleep(2000); } catch (Exception e) {}
+                try { Thread.sleep(2000); } catch (Exception ignored) {}
                 log("Running Client");
                 while(!stop) { try { Thread.sleep(100); } catch (Exception ignored) {} }
                 log("Client Complete");
@@ -300,6 +301,7 @@ public class DGMobileContext {
                     @Override
                     public void run() {
                         final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                        assert batteryStatus != null;
                         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
                         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
                         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
@@ -516,6 +518,10 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+            currentDeviceNode.addChild(x);
+            currentDeviceNode.addChild(y);
+            currentDeviceNode.addChild(z);
         }
 
         if (preferences.getBoolean("actions.speak", true)) {

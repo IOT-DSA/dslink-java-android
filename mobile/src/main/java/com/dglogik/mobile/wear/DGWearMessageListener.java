@@ -45,105 +45,115 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
             String type = data.getString("type");
             String device = data.getString("device");
 
-            if (type.equals("points")) {
-                DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
-                DeviceNode deviceNode = new DeviceNode(device);
-                DGMobileContext.CONTEXT.devicesNode.addChild(deviceNode);
-                JSONObject points = data.getJSONObject("points");
-                JSONArray actions = data.getJSONArray("actions");
+            DGMobileContext.log("Wearable " + device + " sent " + type);
 
-                Iterator names = points.keys();
+            switch (type) {
+                case "points": {
+                    DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
+                    DeviceNode deviceNode = new DeviceNode(device);
+                    DGMobileContext.CONTEXT.devicesNode.addChild(deviceNode);
+                    JSONObject points = data.getJSONObject("points");
+                    JSONArray actions = data.getJSONArray("actions");
 
-                while (names.hasNext()) {
-                    String pointName = (String) names.next();
-                    JSONObject pointValues = points.getJSONObject(pointName);
+                    Iterator names = points.keys();
 
-                    Iterator pointValueNames = pointValues.keys();
+                    while (names.hasNext()) {
+                        String pointName = (String) names.next();
+                        JSONObject pointValues = points.getJSONObject(pointName);
 
-                    while (pointValueNames.hasNext()) {
-                        String pointValueName = (String) pointValueNames.next();
-                        int valueType = pointValues.getInt(pointValueName);
-                        String id;
-                        if (pointValues.length() == 1 && pointValueName.equals("value")) {
-                            id = pointName;
-                        } else {
-                            id = pointName + "_" + pointValueName;
+                        Iterator pointValueNames = pointValues.keys();
+
+                        while (pointValueNames.hasNext()) {
+                            String pointValueName = (String) pointValueNames.next();
+                            int valueType = pointValues.getInt(pointValueName);
+                            String id;
+                            if (pointValues.length() == 1 && pointValueName.equals("value")) {
+                                id = pointName;
+                            } else {
+                                id = pointName + "_" + pointValueName;
+                            }
+
+                            DGMetaData realType;
+
+                            switch (valueType) {
+                                case 0:
+                                    realType = BasicMetaData.SIMPLE_STRING;
+                                    break;
+                                case 1:
+                                    realType = BasicMetaData.SIMPLE_INT;
+                                    break;
+                                case 2:
+                                    realType = BasicMetaData.SIMPLE_BOOL;
+                                    break;
+                                default:
+                                    throw new IllegalArgumentException();
+                            }
+
+                            DataValueNode node = new DataValueNode(id, realType);
+
+                            dataNodes.put(device + "@" + id, node);
+
+                            deviceNode.addChild(node);
                         }
-
-                        DGMetaData realType;
-
-                        switch (valueType) {
-                            case 0:
-                                realType = BasicMetaData.SIMPLE_STRING;
-                                break;
-                            case 1:
-                                realType = BasicMetaData.SIMPLE_INT;
-                                break;
-                            case 2:
-                                realType = BasicMetaData.SIMPLE_BOOL;
-                                break;
-                            default:
-                                throw new IllegalArgumentException();
-                        }
-
-                        DataValueNode node = new DataValueNode(id, realType);
-
-                        dataNodes.put(device + "@" + id, node);
-
-                        deviceNode.addChild(node);
                     }
-                }
 
-                for (int i = 0; i < actions.length(); i++) {
-                    final String name = actions.getString(i);
+                    for (int i = 0; i < actions.length(); i++) {
+                        final String name = actions.getString(i);
 
-                    final BaseAction action = new BaseAction(name) {
-                        @Override
-                        public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
-                            JSONObject object = new JSONObject();
-                            try {
-                                object.put("action", name);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                        final BaseAction action = new BaseAction(name) {
+                            @Override
+                            public Map<String, DGValue> invoke(BaseNode baseNode, Map<String, DGValue> args) {
+                                JSONObject object = new JSONObject();
+                                try {
+                                    object.put("action", name);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    return new HashMap<>();
+                                }
+                                Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
                                 return new HashMap<>();
                             }
-                            Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
-                            return new HashMap<>();
+                        };
+
+                        deviceNode.addAction(action);
+                    }
+
+                    if (!DGMobileContext.CONTEXT.linkStarted) {
+                        DGMobileContext.CONTEXT.startLink();
+                    }
+                    break;
+                }
+                case "update": {
+                    String pointName = data.getString("point");
+
+                    JSONObject values = data.getJSONObject("values");
+
+                    Iterator names = values.keys();
+
+                    while (names.hasNext()) {
+                        String name = (String) names.next();
+
+                        String id;
+                        if (values.length() == 1 && name.equals("value")) {
+                            id = pointName;
+                        } else {
+                            id = pointName + "_" + name;
                         }
-                    };
 
-                    deviceNode.addAction(action);
-                }
+                        DataValueNode node = dataNodes.get(device + "@" + id);
 
-                if (!DGMobileContext.CONTEXT.linkStarted) {
-                    DGMobileContext.CONTEXT.startLink();
-                }
-            } else if (type.equals("update")) {
-                String pointName = data.getString("point");
+                        if (node == null) {
+                            DGMobileContext.log("ERROR: Node not found: " + device + "@" + id);
+                            continue;
+                        }
 
-                JSONObject values = data.getJSONObject("values");
-
-                Iterator names = values.keys();
-
-                while (names.hasNext()) {
-                    String name = (String) names.next();
-
-                    String id;
-                    if (values.length() == 1 && name.equals("value")) {
-                        id = pointName;
-                    } else {
-                        id = pointName + "_" + name;
+                        node.update(values.get(name));
                     }
-
-                    DataValueNode node = dataNodes.get(device + "@" + id);
-
-                    if (node == null) {
-                        DGMobileContext.log("ERROR: Node not found: " + device + "@" + id);
-                        continue;
-                    }
-
-                    node.update(values.get(name));
+                    break;
                 }
+                case "ready":
+                    Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/init", null);
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();

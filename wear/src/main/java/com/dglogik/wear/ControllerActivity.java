@@ -53,13 +53,17 @@ public class ControllerActivity extends Activity {
     }
 
     public void onStartButtonClicked(View view) {
-        startService(new Intent(getApplicationContext(), LinkService.class));
+        if (!Services.isServiceRunning(this, LinkService.class)) {
+            startService(new Intent(getApplicationContext(), LinkService.class));
+        }
         Toast.makeText(getApplicationContext(), "Started DGWear Link", Toast.LENGTH_LONG).show();
         syncButtons();
     }
 
     public void onStopButtonClicked(View view) {
-        stopService(new Intent(getApplicationContext(), LinkService.class));
+        if (Services.isServiceRunning(this, LinkService.class)) {
+            stopService(new Intent(getApplicationContext(), LinkService.class));
+        }
         Toast.makeText(getApplicationContext(), "Stopped DGWear Link", Toast.LENGTH_LONG).show();
         syncButtons();
     }
