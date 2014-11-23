@@ -865,6 +865,7 @@ public class DGMobileContext {
         }
 
         if (enableNode("power")) {
+            log("Power Management Features Enabled");
             setupPowerProvider(node);
         }
     }
