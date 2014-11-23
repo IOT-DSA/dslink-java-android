@@ -62,6 +62,8 @@ public class InfoActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
 
-        poller.cancel();
+        if (poller != null) {
+            poller.cancel();
+        }
     }
 }

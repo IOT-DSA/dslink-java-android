@@ -92,6 +92,7 @@ public class DGMobileContext {
     public final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
 
     public DeviceNode currentDeviceNode;
+    public boolean mResolvingError;
 
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
@@ -699,6 +700,7 @@ public class DGMobileContext {
             filter.addAction("com.rdio.android.metachanged");
             filter.addAction("com.samsung.sec.android.MusicPlayer.metachanged");
             filter.addAction("com.andrew.apollo.metachanged");
+            filter.addAction("com.spotify.music.metadatachanged");
 
             final DataValueNode artistNode = new DataValueNode("Song_Artist", BasicMetaData.SIMPLE_STRING);
             final DataValueNode albumNode = new DataValueNode("Song_Album", BasicMetaData.SIMPLE_STRING);
