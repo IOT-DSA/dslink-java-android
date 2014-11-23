@@ -16,17 +16,17 @@ import java.io.Writer;
 
 import ext.javax.servlet.ServletContext;
 
-public class AsyncTunnelClient extends AbstractTunnelClient {
+public class AndroidTunnelClient extends AbstractTunnelClient {
     private WebSocket socket;
     private ServletContext servlet;
 
-    public AsyncTunnelClient(ServletContext cx) {
+    public AndroidTunnelClient(ServletContext cx) {
         super(cx);
 
         servlet = cx;
     }
 
-    public AsyncTunnelClient setUri(String uri) {
+    public AndroidTunnelClient setUri(String uri) {
         return this;
     }
 
@@ -74,6 +74,7 @@ public class AsyncTunnelClient extends AbstractTunnelClient {
         socket.setDataCallback(new DataCallback() {
             @Override
             public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
+                DGMobileContext.log("Android Tunnel Client Got Data");
                 byteBufferList.recycle();
             }
         });
@@ -94,10 +95,10 @@ public class AsyncTunnelClient extends AbstractTunnelClient {
                     e.printStackTrace();
                 }
                 DGMobileContext.log("Android Tunnel Client Closed");
+                disconnected();
                 if (socket.isOpen()) {
                     socket.close();
                 }
-                disconnected();
                 socket = null;
             }
         });
@@ -110,7 +111,6 @@ public class AsyncTunnelClient extends AbstractTunnelClient {
 
     @Override
     protected void responseEnd(Writer out) throws IOException {
-        out.flush();
         String str = out.toString();
         socket.send(str);
         DGMobileContext.log("Android Tunnel Client Sent: " + str);

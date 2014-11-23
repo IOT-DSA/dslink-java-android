@@ -151,7 +151,7 @@ public class DGMobileContext {
 
         link.setClient(client);
 
-        link.TUNNEL_TYPE = AsyncTunnelClient.class;
+        link.TUNNEL_TYPE = AndroidTunnelClient.class;
     }
 
     private boolean stop = false;
@@ -930,7 +930,7 @@ public class DGMobileContext {
 
                 final String name = preferences.getString("link.name", "Android");
                 final String brokerUrl = preferences.getString("broker.url", "");
-                link.TUNNEL_TYPE = AsyncTunnelClient.class;
+                link.TUNNEL_TYPE = AndroidTunnelClient.class;
 
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
