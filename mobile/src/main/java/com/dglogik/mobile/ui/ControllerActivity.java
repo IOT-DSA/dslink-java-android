@@ -170,6 +170,7 @@ public class ControllerActivity extends Activity {
 
     public void syncButtons() {
         if (DID_FAIL) {
+            DID_FAIL = false;
             onStopButtonClicked(null);
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 
@@ -209,7 +210,6 @@ public class ControllerActivity extends Activity {
 
             final AlertDialog dialog = dialogBuilder.create();
             dialog.show();
-            DID_FAIL = false;
             ERROR_MESSAGE = null;
             return;
         }
