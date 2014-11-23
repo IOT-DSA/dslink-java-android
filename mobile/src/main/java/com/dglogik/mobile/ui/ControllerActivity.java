@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("EmptyMethod")
 public class ControllerActivity extends Activity {
 
+    public static boolean DID_FAIL = false;
+    public static String ERROR_MESSAGE;
     private Button startButton;
     private Button stopButton;
 
@@ -167,6 +169,51 @@ public class ControllerActivity extends Activity {
     }
 
     public void syncButtons() {
+        if (DID_FAIL) {
+            onStopButtonClicked(null);
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+
+            dialogBuilder.setTitle("Starting Link Failed");
+
+            dialogBuilder.setMessage("Failed to Start Link\n" + ERROR_MESSAGE);
+
+            dialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+
+            dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.cancel();
+                    finish();
+                }
+            });
+
+            dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialogInterface) {
+                    dialogInterface.dismiss();
+                }
+            });
+
+            dialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialogInterface) {
+                    dialogInterface.cancel();
+                    finish();
+                }
+            });
+
+            final AlertDialog dialog = dialogBuilder.create();
+            dialog.show();
+            DID_FAIL = false;
+            ERROR_MESSAGE = null;
+            return;
+        }
+
         if (Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             stopButton.setEnabled(true);
             startButton.setEnabled(false);

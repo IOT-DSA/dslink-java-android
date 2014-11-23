@@ -45,6 +45,7 @@ import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.link.RootNode;
+import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
@@ -126,6 +127,8 @@ public class DGMobileContext {
                     @Override
                     public void onConnectionFailed(ConnectionResult connectionResult) {
                         Log.e(TAG, "Google API Client Connection Failed!");
+                        ControllerActivity.DID_FAIL = true;
+                        ControllerActivity.ERROR_MESSAGE = "Google API Client Connection Failed.";
                     }
                 })
                 .addApi(Wearable.API)
