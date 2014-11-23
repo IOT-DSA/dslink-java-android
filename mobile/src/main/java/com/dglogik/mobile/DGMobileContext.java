@@ -1028,16 +1028,19 @@ public class DGMobileContext {
             recognizer.destroy();
         }
 
-        log("Stopping Link");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                link.stop();
-                log("Link Stopped");
-                log("Clearing Nodes");
-                link.getRootNodes().clear();
-            }
-        }).start();
+        if (linkStarted) {
+            log("Stopping Link");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    link.stop();
+                    log("Link Stopped");
+                    log("Clearing Nodes");
+                    link.getRootNodes().clear();
+                }
+            }).start();
+        }
+
         log("Disconnecting Google API Client");
         googleClient.disconnect();
     }
