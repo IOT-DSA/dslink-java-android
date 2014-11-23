@@ -17,8 +17,13 @@ public class DGApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        MultiDex.install(this);
         // The following line triggers the initialization of ACRA
         ACRA.init(this);
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
     }
 }
