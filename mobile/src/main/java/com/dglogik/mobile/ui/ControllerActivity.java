@@ -70,9 +70,23 @@ public class ControllerActivity extends Activity {
 
             dialogBuilder.setMessage(R.string.error_broker_url_not_specified);
 
-            final AlertDialog dialog = dialogBuilder.create();
+            dialogBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                    openSettings();
+                }
+            });
 
-            dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.cancel();
+                    finish();
+                }
+            });
+
+            dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialogInterface) {
                     dialogInterface.dismiss();
@@ -80,7 +94,7 @@ public class ControllerActivity extends Activity {
                 }
             });
 
-            dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            dialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialogInterface) {
                     dialogInterface.cancel();
@@ -88,6 +102,7 @@ public class ControllerActivity extends Activity {
                 }
             });
 
+            final AlertDialog dialog = dialogBuilder.create();
             dialog.show();
 
             return false;

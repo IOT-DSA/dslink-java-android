@@ -3,8 +3,9 @@ package com.dglogik.common;
 import android.app.Application;
 import android.support.multidex.MultiDex;
 
-import org.acra.*;
-import org.acra.annotation.*;
+import org.acra.ACRA;
+import org.acra.ReportingInteractionMode;
+import org.acra.annotation.ReportsCrashes;
 
 @ReportsCrashes(
         formKey = "",

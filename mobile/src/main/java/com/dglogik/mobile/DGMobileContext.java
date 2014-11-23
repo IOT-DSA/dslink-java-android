@@ -591,9 +591,10 @@ public class DGMobileContext {
                         @Override
                         public void run() {
                             Intent intent = new Intent(Intent.ACTION_SEARCH);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.putExtra(SearchManager.QUERY, query);
-                            if (intent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
-                                getApplicationContext().startActivity(intent);
+                            if (intent.resolveActivity(service.getPackageManager()) != null) {
+                                service.startActivity(intent);
                             }
                         }
                     });
