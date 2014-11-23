@@ -22,6 +22,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognitionListener;
@@ -81,6 +82,8 @@ public class DGMobileContext {
     public final SensorManager sensorManager;
     @NonNull
     public final LocationManager locationManager;
+    @NonNull
+    public final PowerManager powerManager;
     @NonNull
     public final Client client;
     public final SharedPreferences preferences;
@@ -153,6 +156,7 @@ public class DGMobileContext {
         link.setClient(client);
 
         link.TUNNEL_TYPE = AndroidTunnelClient.class;
+        powerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
     }
 
     private boolean stop = false;
@@ -421,11 +425,11 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+
             node.addChild(tempCNode);
             node.addChild(tempFNode);
         }
 
-        //noinspection PointlessBooleanExpression,ConstantConditions
         if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
             final DataValueNode lux = new DataValueNode("Light_Level", BasicMetaData.SIMPLE_INT);
 
@@ -441,6 +445,7 @@ public class DGMobileContext {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
             }), sensor, 6000);
+
             node.addChild(lux);
         }
 
@@ -498,7 +503,6 @@ public class DGMobileContext {
             node.addChild(proximity);
         }
 
-        //noinspection ConstantConditions,PointlessBooleanExpression
         if (enableSensor("gyroscope", Sensor.TYPE_GYROSCOPE)) {
             final DataValueNode x = new DataValueNode("Gyroscope_X", BasicMetaData.SIMPLE_INT);
             final DataValueNode y = new DataValueNode("Gyroscope_Y", BasicMetaData.SIMPLE_INT);
@@ -853,6 +857,10 @@ public class DGMobileContext {
             node.addAction(startSpeechRecognitionAction);
             node.addAction(stopSpeechRecognitionAction);
         }
+
+        if (enableNode("power")) {
+            setupPowerProvider(node);
+        }
     }
 
     @TargetApi(20)
@@ -871,6 +879,34 @@ public class DGMobileContext {
             }
         }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
         node.addChild(rateNode);
+    }
+
+    private void setupPowerProvider(DeviceNode node) {
+        BaseAction wakeUpAction = new BaseAction("WakeUp") {
+            @NonNull
+            @Override
+            public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                long time = args.get("time").toLong();
+                powerManager.wakeUp(time);
+                return new HashMap<>();
+            }
+        };
+
+        BaseAction sleepAction = new BaseAction("Sleep") {
+            @NonNull
+            @Override
+            public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                long time = args.get("time").toLong();
+                powerManager.goToSleep(time);
+                return new HashMap<>();
+            }
+        };
+
+        wakeUpAction.addParam("time", BasicMetaData.SIMPLE_INT);
+        sleepAction.addParam("time", BasicMetaData.SIMPLE_INT);
+
+        node.addAction(wakeUpAction);
+        node.addAction(sleepAction);
     }
 
     @TargetApi(20)
@@ -909,6 +945,13 @@ public class DGMobileContext {
                 displayManager.unregisterDisplayListener(listener);
             }
         });
+
+        screenOn.initializeValue = new Action() {
+            @Override
+            public void run() {
+                screenOn.update(powerManager.isScreenOn());
+            }
+        };
 
         node.addChild(screenOn);
     }

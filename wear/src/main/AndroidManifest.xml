@@ -14,12 +14,12 @@
 
         <activity android:exported="true" android:name="com.dglogik.wear.ControllerActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"></action>
-                <category android:name="android.intent.category.LAUNCHER"></category>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
-        <service android:name="com.dglogik.wear.LinkService"></service>
+        <service android:name="com.dglogik.wear.LinkService"/>
 
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
     </application>
