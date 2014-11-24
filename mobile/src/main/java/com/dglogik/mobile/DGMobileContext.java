@@ -51,6 +51,7 @@ import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -132,6 +133,9 @@ public class DGMobileContext {
                         ControllerActivity.ERROR_MESSAGE = "Google API Client Connection Failed.";
                     }
                 });
+
+        apiClientBuilder.addApi(Drive.API);
+
         if (preferences.getBoolean("feature.wear", false)) {
             apiClientBuilder.addApi(Wearable.API);
         }
