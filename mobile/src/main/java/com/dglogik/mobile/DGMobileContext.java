@@ -99,7 +99,7 @@ public class DGMobileContext {
         this.service = service;
         this.wearable = new WearableSupport(this);
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        this.googleClient = new GoogleApiClient.Builder(getApplicationContext())
+        GoogleApiClient.Builder apiClientBuilder = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(Bundle bundle) {
@@ -131,10 +131,16 @@ public class DGMobileContext {
                         ControllerActivity.DID_FAIL = true;
                         ControllerActivity.ERROR_MESSAGE = "Google API Client Connection Failed.";
                     }
-                })
-                .addApi(Wearable.API)
-                .addApi(LocationServices.API)
-                .build();
+                });
+        if (preferences.getBoolean("feature.wear", false)) {
+            apiClientBuilder.addApi(Wearable.API);
+        }
+
+        if (preferences.getBoolean("providers.location", false)) {
+            apiClientBuilder.addApi(LocationServices.API);
+        }
+
+        this.googleClient = apiClientBuilder.build();
 
         this.sensorManager = (SensorManager) service.getSystemService(LinkService.SENSOR_SERVICE);
         this.locationManager = (LocationManager) service.getSystemService(LinkService.LOCATION_SERVICE);
@@ -180,12 +186,17 @@ public class DGMobileContext {
         });
     }
 
+    public static boolean addedRoot = false;
+
     public void initialize() {
-        if (preferences.getBoolean("features.wear", false)) {
+        if (preferences.getBoolean("feature.wear", false)) {
             wearable.initialize();
         }
 
-        link.addRootNode(devicesNode);
+        if (!addedRoot) {
+            link.addRootNode(devicesNode);
+            addedRoot = true;
+        }
 
         currentDeviceNode = new DeviceNode(Build.MODEL);
         setupCurrentDevice(currentDeviceNode);

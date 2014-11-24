@@ -36,7 +36,7 @@
         <CheckBoxPreference
             android:title="@string/android_wear"
             android:defaultValue="false"
-            android:key="features.wear"
+            android:key="feature.wear"
             android:summary="@string/prefs_android_wear_summary"/>
     </PreferenceCategory>
 

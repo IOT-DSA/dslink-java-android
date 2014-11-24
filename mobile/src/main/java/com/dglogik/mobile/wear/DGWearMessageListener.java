@@ -51,7 +51,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                 case "points": {
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
                     DeviceNode deviceNode = new DeviceNode(device);
-                    DGMobileContext.CONTEXT.devicesNode.addChild(deviceNode);
+                    DGMobileContext.devicesNode.addChild(deviceNode);
                     JSONObject points = data.getJSONObject("points");
                     JSONArray actions = data.getJSONArray("actions");
 
