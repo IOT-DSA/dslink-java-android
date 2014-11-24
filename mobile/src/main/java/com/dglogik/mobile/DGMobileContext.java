@@ -965,12 +965,7 @@ public class DGMobileContext {
             }
         });
 
-        screenOn.initializeValue = new Action() {
-            @Override
-            public void run() {
-                screenOn.update(powerManager.isScreenOn());
-            }
-        };
+        screenOn.update(powerManager.isScreenOn());
 
         node.addChild(screenOn);
     }
