@@ -24,7 +24,10 @@ public class InfoActivity extends Activity {
         Utils.applyDGTheme(this);
         setContentView(R.layout.info);
         textView = (TextView) findViewById(R.id.info);
+    }
 
+    @Override
+    public void onResume() {
         if (DGMobileContext.CONTEXT == null) {
             textView.setText("Not Started");
             return;
@@ -59,11 +62,14 @@ public class InfoActivity extends Activity {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-
+    public void onPause() {
         if (poller != null) {
             poller.cancel();
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }

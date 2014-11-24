@@ -108,17 +108,19 @@ public class DGMobileContext {
 
                         initialize();
 
-                        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
-                            @Override
-                            public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
-                                List<Node> nodes = getConnectedNodesResult.getNodes();
+                        if (preferences.getBoolean("feature.wearable", false)) {
+                            Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+                                @Override
+                                public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                                    List<Node> nodes = getConnectedNodesResult.getNodes();
 
-                                for (Node node : nodes) {
-                                    DGMobileContext.log("Existing Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
-                                    Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear/init", null);
+                                    for (Node node : nodes) {
+                                        DGMobileContext.log("Existing Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
+                                        Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear/init", null);
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
 
                     @Override
@@ -134,14 +136,10 @@ public class DGMobileContext {
                     }
                 });
 
-        apiClientBuilder.addApi(Drive.API);
+        apiClientBuilder.addApi(LocationServices.API);
 
         if (preferences.getBoolean("feature.wear", false)) {
             apiClientBuilder.addApi(Wearable.API);
-        }
-
-        if (preferences.getBoolean("providers.location", false)) {
-            apiClientBuilder.addApi(LocationServices.API);
         }
 
         this.googleClient = apiClientBuilder.build();
