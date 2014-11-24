@@ -5,7 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import com.dglogik.dslink.Application;
+
 import com.dglogik.mobile.ui.ControllerActivity;
 
 import org.jetbrains.annotations.Nullable;

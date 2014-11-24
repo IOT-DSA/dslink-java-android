@@ -34,7 +34,10 @@ import android.view.Display;
 import android.widget.Toast;
 
 import com.dglogik.api.BasicMetaData;
+import com.dglogik.api.DGMetaData;
+import com.dglogik.api.server.AbstractTunnelClient;
 import com.dglogik.dslink.Application;
+import com.dglogik.dslink.TunnelClientFactory;
 import com.dglogik.dslink.client.Client;
 import com.dglogik.dslink.client.command.base.ArgValue;
 import com.dglogik.dslink.client.command.base.ArgValueMetadata;
@@ -47,10 +50,10 @@ import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
+import com.dglogik.table.Table;
+import com.dglogik.table.Tables;
 import com.dglogik.value.DGValue;
-import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -70,6 +73,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import ext.javax.servlet.ServletContext;
 
 public class DGMobileContext {
     public static final String TAG = "DGMobile";
@@ -183,7 +188,12 @@ public class DGMobileContext {
 
         link.setClient(client);
 
-        link.TUNNEL_TYPE = AndroidTunnelClient.class;
+        link.setTunnelClientFactory(new TunnelClientFactory() {
+            @Override
+            public AbstractTunnelClient create(ServletContext servletContext, String uri) {
+                return new AndroidTunnelClient(servletContext, uri);
+            }
+        });
         powerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
     }
 
@@ -374,7 +384,7 @@ public class DGMobileContext {
             final BaseAction createNotificationAction = new BaseAction("CreateNotification") {
                 @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     Notification.Builder builder = new Notification.Builder(getApplicationContext());
 
                     builder.setContentTitle(args.get("title").toString());
@@ -387,25 +397,24 @@ public class DGMobileContext {
 
                     notificationManager.notify(currentNotificationId, notification);
 
-                    return new HashMap<String, DGValue>() {{
+                    return Tables.makeTable(new HashMap<String, DGMetaData>() {{
+                        put("id", BasicMetaData.SIMPLE_INT);
+                    }}, new HashMap<String, DGValue>() {{
                         put("id", DGValue.make(currentNotificationId));
-                    }};
+                    }});
                 }
             };
 
             createNotificationAction.addParam("title", BasicMetaData.SIMPLE_STRING);
             createNotificationAction.addParam("content", BasicMetaData.SIMPLE_STRING);
-            createNotificationAction.addResult("id", BasicMetaData.SIMPLE_INT);
 
             final BaseAction destroyNotificationAction = new BaseAction("DestroyNotification") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     int id = args.get("id").toInt();
 
                     notificationManager.cancel(id);
-
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
@@ -574,11 +583,10 @@ public class DGMobileContext {
 
             final BaseAction speakAction = new BaseAction("Speak") {
                 @SuppressWarnings("deprecation")
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     speech.speak(args.get("text").toString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
@@ -596,9 +604,8 @@ public class DGMobileContext {
 
         if (preferences.getBoolean("actions.open_url", true)) {
             final BaseAction openUrlAction = new BaseAction("OpenUrl") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     final Uri url = Uri.parse(args.get("url").toString());
                     execute(new Action() {
                         @Override
@@ -610,7 +617,7 @@ public class DGMobileContext {
                             }
                         }
                     });
-                    return new HashMap<>();
+                    return null;
                 }
             };
             openUrlAction.addParam("url", BasicMetaData.SIMPLE_STRING);
@@ -620,9 +627,8 @@ public class DGMobileContext {
 
         if (preferences.getBoolean("actions.search", true)) {
             final BaseAction searchWebAction = new BaseAction("SearchWeb") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     final String query = args.get("query").toString();
                     execute(new Action() {
                         @Override
@@ -635,7 +641,7 @@ public class DGMobileContext {
                             }
                         }
                     });
-                    return new HashMap<>();
+                    return null;
                 }
             };
             searchWebAction.addParam("query", BasicMetaData.SIMPLE_STRING);
@@ -646,67 +652,60 @@ public class DGMobileContext {
         if (preferences.getBoolean("actions.music", true)) {
 
             final BaseAction playArtistAction = new BaseAction("PlayArtist") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     String artist = args.get("artist").toString();
                     log("Playing Artist: " + artist);
                     playSearchArtist(artist);
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction playAction = new BaseAction("PlayMusic") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("play");
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction pauseAction = new BaseAction("PauseMusic") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("pause");
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction togglePauseAction = new BaseAction("TogglePauseMusic") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("togglepause");
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction stopAction = new BaseAction("StopMusic") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("play");
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction nextAction = new BaseAction("NextSong") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("next");
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction previousAction = new BaseAction("PreviousSong") {
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     sendMusicCommand("previous");
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
@@ -797,31 +796,29 @@ public class DGMobileContext {
 
             final BaseAction startSpeechRecognitionAction = new BaseAction("StartSpeechRecognition") {
                 @SuppressWarnings("deprecation")
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             recognizer.startListening(new Intent());
                         }
                     });
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
             final BaseAction stopSpeechRecognitionAction = new BaseAction("StopSpeechRecognition") {
                 @SuppressWarnings("deprecation")
-                @NonNull
                 @Override
-                public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             recognizer.stopListening();
                         }
                     });
-                    return new HashMap<>();
+                    return null;
                 }
             };
 
@@ -923,22 +920,20 @@ public class DGMobileContext {
 
     private void setupPowerProvider(DeviceNode node) {
         BaseAction wakeUpAction = new BaseAction("WakeUp") {
-            @NonNull
             @Override
-            public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 long time = args.get("time").toLong();
                 powerManager.wakeUp(time);
-                return new HashMap<>();
+                return null;
             }
         };
 
         BaseAction sleepAction = new BaseAction("Sleep") {
-            @NonNull
             @Override
-            public Map<String, DGValue> invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 long time = args.get("time").toLong();
                 powerManager.goToSleep(time);
-                return new HashMap<>();
+                return null;
             }
         };
 
@@ -1014,7 +1009,6 @@ public class DGMobileContext {
 
                 final String name = preferences.getString("link.name", "Android");
                 final String brokerUrl = preferences.getString("broker.url", "");
-                link.TUNNEL_TYPE = AndroidTunnelClient.class;
 
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));

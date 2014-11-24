@@ -2,9 +2,6 @@ package com.dglogik.mobile;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.text.Html;
@@ -28,7 +25,7 @@ public class Utils {
     }
 
     public static Class<?>[] getObjectTypes(Object... inputs) {
-        List<Class<?>> list = new ArrayList<Class<?>>();
+        List<Class<?>> list = new ArrayList<>();
         for (Object obj : inputs) {
             list.add(obj.getClass());
         }

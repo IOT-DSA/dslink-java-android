@@ -18,16 +18,15 @@ import ext.javax.servlet.ServletContext;
 
 public class AndroidTunnelClient extends AbstractTunnelClient {
     private WebSocket socket;
+    @SuppressWarnings("FieldCanBeLocal")
     private ServletContext servlet;
+    private String uri;
 
-    public AndroidTunnelClient(ServletContext cx) {
+    public AndroidTunnelClient(ServletContext cx, String uri) {
         super(cx);
 
         servlet = cx;
-    }
-
-    public AndroidTunnelClient setUri(String uri) {
-        return this;
+        this.uri = uri;
     }
 
     @Override
@@ -39,7 +38,7 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
 
     @Override
     protected void connect() throws Exception {
-        Future<WebSocket> future = AsyncHttpClient.getDefaultInstance().websocket(servlet.getInitParameter("tunnel"), null, new AsyncHttpClient.WebSocketConnectCallback() {
+        Future<WebSocket> future = AsyncHttpClient.getDefaultInstance().websocket(uri, null, new AsyncHttpClient.WebSocketConnectCallback() {
             @Override
             public void onCompleted(Exception e, WebSocket webSocket) {
                 if (e != null) {
