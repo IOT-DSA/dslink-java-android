@@ -2,7 +2,6 @@ package com.dglogik.mobile;
 
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGContext;
-import com.dglogik.api.DGMetaData;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.trend.DGValueTrend;
 import com.dglogik.trend.Trend;
@@ -90,6 +89,7 @@ public class FitnessSupport {
             List<DGValue> values = new ArrayList<>();
             DataReadResult result = Fitness.HistoryApi.readData(context.googleClient, new DataReadRequest.Builder()
                 .setLimit(50)
+                            .setTimeRange(cx.getTimeRange().getStart(), cx.getTimeRange().getEnd(), TimeUnit.MILLISECONDS)
                 .aggregate(heartRateSource, DataType.TYPE_HEART_RATE_BPM)
                 .build()
             ).await();
