@@ -236,7 +236,7 @@ public class DGMobileContext {
             return false;
         }
 
-        return preferences.getBoolean(id, desc.isDefaultEnabled());
+        return preferences.getBoolean("providers." + id, desc.isDefaultEnabled());
     }
 
     public void startActivity(Intent intent) {
