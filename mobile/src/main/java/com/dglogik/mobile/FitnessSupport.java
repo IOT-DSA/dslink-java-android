@@ -89,7 +89,7 @@ public class FitnessSupport {
             List<DGValue> values = new ArrayList<>();
             DataReadResult result = Fitness.HistoryApi.readData(context.googleClient, new DataReadRequest.Builder()
                 .setLimit(50)
-                            .setTimeRange(cx.getTimeRange().getStart(), cx.getTimeRange().getEnd(), TimeUnit.MILLISECONDS)
+                .setTimeRange(cx.getTimeRange().getStart(), cx.getTimeRange().getEnd(), TimeUnit.MILLISECONDS)
                 .aggregate(heartRateSource, DataType.TYPE_HEART_RATE_BPM)
                 .build()
             ).await();
