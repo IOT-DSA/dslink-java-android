@@ -48,9 +48,13 @@ import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.value.DGValue;
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -99,6 +103,7 @@ public class DGMobileContext {
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
         this.service = service;
+        this.handler = new Handler(getApplicationContext().getMainLooper());
         this.wearable = new WearableSupport(this);
         this.fitness = new FitnessSupport(this);
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -139,6 +144,12 @@ public class DGMobileContext {
                 });
 
         apiClientBuilder.addApi(LocationServices.API);
+        apiClientBuilder
+                .useDefaultAccount()
+                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                .addScope(new Scope(Scopes.FITNESS_BODY_READ));
+
+        apiClientBuilder.setHandler(handler);
 
         if (preferences.getBoolean("feature.wear", false)) {
             apiClientBuilder.addApi(Wearable.API);
@@ -169,7 +180,6 @@ public class DGMobileContext {
                 stop = true;
             }
         };
-        this.handler = new Handler(getApplicationContext().getMainLooper());
 
         link.setClient(client);
 
