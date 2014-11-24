@@ -3,7 +3,6 @@ package com.dglogik.mobile;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -129,17 +128,9 @@ public class DGMobileContext {
                 .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(ConnectionResult connectionResult) {
-                        Log.e(TAG, "Google API Client Connection Failed!");
-                        if (connectionResult.hasResolution()) {
-                            try {
-                                connectionResult.getResolution().send();
-                            } catch (PendingIntent.CanceledException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            ControllerActivity.DID_FAIL = true;
-                            ControllerActivity.ERROR_MESSAGE = "Google API Client Connection Failed.";
-                        }
+                        Log.e(TAG, "Google API Client Connection Failed! Code = " + connectionResult.getErrorCode());
+                        ControllerActivity.DID_FAIL = true;
+                        ControllerActivity.ERROR_MESSAGE = "Google API Client Failed to Connect: Code = " + connectionResult.getErrorCode();
                     }
                 });
 
