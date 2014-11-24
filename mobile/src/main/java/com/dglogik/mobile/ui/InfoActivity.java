@@ -28,6 +28,7 @@ public class InfoActivity extends Activity {
 
     @Override
     public void onResume() {
+        super.onResume();
         if (DGMobileContext.CONTEXT == null) {
             textView.setText("Not Started");
             return;
@@ -63,6 +64,7 @@ public class InfoActivity extends Activity {
 
     @Override
     public void onPause() {
+        super.onPause();
         if (poller != null) {
             poller.cancel();
         }
