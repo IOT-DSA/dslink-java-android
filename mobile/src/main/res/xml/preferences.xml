@@ -38,6 +38,12 @@
             android:defaultValue="false"
             android:key="feature.wear"
             android:summary="@string/prefs_android_wear_summary"/>
+
+        <CheckBoxPreference
+            android:title="Fitness"
+            android:defaultValue="false"
+            android:key="feature.fitness"
+            android:summary="Enables Fitness Support"/>
     </PreferenceCategory>
 
     <PreferenceCategory

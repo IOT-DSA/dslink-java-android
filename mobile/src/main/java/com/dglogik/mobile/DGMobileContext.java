@@ -51,6 +51,7 @@ import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -92,12 +93,14 @@ public class DGMobileContext {
     public static final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
 
     public DeviceNode currentDeviceNode;
+    public FitnessSupport fitness;
     public boolean mResolvingError;
 
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
         this.service = service;
         this.wearable = new WearableSupport(this);
+        this.fitness = new FitnessSupport(this);
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         GoogleApiClient.Builder apiClientBuilder = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
@@ -139,6 +142,10 @@ public class DGMobileContext {
 
         if (preferences.getBoolean("feature.wear", false)) {
             apiClientBuilder.addApi(Wearable.API);
+        }
+
+        if (preferences.getBoolean("feature.fitness", false)) {
+            apiClientBuilder.addApi(Fitness.API);
         }
 
         this.googleClient = apiClientBuilder.build();
@@ -192,6 +199,10 @@ public class DGMobileContext {
     public void initialize() {
         if (preferences.getBoolean("feature.wear", false)) {
             wearable.initialize();
+        }
+
+        if (preferences.getBoolean("feature.fitness", false)) {
+            fitness.initialize();
         }
 
         if (!addedRoot) {
@@ -418,9 +429,9 @@ public class DGMobileContext {
             node.addChild(stepsNode);
         }
 
-        if (enableSensor("heart_rate", 21)) {
-            setupHeartRateMonitor(node);
-        }
+//        if (enableSensor("heart_rate", 21)) {
+//            setupHeartRateMonitor(node);
+//        }
 
         if (enableSensor("temperature", Sensor.TYPE_AMBIENT_TEMPERATURE)) {
             final DataValueNode tempCNode = new DataValueNode("Ambient_Temperature_Celsius", BasicMetaData.SIMPLE_INT);
@@ -882,23 +893,23 @@ public class DGMobileContext {
         }
     }
 
-    @TargetApi(20)
-    private void setupHeartRateMonitor(DeviceNode node) {
-        final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
-        Sensor sensor = sensorManager.getDefaultSensor(21);
-
-        sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
-            @Override
-            public void onSensorChanged(@NonNull SensorEvent event) {
-                rateNode.update((double) event.values[0]);
-            }
-
-            @Override
-            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            }
-        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
-        node.addChild(rateNode);
-    }
+//    @TargetApi(20)
+//    private void setupHeartRateMonitor(DeviceNode node) {
+//        final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+//        Sensor sensor = sensorManager.getDefaultSensor(21);
+//
+//        sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+//            @Override
+//            public void onSensorChanged(@NonNull SensorEvent event) {
+//                rateNode.update((double) event.values[0]);
+//            }
+//
+//            @Override
+//            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+//            }
+//        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+//        node.addChild(rateNode);
+//    }
 
     private void setupPowerProvider(DeviceNode node) {
         BaseAction wakeUpAction = new BaseAction("WakeUp") {
