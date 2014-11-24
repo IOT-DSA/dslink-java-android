@@ -89,7 +89,7 @@ public class DGMobileContext {
     public final Client client;
     public final SharedPreferences preferences;
 
-    public final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
+    public static final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
 
     public DeviceNode currentDeviceNode;
     public boolean mResolvingError;
@@ -1038,8 +1038,8 @@ public class DGMobileContext {
                 public void run() {
                     link.stop();
                     log("Link Stopped");
-                    log("Clearing Nodes");
-                    link.getRootNodes().clear();
+                    log("Clearing Device Nodes");
+                    devicesNode.clearChildren();
                 }
             }).start();
         }
