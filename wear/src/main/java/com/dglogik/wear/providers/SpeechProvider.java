@@ -3,7 +3,6 @@ package com.dglogik.wear.providers;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
-import android.widget.Toast;
 
 import com.dglogik.wear.LinkService;
 import com.dglogik.wear.Provider;
@@ -59,7 +58,7 @@ public class SpeechProvider extends Provider {
 
             @Override
             public void onResults(Bundle results) {
-                List<Float> scores = new ArrayList<Float>();
+                List<Float> scores = new ArrayList<>();
                 List<String> possibles = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                 {
                     float[] sc = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);

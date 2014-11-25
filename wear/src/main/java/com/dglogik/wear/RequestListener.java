@@ -35,7 +35,20 @@ public class RequestListener implements MessageApi.MessageListener {
                     put("points", points);
                     put("actions", actions);
                 }});
-            } catch (JSONException e) {
+
+                Thread.sleep(500);
+
+                for (final Provider provider : LinkService.INSTANCE.providers) {
+                    if (provider.supported()) {
+                        final Map<String, Object> values = provider.currentValues;
+
+                        LinkService.INSTANCE.sendSingle(messageEvent.getSourceNodeId(), "update", new HashMap<String, Object>() {{
+                            put("values", values);
+                            put("point", provider.name());
+                        }});
+                    }
+                }
+            } catch (JSONException | InterruptedException e) {
                 e.printStackTrace();
             }
         } else if (messageEvent.getPath().equals("/wear/action")) {
@@ -50,7 +63,9 @@ public class RequestListener implements MessageApi.MessageListener {
 
                 for (Action action : allActions) {
                     if (actionName.equals(action.getName())) {
+                        Utils.log("Invoking Action " + actionName);
                         action.invoke();
+                        Utils.log("Invoked Action " + actionName);
                         return;
                     }
                 }
