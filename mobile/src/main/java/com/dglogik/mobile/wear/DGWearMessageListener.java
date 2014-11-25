@@ -119,8 +119,6 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                         deviceNode.addAction(action);
                     }
 
-                    DGMobileContext.log(dataNodes.keySet().toString());
-
                     if (!DGMobileContext.CONTEXT.linkStarted) {
                         DGMobileContext.CONTEXT.startLink();
                     }
