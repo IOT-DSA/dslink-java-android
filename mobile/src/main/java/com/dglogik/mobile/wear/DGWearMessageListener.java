@@ -48,8 +48,6 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
             DGMobileContext.log("Wearable " + device + " sent " + type);
 
-            DGMobileContext.log(content);
-
             switch (type) {
                 case "points": {
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
