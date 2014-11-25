@@ -214,6 +214,21 @@ public class DGMobileContext {
         });
     }
 
+    public void playSearchSong(final String song) {
+        execute(new Action() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH);
+                intent.putExtra(MediaStore.EXTRA_MEDIA_FOCUS, MediaStore.Audio.Artists.ENTRY_CONTENT_TYPE);
+                intent.putExtra(MediaStore.EXTRA_MEDIA_TITLE, song);
+                intent.putExtra(SearchManager.QUERY, song);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
     public static boolean addedRoot = false;
 
     public void initialize() {
@@ -661,6 +676,16 @@ public class DGMobileContext {
                 }
             };
 
+            final BaseAction playSongAction = new BaseAction("PlaySong") {
+                @Override
+                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    String song = args.get("song").toString();
+                    log("Playing Song: " + song);
+                    playSearchSong(song);
+                    return null;
+                }
+            };
+
             final BaseAction playAction = new BaseAction("PlayMusic") {
                 @Override
                 public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
@@ -712,6 +737,7 @@ public class DGMobileContext {
             playArtistAction.addParam("artist", BasicMetaData.SIMPLE_STRING);
 
             node.addAction(playArtistAction);
+            node.addAction(playSongAction);
             node.addAction(playAction);
             node.addAction(pauseAction);
             node.addAction(togglePauseAction);
