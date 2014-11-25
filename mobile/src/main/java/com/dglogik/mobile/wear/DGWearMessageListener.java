@@ -48,6 +48,8 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
             DGMobileContext.log("Wearable " + device + " sent " + type);
 
+            DGMobileContext.log(content);
+
             switch (type) {
                 case "points": {
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
@@ -119,6 +121,8 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                         deviceNode.addAction(action);
                     }
 
+                    DGMobileContext.log(dataNodes.keySet().toString());
+
                     if (!DGMobileContext.CONTEXT.linkStarted) {
                         DGMobileContext.CONTEXT.startLink();
                     }
@@ -135,6 +139,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                         String name = (String) names.next();
 
                         String id;
+
                         if (values.length() == 1 && name.equals("value")) {
                             id = pointName;
                         } else {

@@ -11,7 +11,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class DeviceProvider extends Provider {
-    private Timer timer;
     @Override
     public String name() {
         return "Device";
@@ -19,23 +18,16 @@ public class DeviceProvider extends Provider {
 
     @Override
     public void setup() {
-        timer = new Timer();
-
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                update(new HashMap<String, Object>() {{
-                    put("Release", Build.VERSION.RELEASE);
-                    put("SDK_Version", Build.VERSION.SDK_INT);
-                    put("Release_Codename", Build.VERSION.CODENAME);
-                    put("Board", Build.BOARD);
-                    put("Brand", Build.BRAND);
-                    put("Model", Build.MODEL);
-                    put("Manufacturer", Build.MANUFACTURER);
-                    put("Type", Build.TYPE);
-                }});
-            }
-        }, 2000, 10000);
+        update(new HashMap<String, Object>() {{
+            put("Release", Build.VERSION.RELEASE);
+            put("SDK_Version", Build.VERSION.SDK_INT);
+            put("Release_Codename", Build.VERSION.CODENAME);
+            put("Board", Build.BOARD);
+            put("Brand", Build.BRAND);
+            put("Model", Build.MODEL);
+            put("Manufacturer", Build.MANUFACTURER);
+            put("Type", Build.TYPE);
+        }});
     }
 
     @Override
@@ -59,6 +51,5 @@ public class DeviceProvider extends Provider {
 
     @Override
     public void destroy() {
-        timer.cancel();
     }
 }

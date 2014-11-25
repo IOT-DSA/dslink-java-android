@@ -6,6 +6,7 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.dglogik.wear.providers.DeviceProvider;
 import com.dglogik.wear.providers.GyroscopeProvider;
@@ -85,6 +86,7 @@ public class LinkService extends Service {
         Wearable.NodeApi.addListener(googleClient, new NodeApi.NodeListener() {
             @Override
             public void onPeerConnected(Node node) {
+                Log.i("DGMobile", "Connected to Node: " + node.getId() + " (" + node.getDisplayName() + ")");
                 try {
                     sendSingle(node.getId(), "ready", new HashMap<String, Object>() {{
                     }});
@@ -95,7 +97,7 @@ public class LinkService extends Service {
 
             @Override
             public void onPeerDisconnected(Node node) {
-
+                Log.i("DGMobile", "Disconnected from Node: " + node.getId() + " (" + node.getDisplayName() + ")");
             }
         });
 

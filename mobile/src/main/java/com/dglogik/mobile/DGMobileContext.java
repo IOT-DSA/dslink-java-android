@@ -56,14 +56,11 @@ import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -119,20 +116,6 @@ public class DGMobileContext {
                         Log.i(TAG, "Google API Client Connected");
 
                         initialize();
-
-                        if (preferences.getBoolean("feature.wearable", false)) {
-                            Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
-                                @Override
-                                public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
-                                    List<Node> nodes = getConnectedNodesResult.getNodes();
-
-                                    for (Node node : nodes) {
-                                        DGMobileContext.log("Existing Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
-                                        Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear/init", null);
-                                    }
-                                }
-                            });
-                        }
                     }
 
                     @Override

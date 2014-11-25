@@ -7,11 +7,13 @@ import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WearableSupport {
@@ -37,11 +39,13 @@ public class WearableSupport {
                 String deviceName = namesMap.get(node.getId());
 
                 DeviceNode deviceNode = null;
+
                 for (DGNode bn : DGMobileContext.devicesNode.getChildren()) {
                     if (bn.getName().equals(deviceName)) {
                         deviceNode = (DeviceNode) bn;
                     }
                 }
+
                 if (deviceName != null && deviceNode != null) {
                     DGMobileContext.log("Node Already Found: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
                     return;
@@ -63,6 +67,7 @@ public class WearableSupport {
                 if (deviceName != null && deviceNode != null) {
                     DGMobileContext.devicesNode.removeChild(deviceNode.getName());
                 }
+
                 DGMobileContext.log("Node Disconnected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
             }
         };
@@ -74,6 +79,18 @@ public class WearableSupport {
             public void run() {
                 Wearable.NodeApi.removeListener(context.googleClient, nodeListener);
                 Wearable.MessageApi.removeListener(context.googleClient, messageListener);
+            }
+        });
+
+        Wearable.NodeApi.getConnectedNodes(context.googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+            @Override
+            public void onResult(@NonNull NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                List<Node> nodes = getConnectedNodesResult.getNodes();
+
+                for (Node node : nodes) {
+                    DGMobileContext.log("Existing Node Connected: " + node.getDisplayName() + " (ID: " + node.getId() + ")");
+                    Wearable.MessageApi.sendMessage(context.googleClient, node.getId(), "/wear/init", null);
+                }
             }
         });
     }
