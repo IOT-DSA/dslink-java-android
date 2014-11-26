@@ -17,40 +17,7 @@ public class RequestListener implements MessageApi.MessageListener {
     public void onMessageReceived(MessageEvent messageEvent) {
         Utils.log("Wearable Message Received on path " + messageEvent.getPath());
         if (messageEvent.getPath().equals("/wear/init")) {
-            List<Provider> providers = LinkService.INSTANCE.providers;
-            final HashMap<String, Map<String, Integer>> points = new HashMap<String, Map<String, Integer>>();
-
-            for (Provider provider : providers) {
-                points.put(provider.name(), provider.valueTypes());
-            }
-
-            final List<String> actions = new ArrayList<String>();
-
-            for (Action action : LinkService.INSTANCE.actions) {
-                actions.add(action.getName());
-            }
-
-            try {
-                LinkService.INSTANCE.sendSingle(messageEvent.getSourceNodeId(), "points", new HashMap<String, Object>() {{
-                    put("points", points);
-                    put("actions", actions);
-                }});
-
-                Thread.sleep(500);
-
-                for (final Provider provider : LinkService.INSTANCE.providers) {
-                    if (provider.supported()) {
-                        final Map<String, Object> values = provider.currentValues;
-
-                        LinkService.INSTANCE.sendSingle(messageEvent.getSourceNodeId(), "update", new HashMap<String, Object>() {{
-                            put("values", values);
-                            put("point", provider.name());
-                        }});
-                    }
-                }
-            } catch (JSONException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            doInit(messageEvent.getSourceNodeId());
         } else if (messageEvent.getPath().equals("/wear/action")) {
         	byte[] bytes = messageEvent.getData();
             String content = new String(bytes);
@@ -75,6 +42,47 @@ public class RequestListener implements MessageApi.MessageListener {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void doInit(String node) {
+        if (LinkService.INSTANCE.connected.contains(node)) {
+            return;
+        }
+        LinkService.INSTANCE.connected.add(node);
+        List<Provider> providers = LinkService.INSTANCE.providers;
+        final HashMap<String, Map<String, Integer>> points = new HashMap<>();
+
+        for (Provider provider : providers) {
+            points.put(provider.name(), provider.valueTypes());
+        }
+
+        final List<String> actions = new ArrayList<>();
+
+        for (Action action : LinkService.INSTANCE.actions) {
+            actions.add(action.getName());
+        }
+
+        try {
+            LinkService.INSTANCE.sendSingle(node, "points", new HashMap<String, Object>() {{
+                put("points", points);
+                put("actions", actions);
+            }});
+
+            Thread.sleep(500);
+
+            for (final Provider provider : LinkService.INSTANCE.providers) {
+                if (provider.supported()) {
+                    final Map<String, Object> values = provider.currentValues;
+
+                    LinkService.INSTANCE.sendSingle(node, "update", new HashMap<String, Object>() {{
+                        put("values", values);
+                        put("point", provider.name());
+                    }});
+                }
+            }
+        } catch (JSONException | InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

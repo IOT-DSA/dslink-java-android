@@ -32,5 +32,7 @@ public abstract class Provider {
         return LinkService.INSTANCE.googleClient;
     }
 
+    public void setInitialValues() {}
+
     public abstract void destroy();
 }

@@ -25,13 +25,16 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("unchecked")
 public class LinkService extends Service {
     public SensorManager sensorManager;
     public GoogleApiClient googleClient;
     public static LinkService INSTANCE;
+    private RequestListener reqListener;
     public List<Provider> providers = new ArrayList<>();
     public List<Action> actions = new ArrayList<>();
 
@@ -80,24 +83,26 @@ public class LinkService extends Service {
         return null;
     }
 
-    private List<String> connected = new ArrayList<>();
+    public Set<String> connected = new HashSet<>();
 
     public void init() {
         Wearable.NodeApi.addListener(googleClient, new NodeApi.NodeListener() {
             @Override
             public void onPeerConnected(Node node) {
-                Log.i("DGMobile", "Connected to Node: " + node.getId() + " (" + node.getDisplayName() + ")");
+                Utils.log("Connected to Node: " + node.getId() + " (" + node.getDisplayName() + ")");
                 connected.add(node.getId());
             }
 
             @Override
             public void onPeerDisconnected(Node node) {
-                Log.i("DGMobile", "Disconnected from Node: " + node.getId() + " (" + node.getDisplayName() + ")");
+                Utils.log("Disconnected from Node: " + node.getId() + " (" + node.getDisplayName() + ")");
                 connected.remove(node.getId());
             }
         });
 
-        Wearable.MessageApi.addListener(googleClient, new RequestListener());
+        reqListener = new RequestListener();
+
+        Wearable.MessageApi.addListener(googleClient, reqListener);
 
         actions.add(new Action("StartSpeechRecognition") {
             @Override
@@ -133,19 +138,14 @@ public class LinkService extends Service {
             }
 
             provider.setup();
+            provider.setInitialValues();
         }
 
         Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
             @Override
             public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
                 for (Node node : getConnectedNodesResult.getNodes()) {
-                    connected.add(node.getId());
-                    try {
-                        sendSingle(node.getId(), "ready", new HashMap<String, Object>() {{
-                        }});
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    reqListener.doInit(node.getId());
                 }
             }
         });
