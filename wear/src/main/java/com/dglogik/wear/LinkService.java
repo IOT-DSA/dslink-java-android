@@ -6,7 +6,6 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.dglogik.wear.providers.DeviceProvider;
 import com.dglogik.wear.providers.GyroscopeProvider;
@@ -90,7 +89,6 @@ public class LinkService extends Service {
             @Override
             public void onPeerConnected(Node node) {
                 Utils.log("Connected to Node: " + node.getId() + " (" + node.getDisplayName() + ")");
-                connected.add(node.getId());
             }
 
             @Override

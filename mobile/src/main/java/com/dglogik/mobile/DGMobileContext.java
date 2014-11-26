@@ -18,6 +18,7 @@ import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -49,6 +50,7 @@ import com.dglogik.dslink.tunnel.TunnelClientFactory;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.link.RootNode;
+import com.dglogik.mobile.link.VolumeSystemNode;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.table.Table;
@@ -636,6 +638,20 @@ public class DGMobileContext {
             openUrlAction.addParam("url", BasicMetaData.SIMPLE_STRING);
 
             node.addAction(openUrlAction);
+        }
+
+        if (enableNode("volume")) {
+            final VolumeSystemNode volumeSystemNode = new VolumeSystemNode();
+            final AudioManager manager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+
+            volumeSystemNode.createStream(manager, "Notification", AudioManager.STREAM_NOTIFICATION);
+            volumeSystemNode.createStream(manager, "System", AudioManager.STREAM_SYSTEM);
+            volumeSystemNode.createStream(manager, "Music", AudioManager.STREAM_MUSIC);
+            volumeSystemNode.createStream(manager, "Call", AudioManager.STREAM_VOICE_CALL);
+            volumeSystemNode.createStream(manager, "Ringer", AudioManager.STREAM_RING);
+            volumeSystemNode.createStream(manager, "Alarm", AudioManager.STREAM_ALARM);
+
+            node.addChild(volumeSystemNode);
         }
 
         if (preferences.getBoolean("actions.search", true)) {

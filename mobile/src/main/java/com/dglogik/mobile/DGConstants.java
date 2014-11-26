@@ -24,7 +24,8 @@ public class DGConstants {
             new NodeDescriptor("Light Level", "light_level"),
             new NodeDescriptor("Air Pressure", "pressure"),
             new NodeDescriptor("Humidity", "humidity"),
-            new NodeDescriptor("Gyroscope", "gyroscope")
+            new NodeDescriptor("Gyroscope", "gyroscope"),
+            new NodeDescriptor("Volume", "volume")
     });
 
     public static List<Preference> createNodePreferences(Context context) {
