@@ -47,6 +47,7 @@ public class RequestListener implements MessageApi.MessageListener {
 
     public void doInit(String node) {
         if (LinkService.INSTANCE.connected.contains(node)) {
+            Utils.log(node + " is already connected");
             return;
         }
         LinkService.INSTANCE.connected.add(node);

@@ -3,6 +3,7 @@ package com.dglogik.wear.providers;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
+import android.widget.Toast;
 
 import com.dglogik.wear.LinkService;
 import com.dglogik.wear.Provider;
@@ -33,7 +34,7 @@ public class SpeechProvider extends Provider {
 
             @Override
             public void onBeginningOfSpeech() {
-
+                Toast.makeText(LinkService.INSTANCE, "Speech Started", Toast.LENGTH_SHORT);
             }
 
             @Override
@@ -48,7 +49,7 @@ public class SpeechProvider extends Provider {
 
             @Override
             public void onEndOfSpeech() {
-
+                Toast.makeText(LinkService.INSTANCE, "Speech Ended", Toast.LENGTH_SHORT);
             }
 
             @Override

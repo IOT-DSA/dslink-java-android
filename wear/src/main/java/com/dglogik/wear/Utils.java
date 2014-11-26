@@ -9,7 +9,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 
 public class Utils {
-    public static final String TAG = "DGWear";
+    public static final String TAG = "DGMobile";
 
     public static void log(String message) {
         Log.i(TAG, message);

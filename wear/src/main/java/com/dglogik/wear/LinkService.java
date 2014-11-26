@@ -89,6 +89,7 @@ public class LinkService extends Service {
             @Override
             public void onPeerConnected(Node node) {
                 Utils.log("Connected to Node: " + node.getId() + " (" + node.getDisplayName() + ")");
+                reqListener.doInit(node.getId());
             }
 
             @Override
@@ -143,6 +144,7 @@ public class LinkService extends Service {
             @Override
             public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
                 for (Node node : getConnectedNodesResult.getNodes()) {
+                    Utils.log("Was already connected to " + node.getDisplayName());
                     reqListener.doInit(node.getId());
                 }
             }

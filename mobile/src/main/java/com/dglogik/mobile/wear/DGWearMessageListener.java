@@ -50,6 +50,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
             switch (type) {
                 case "points": {
+                    DGMobileContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
                     DeviceNode deviceNode = new DeviceNode(device);
                     DGMobileContext.devicesNode.addChild(deviceNode);
