@@ -3,6 +3,7 @@ package com.dglogik.wear;
 import android.app.Service;
 import android.content.Intent;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -153,10 +154,21 @@ public class LinkService extends Service {
 
     @Override
     public void onDestroy() {
-        googleClient.disconnect();
+        try {
+            send("stop", new HashMap<String, Object>());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         for (Provider provider : providers) {
             provider.destroy();
         }
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                googleClient.disconnect();
+                return null;
+            }
+        }.execute();
     }
 
     public void send(String type, HashMap<String, Object> objects) throws JSONException {

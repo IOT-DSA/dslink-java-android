@@ -157,6 +157,11 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                 case "ready":
                     Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/init", null);
                     break;
+                case "stop":
+                    String name = DGMobileContext.CONTEXT.wearable.namesMap.get(event.getSourceNodeId());
+                    DGMobileContext.devicesNode.removeChild(name);
+                    DGMobileContext.CONTEXT.wearable.wearNodes.remove(event.getSourceNodeId());
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();
