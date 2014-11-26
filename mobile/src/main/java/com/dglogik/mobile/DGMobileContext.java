@@ -900,7 +900,9 @@ public class DGMobileContext {
 
                 linkStarted = true;
 
-                final String name = preferences.getString("link.name", "Android");
+                final String name = preferences.getString("link.name", "Android")
+                        .replaceAll("\\+", " ")
+                        .replaceAll(" ", "");
                 final String brokerUrl = preferences.getString("broker.url", "");
 
                 link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
