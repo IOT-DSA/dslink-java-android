@@ -61,11 +61,14 @@ public class RequestListener implements MessageApi.MessageListener {
 
                 List<Action> allActions = LinkService.INSTANCE.actions;
 
-                for (Action action : allActions) {
+                for (final Action action : allActions) {
                     if (actionName.equals(action.getName())) {
                         Utils.log("Invoking Action " + actionName);
                         action.invoke();
                         Utils.log("Invoked Action " + actionName);
+                        LinkService.INSTANCE.sendSingle(messageEvent.getSourceNodeId(), "action-invoked", new HashMap<String, Object>() {{
+                            put("action", action.getName());
+                        }});
                         return;
                     }
                 }

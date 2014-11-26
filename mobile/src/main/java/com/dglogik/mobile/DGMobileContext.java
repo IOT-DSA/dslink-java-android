@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -58,6 +59,7 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessStatusCodes;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -76,6 +78,7 @@ import ext.javax.servlet.ServletContext;
 public class DGMobileContext {
     public static final String TAG = "DGMobile";
     public static DGMobileContext CONTEXT;
+    public AndroidTunnelClient tunnelClient;
 
     @NonNull
     public final LinkService service;
@@ -125,6 +128,16 @@ public class DGMobileContext {
                 .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(ConnectionResult connectionResult) {
+                        if (connectionResult.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
+                            try {
+                                connectionResult.startResolutionForResult(
+                                        ControllerActivity.INSTANCE,
+                                        50);
+                            } catch (IntentSender.SendIntentException e) {
+                                e.printStackTrace();
+                            }
+                            return;
+                        }
                         Log.e(TAG, "Google API Client Connection Failed! Code = " + connectionResult.getErrorCode());
                         ControllerActivity.DID_FAIL = true;
                         ControllerActivity.ERROR_MESSAGE = "Google API Client Failed to Connect: Code = " + connectionResult.getErrorCode();
@@ -132,10 +145,6 @@ public class DGMobileContext {
                 });
 
         apiClientBuilder.addApi(LocationServices.API);
-        apiClientBuilder
-                .useDefaultAccount()
-                .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
-                .addScope(new Scope(Scopes.FITNESS_BODY_READ));
 
         apiClientBuilder.setHandler(handler);
 
@@ -145,6 +154,10 @@ public class DGMobileContext {
 
         if (preferences.getBoolean("feature.fitness", false)) {
             apiClientBuilder.addApi(Fitness.API);
+            apiClientBuilder
+                    .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
+                    .addScope(new Scope(Scopes.FITNESS_BODY_READ));
+            apiClientBuilder.setAccountName(preferences.getString("account.name", null));
         }
 
         this.googleClient = apiClientBuilder.build();
@@ -174,7 +187,9 @@ public class DGMobileContext {
         link.setTunnelClientFactory(new TunnelClientFactory() {
             @Override
             public AbstractTunnelClient create(ServletContext servletContext, String uri) {
-                return new AndroidTunnelClient(servletContext, uri);
+                tunnelClient = new AndroidTunnelClient(servletContext, uri);
+
+                return tunnelClient;
             }
         });
         powerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);

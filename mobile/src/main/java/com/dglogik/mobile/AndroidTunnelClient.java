@@ -17,7 +17,7 @@ import java.io.Writer;
 import ext.javax.servlet.ServletContext;
 
 public class AndroidTunnelClient extends AbstractTunnelClient {
-    private WebSocket socket;
+    public WebSocket socket;
     @SuppressWarnings("FieldCanBeLocal")
     private ServletContext servlet;
     private String uri;

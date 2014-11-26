@@ -1,6 +1,7 @@
 package com.dglogik.mobile.ui;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.widget.TextView;
@@ -24,11 +25,13 @@ public class InfoActivity extends Activity {
         Utils.applyDGTheme(this);
         setContentView(R.layout.info);
         textView = (TextView) findViewById(R.id.info);
+        textView.setTextIsSelectable(true);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
         if (DGMobileContext.CONTEXT == null) {
             textView.setText("Not Started");
             return;
@@ -43,7 +46,7 @@ public class InfoActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        updateTree();
+                        update();
                     }
                 });
             }
@@ -52,8 +55,14 @@ public class InfoActivity extends Activity {
         poller.poll(TimeUnit.SECONDS, 5, false);
     }
 
-    public void updateTree() {
+    public void update() {
         StringBuilder builder = new StringBuilder();
+
+        builder.append("Android Version: ").append(Build.VERSION.RELEASE).append("\n");
+
+        builder.append("Is WebSocket Connected: ").append(DGMobileContext.CONTEXT.tunnelClient != null && DGMobileContext.CONTEXT.tunnelClient.socket.isOpen()).append("\n");
+
+        builder.append("Nodes:").append("\n");
 
         for (DGNode node : DGMobileContext.CONTEXT.link.getRootNodes()) {
             builder.append(Utils.createNodeTree(node, 1)).append("\n");

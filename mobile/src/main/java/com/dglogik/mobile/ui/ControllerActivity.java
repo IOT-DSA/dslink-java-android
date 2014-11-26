@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("EmptyMethod")
 public class ControllerActivity extends Activity {
 
+    public static ControllerActivity INSTANCE;
     public static boolean DID_FAIL = false;
     public static String ERROR_MESSAGE;
     private Button startButton;
@@ -36,6 +37,8 @@ public class ControllerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        INSTANCE = this;
 
         setContentView(R.layout.controller);
 

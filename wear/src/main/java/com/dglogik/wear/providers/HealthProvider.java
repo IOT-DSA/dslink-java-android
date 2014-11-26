@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HealthProvider extends Provider {
-    private double lastHeartRate = 0.0;
     private SensorEventListener eventListener;
 
     @Override
@@ -32,12 +31,9 @@ public class HealthProvider extends Provider {
             public void onSensorChanged(SensorEvent sensorEvent) {
                 final double heartRate = sensorEvent.values[0];
 
-                if (lastHeartRate != heartRate) {
-                    update(new HashMap<String, Object>() {{
-                        put("HeartRate", heartRate);
-                    }});
-                    lastHeartRate = heartRate;
-                }
+                update(new HashMap<String, Object>() {{
+                    put("HeartRate", heartRate);
+                }});
             }
 
             @Override

@@ -1,19 +1,26 @@
 package com.dglogik.mobile.ui;
 
+import android.accounts.AccountManager;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
+import android.widget.Toast;
 
 import com.dglogik.mobile.DGConstants;
 import com.dglogik.mobile.R;
+import com.google.android.gms.common.AccountPicker;
 
 public class SettingsFragment extends PreferenceFragment {
+    static final int REQUEST_CODE_PICK_ACCOUNT = 1000;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +33,13 @@ public class SettingsFragment extends PreferenceFragment {
 
         findPreference("feature.wear").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference, Object o) {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean val = (boolean) newValue;
+
+                if (!val) {
+                    return true;
+                }
+
                 try {
                     PackageManager packageManager = getActivity().getPackageManager();
                     packageManager.getPackageInfo("com.google.android.wearable.app", PackageManager.GET_ACTIVITIES);
@@ -34,6 +47,20 @@ public class SettingsFragment extends PreferenceFragment {
                     showInstallAndroidWearDialog();
                     return false;
                 }
+                return true;
+            }
+        });
+
+        findPreference("feature.fitness").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean val = (boolean) newValue;
+
+                if (!val) {
+                    return true;
+                }
+
+                pickUserAccount();
                 return true;
             }
         });
@@ -88,5 +115,25 @@ public class SettingsFragment extends PreferenceFragment {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName));
             startActivity(intent);
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == REQUEST_CODE_PICK_ACCOUNT) {
+            SharedPreferences preferences = getPreferenceManager().getSharedPreferences();
+            if (resultCode == Activity.RESULT_OK) {
+                preferences.edit().putString("account.name", intent.getStringExtra(AccountManager.KEY_ACCOUNT_NAME)).apply();
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(getActivity(), "You must pick an account to use the Fitness System", Toast.LENGTH_SHORT).show();
+                preferences.edit().putBoolean("feature.fitness", false).apply();
+            }
+        }
+    }
+
+    private void pickUserAccount() {
+        String[] accountTypes = new String[]{"com.google"};
+        Intent intent = AccountPicker.newChooseAccountIntent(null, null,
+                accountTypes, false, null, null, null, null);
+        startActivityForResult(intent, REQUEST_CODE_PICK_ACCOUNT);
     }
 }

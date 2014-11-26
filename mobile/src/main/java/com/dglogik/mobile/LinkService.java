@@ -1,6 +1,7 @@
 package com.dglogik.mobile;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -33,6 +34,10 @@ public class LinkService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        nm.notify(0, notification);
+
         startForeground(0, notification);
         context.start();
         return START_STICKY;

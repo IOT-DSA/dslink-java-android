@@ -87,17 +87,13 @@ public class LinkService extends Service {
             @Override
             public void onPeerConnected(Node node) {
                 Log.i("DGMobile", "Connected to Node: " + node.getId() + " (" + node.getDisplayName() + ")");
-                try {
-                    sendSingle(node.getId(), "ready", new HashMap<String, Object>() {{
-                    }});
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                connected.add(node.getId());
             }
 
             @Override
             public void onPeerDisconnected(Node node) {
                 Log.i("DGMobile", "Disconnected from Node: " + node.getId() + " (" + node.getDisplayName() + ")");
+                connected.remove(node.getId());
             }
         });
 
@@ -138,6 +134,21 @@ public class LinkService extends Service {
 
             provider.setup();
         }
+
+        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+            @Override
+            public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                for (Node node : getConnectedNodesResult.getNodes()) {
+                    connected.add(node.getId());
+                    try {
+                        sendSingle(node.getId(), "ready", new HashMap<String, Object>() {{
+                        }});
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -154,14 +165,9 @@ public class LinkService extends Service {
         object.put("device", Build.MODEL);
         object.put("type", type);
 
-        Wearable.NodeApi.getConnectedNodes(googleClient).setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
-            @Override
-            public void onResult(NodeApi.GetConnectedNodesResult result) {
-                for (Node node : result.getNodes()) {
-                    Wearable.MessageApi.sendMessage(googleClient, node.getId(), "/wear", object.toString().getBytes());
-                }
-            }
-        });
+        for (String id : connected) {
+            Wearable.MessageApi.sendMessage(googleClient, id, "/wear", object.toString().getBytes());
+        }
     }
 
     public void sendSingle(String node, String type, HashMap<String, Object> objects) throws JSONException {
