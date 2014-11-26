@@ -4,7 +4,6 @@ import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -49,8 +48,9 @@ import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.dslink.tunnel.TunnelClientFactory;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
+import com.dglogik.mobile.link.MusicNode;
 import com.dglogik.mobile.link.RootNode;
-import com.dglogik.mobile.link.VolumeSystemNode;
+import com.dglogik.mobile.link.AudioSystemNode;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.dglogik.table.Table;
@@ -640,18 +640,20 @@ public class DGMobileContext {
             node.addAction(openUrlAction);
         }
 
-        if (enableNode("volume")) {
-            final VolumeSystemNode volumeSystemNode = new VolumeSystemNode();
+        if (enableNode("audio")) {
+            final AudioSystemNode audioSystemNode = new AudioSystemNode();
             final AudioManager manager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
-            volumeSystemNode.createStream(manager, "Notification", AudioManager.STREAM_NOTIFICATION);
-            volumeSystemNode.createStream(manager, "System", AudioManager.STREAM_SYSTEM);
-            volumeSystemNode.createStream(manager, "Music", AudioManager.STREAM_MUSIC);
-            volumeSystemNode.createStream(manager, "Call", AudioManager.STREAM_VOICE_CALL);
-            volumeSystemNode.createStream(manager, "Ringer", AudioManager.STREAM_RING);
-            volumeSystemNode.createStream(manager, "Alarm", AudioManager.STREAM_ALARM);
+            audioSystemNode.addVolumeStream(manager, "Notification", AudioManager.STREAM_NOTIFICATION);
+            audioSystemNode.addVolumeStream(manager, "System", AudioManager.STREAM_SYSTEM);
+            audioSystemNode.addVolumeStream(manager, "Music", AudioManager.STREAM_MUSIC);
+            audioSystemNode.addVolumeStream(manager, "Call", AudioManager.STREAM_VOICE_CALL);
+            audioSystemNode.addVolumeStream(manager, "Ringer", AudioManager.STREAM_RING);
+            audioSystemNode.addVolumeStream(manager, "Alarm", AudioManager.STREAM_ALARM);
 
-            node.addChild(volumeSystemNode);
+            audioSystemNode.setupInformationNodes(manager);
+
+            node.addChild(audioSystemNode);
         }
 
         if (preferences.getBoolean("actions.search", true)) {
@@ -678,155 +680,10 @@ public class DGMobileContext {
             node.addAction(searchWebAction);
         }
 
-        if (preferences.getBoolean("actions.music", true)) {
-
-            final BaseAction playArtistAction = new BaseAction("PlayArtist") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    String artist = args.get("artist").toString();
-                    log("Playing Artist: " + artist);
-                    playSearchArtist(artist);
-                    return null;
-                }
-            };
-
-            final BaseAction playSongAction = new BaseAction("PlaySong") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    String song = args.get("song").toString();
-                    log("Playing Song: " + song);
-                    playSearchSong(song);
-                    return null;
-                }
-            };
-
-            final BaseAction playAction = new BaseAction("PlayMusic") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    sendMusicCommand("play");
-                    return null;
-                }
-            };
-
-            final BaseAction pauseAction = new BaseAction("PauseMusic") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    sendMusicCommand("pause");
-                    return null;
-                }
-            };
-
-            final BaseAction togglePauseAction = new BaseAction("TogglePauseMusic") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    sendMusicCommand("togglepause");
-                    return null;
-                }
-            };
-
-            final BaseAction stopAction = new BaseAction("StopMusic") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    sendMusicCommand("play");
-                    return null;
-                }
-            };
-
-            final BaseAction nextAction = new BaseAction("NextSong") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    sendMusicCommand("next");
-                    return null;
-                }
-            };
-
-            final BaseAction previousAction = new BaseAction("PreviousSong") {
-                @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    sendMusicCommand("previous");
-                    return null;
-                }
-            };
-
-            playArtistAction.addParam("artist", BasicMetaData.SIMPLE_STRING);
-
-            node.addAction(playArtistAction);
-            node.addAction(playSongAction);
-            node.addAction(playAction);
-            node.addAction(pauseAction);
-            node.addAction(togglePauseAction);
-            node.addAction(stopAction);
-            node.addAction(nextAction);
-            node.addAction(previousAction);
-
-            IntentFilter filter = new IntentFilter();
-            filter.addAction("com.android.music.metachanged");
-            filter.addAction("com.htc.music.metachanged");
-            filter.addAction("fm.last.android.metachanged");
-            filter.addAction("com.sec.android.app.music.metachanged");
-            filter.addAction("com.nullsoft.winamp.metachanged");
-            filter.addAction("com.amazon.mp3.metachanged");     
-            filter.addAction("com.miui.player.metachanged");        
-            filter.addAction("com.real.IMP.metachanged");
-            filter.addAction("com.sonyericsson.music.metachanged");
-            filter.addAction("com.rdio.android.metachanged");
-            filter.addAction("com.samsung.sec.android.MusicPlayer.metachanged");
-            filter.addAction("com.andrew.apollo.metachanged");
-            filter.addAction("com.spotify.music.metadatachanged");
-
-            final DataValueNode artistNode = new DataValueNode("Song_Artist", BasicMetaData.SIMPLE_STRING);
-            final DataValueNode albumNode = new DataValueNode("Song_Album", BasicMetaData.SIMPLE_STRING);
-            final DataValueNode trackNode = new DataValueNode("Song_Track", BasicMetaData.SIMPLE_STRING);
-
-            artistNode.initializeValue = new Action() {
-                @Override
-                public void run() {
-                    if (songArtist != null) {
-                        artistNode.update(songArtist);
-                    }
-                }
-            };
-
-            albumNode.initializeValue = new Action() {
-                @Override
-                public void run() {
-                    if (songAlbum != null) {
-                        albumNode.update(songAlbum);
-                    }
-                }
-            };
-
-            trackNode.initializeValue = new Action() {
-                @Override
-                public void run() {
-                    if (songTitle != null) {
-                        trackNode.update(songTitle);
-                    }
-                }
-            };
-
-            final BroadcastReceiver receiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    String artist = intent.getStringExtra("artist");
-                    String album = intent.getStringExtra("album");
-                    String track = intent.getStringExtra("track");
-
-                    artistNode.update(artist);
-                    albumNode.update(album);
-                    trackNode.update(track);
-
-                    songArtist = artist;
-                    songAlbum = album;
-                    songTitle = track;
-                }
-            };
-
-            getApplicationContext().registerReceiver(receiver, filter);
-
-            node.addChild(artistNode);
-            node.addChild(albumNode);
-            node.addChild(trackNode);
+        if (enableNode("music")) {
+            MusicNode musicNode = new MusicNode();
+            musicNode.init();
+            node.addChild(musicNode);
         }
 
         if (preferences.getBoolean("providers.speech", true)) {
@@ -1025,10 +882,6 @@ public class DGMobileContext {
 
         node.addChild(screenOn);
     }
-
-    private String songArtist;
-    private String songTitle;
-    private String songAlbum;
 
     public boolean enableSensor(String id, int type) {
         return enableNode(id) && !sensorManager.getSensorList(type).isEmpty();
