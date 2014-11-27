@@ -64,7 +64,7 @@ public class InfoActivity extends Activity {
 
         builder.append("Nodes:").append("\n");
 
-        for (DGNode node : DGMobileContext.CONTEXT.link.getRootNodes()) {
+        for (DGNode node : DGMobileContext.CONTEXT.devicesNode.getChildren()) {
             builder.append(Utils.createNodeTree(node, 1)).append("\n");
         }
 
