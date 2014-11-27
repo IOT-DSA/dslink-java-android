@@ -36,6 +36,7 @@ import android.widget.Toast;
 
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGMetaData;
+import com.dglogik.api.DGNode;
 import com.dglogik.api.server.AbstractTunnelClient;
 import com.dglogik.dslink.Application;
 import com.dglogik.dslink.client.Client;
@@ -45,6 +46,7 @@ import com.dglogik.dslink.client.command.base.Options;
 import com.dglogik.dslink.node.Poller;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
+import com.dglogik.dslink.plugin.Plugin;
 import com.dglogik.dslink.tunnel.TunnelClientFactory;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
@@ -229,7 +231,7 @@ public class DGMobileContext {
         });
     }
 
-    public static boolean addedRoot = false;
+    public static boolean initializedLink = false;
 
     public void initialize() {
         if (preferences.getBoolean("feature.wear", false)) {
@@ -240,9 +242,24 @@ public class DGMobileContext {
             fitness.initialize();
         }
 
-        if (!addedRoot) {
-            link.addRootNode(devicesNode);
-            addedRoot = true;
+        if (!initializedLink) {
+            link.register(new Plugin() {
+                @Override
+                public void preInit(Client client) {
+                }
+
+                @Override
+                public void init(Options options) {
+                }
+
+                @Override
+                public DGNode[] getRootNodes() {
+                    return new DGNode[] {
+                            devicesNode
+                    };
+                }
+            });
+            initializedLink = true;
         }
 
         currentDeviceNode = new DeviceNode(Build.MODEL);
@@ -833,6 +850,7 @@ public class DGMobileContext {
 
     protected DataValueNode activityNode;
 
+
     private void setupPowerProvider(DeviceNode node) {
         BaseAction wakeUpAction = new BaseAction("WakeUp") {
             @Override
@@ -923,10 +941,12 @@ public class DGMobileContext {
                         .replaceAll(" ", "");
                 final String brokerUrl = preferences.getString("broker.url", "");
 
-                link.run(new String[0], false, new Options(new HashMap<String, ArgValue>() {{
+                link.init(new String[0], new Options(new HashMap<String, ArgValue>() {{
                     put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
                     put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
                 }}, false));
+
+                link.run();
 
                 log("Link Stopped");
 
