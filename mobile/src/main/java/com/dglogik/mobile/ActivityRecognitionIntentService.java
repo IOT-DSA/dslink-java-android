@@ -2,9 +2,9 @@ package com.dglogik.mobile;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.app.*;
-import android.util.Log;
-import com.google.android.gms.location.*;
+
+import com.google.android.gms.location.ActivityRecognitionResult;
+import com.google.android.gms.location.DetectedActivity;
 
 public class ActivityRecognitionIntentService extends IntentService {
     public ActivityRecognitionIntentService() {
@@ -13,10 +13,9 @@ public class ActivityRecognitionIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        DGMobileContext.log("Got Activity Recognition Event");
         if (ActivityRecognitionResult.hasResult(intent)) {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
-            if (DGMobileContext.CONTEXT.activityNode != null) {
+            if (DGMobileContext.CONTEXT != null && DGMobileContext.CONTEXT.activityNode != null) {
                 String name = getNameFromType(result.getMostProbableActivity().getType());
                 DGMobileContext.CONTEXT.activityNode.update(name);
             }
@@ -24,7 +23,7 @@ public class ActivityRecognitionIntentService extends IntentService {
     }
 
     private String getNameFromType(int activityType) {
-        switch(activityType) {
+        switch (activityType) {
             case DetectedActivity.IN_VEHICLE:
                 return "in_vehicle";
             case DetectedActivity.ON_BICYCLE:

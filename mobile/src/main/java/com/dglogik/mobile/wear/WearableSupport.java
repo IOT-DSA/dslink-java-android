@@ -2,11 +2,9 @@ package com.dglogik.mobile.wear;
 
 import android.support.annotation.NonNull;
 
-import com.dglogik.api.DGNode;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.mobile.link.DataValueNode;
-import com.dglogik.mobile.link.DeviceNode;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
@@ -14,7 +12,6 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;

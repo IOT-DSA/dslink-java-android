@@ -3,23 +3,18 @@ package com.dglogik.mobile;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGContext;
 import com.dglogik.mobile.link.DataValueNode;
-import com.dglogik.trend.DGValueTrend;
 import com.dglogik.trend.Trend;
+import com.dglogik.trend.Trends;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
-import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Value;
 import com.google.android.gms.fitness.request.DataReadRequest;
-import com.google.android.gms.fitness.request.DataSourcesRequest;
-import com.google.android.gms.fitness.request.OnDataPointListener;
-import com.google.android.gms.fitness.request.SensorRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
-import com.google.android.gms.fitness.result.DataSourcesResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,79 +23,94 @@ import java.util.concurrent.TimeUnit;
 public class FitnessSupport {
     private DGMobileContext context;
     private DataValueNode heartRateNode;
-    private HeartRateListener heartRateListener;
-    private DataSource heartRateSource;
 
     public FitnessSupport(DGMobileContext context) {
         this.context = context;
     }
 
     public void initialize() {
-        Fitness.SensorsApi.findDataSources(context.googleClient, new DataSourcesRequest.Builder()
-                        .setDataSourceTypes(DataSource.TYPE_DERIVED, DataSource.TYPE_RAW)
-                        .setDataTypes(DataType.TYPE_HEART_RATE_BPM)
-                        .build()
-        ).setResultCallback(new ResultCallback<DataSourcesResult>() {
+        Fitness.RecordingApi.subscribe(context.googleClient, DataType.TYPE_HEART_RATE_BPM);
+        context.poller(new Action() {
             @Override
-            public void onResult(DataSourcesResult dataSourcesResult) {
-                List<DataSource> sourceList = dataSourcesResult.getDataSources();
-                if (sourceList.isEmpty()) {
-                    return;
-                }
-                DataSource source = sourceList.get(0);
-                heartRateSource = source;
-                heartRateListener = new HeartRateListener();
-                heartRateNode = new HeartRateNode();
-                Fitness.SensorsApi.add(context.googleClient, new SensorRequest.Builder()
-                                .setDataType(DataType.TYPE_HEART_RATE_BPM)
-                                .setFastestRate(1, TimeUnit.SECONDS)
-                                .setSamplingRate(3, TimeUnit.SECONDS)
-                                .setDataSource(source)
-                                .build(),
-                        heartRateListener
-                );
-                context.currentDeviceNode.addChild(heartRateNode);
+            public void run() {
+                Fitness.HistoryApi.readData(context.googleClient, new DataReadRequest.Builder()
+                        .setLimit(1)
+                        .setTimeRange(1000000000000L, System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                        .read(DataType.TYPE_HEART_RATE_BPM)
+                        .build()).setResultCallback(new ResultCallback<DataReadResult>() {
+                    @Override
+                    public void onResult(DataReadResult dataReadResult) {
+                        if (!dataReadResult.getStatus().isSuccess()) {
+                            return;
+                        }
+
+                        if (heartRateNode == null) {
+                            heartRateNode = new HeartRateNode();
+                            context.currentDeviceNode.addChild(heartRateNode);
+                        }
+
+                        DataPoint point = dataReadResult.getDataSet(DataType.TYPE_HEART_RATE_BPM)
+                                .getDataPoints()
+                                .get(0);
+
+                        Value value = point.getValue(Field.FIELD_BPM);
+                        DGValue dgValue = DGValue.make((double) value.asFloat());
+                        dgValue.setTimestamp(point.getTimestamp(TimeUnit.MILLISECONDS));
+                        heartRateNode.setValue(dgValue);
+                    }
+                });
             }
-        });
+        }).poll(TimeUnit.SECONDS, 15, false);
 
         context.onCleanup(new Action() {
             @Override
             public void run() {
-                Fitness.SensorsApi.remove(context.googleClient, heartRateListener);
+                Fitness.RecordingApi.unsubscribe(context.googleClient, DataType.TYPE_HEART_RATE_BPM);
             }
         });
-    }
-
-    public class HeartRateListener implements OnDataPointListener {
-        @Override
-        public void onDataPoint(DataPoint dataPoint) {
-            float value = dataPoint.getValue(Field.FIELD_BPM).asFloat();
-            heartRateNode.update((double) value);
-        }
     }
 
     public class HeartRateNode extends DataValueNode {
         public HeartRateNode() {
             super("HeartRate", BasicMetaData.SIMPLE_INT);
+            setDisplayName("Heart Rate");
         }
 
         @Override
         public Trend getValueHistory(DGContext cx) {
+            DGMobileContext.log("Fetching Heart Rate History");
             List<DGValue> values = new ArrayList<>();
+            cx.getRollup().makeRollup();
             DataReadResult result = Fitness.HistoryApi.readData(context.googleClient, new DataReadRequest.Builder()
-                .setLimit(50)
-                .setTimeRange(cx.getTimeRange().getStart(), cx.getTimeRange().getEnd(), TimeUnit.MILLISECONDS)
-                .aggregate(heartRateSource, DataType.TYPE_HEART_RATE_BPM)
-                .build()
-            ).await();
-            DataSet dataSet = result.getDataSet(heartRateSource);
+                            .setTimeRange(cx.getTimeRange().getStart(), cx.getTimeRange().getEnd(), TimeUnit.MILLISECONDS)
+                            .enableServerQueries()
+                            .read(DataType.TYPE_HEART_RATE_BPM)
+                            .build()
+            ).await(5000, TimeUnit.MILLISECONDS);
+            DGMobileContext.log("Got Heart Rate Results");
+            if (!result.getStatus().isSuccess() || result.getStatus().isCanceled() || result.getStatus().isInterrupted()) {
+                DGMobileContext.log("Failed to fetch heart rate history: " + result.getStatus().getStatusMessage());
+                return Trends.make(new ArrayList<DGValue>(), BasicMetaData.SIMPLE_INT, cx);
+            }
+            DataSet dataSet = result.getDataSet(DataType.TYPE_HEART_RATE_BPM);
+            if (dataSet.getDataPoints().isEmpty()) {
+                DGMobileContext.log("Warning: Heart Rate Data Points are empty.");
+            }
             List<DataPoint> points = dataSet.getDataPoints();
             for (DataPoint point : points) {
                 Value value = point.getValue(Field.FIELD_BPM);
-                DGValue dgValue = DGValue.make((double) value.asFloat());
+                double bpm = (double) value.asFloat();
+                DGMobileContext.log("Got Heart Rate Value: " + bpm + " (timestamp: " + point.getTimestamp(TimeUnit.MILLISECONDS) + ")");
+                DGValue dgValue = DGValue.make(bpm);
+                dgValue.setTimestamp(point.getTimestamp(TimeUnit.MILLISECONDS));
                 values.add(dgValue);
             }
-            return new DGValueTrend(values.iterator());
+            return Trends.make(values, BasicMetaData.SIMPLE_INT, cx);
+        }
+
+        @Override
+        public boolean hasValueHistory(DGContext cx) {
+            return true;
         }
     }
 }

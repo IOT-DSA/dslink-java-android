@@ -10,7 +10,7 @@ import android.support.annotation.NonNull;
 public class AdminReceiver extends DeviceAdminReceiver {
     @Override
     public void onReceive(Context context, @NonNull Intent intent) {
-
+        super.onReceive(context, intent);
     }
 
     @Override

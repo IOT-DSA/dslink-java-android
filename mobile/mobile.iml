@@ -84,8 +84,8 @@
     <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="guava-18.0" level="project" />
-    <orderEntry type="library" exported="" name="dslink-0.0.1-SNAPSHOT-all" level="project" />
     <orderEntry type="library" exported="" name="AndroidAsync" level="project" />
+    <orderEntry type="library" exported="" name="dslink-0.0.1-SNAPSHOT-all" level="project" />
     <orderEntry type="library" exported="" name="multidex-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-20.0.0" level="project" />

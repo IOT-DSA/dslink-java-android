@@ -833,24 +833,6 @@ public class DGMobileContext {
 
     protected DataValueNode activityNode;
 
-    private String getActivityNameFromType(int activityType) {
-        switch(activityType) {
-            case DetectedActivity.IN_VEHICLE:
-                return "in_vehicle";
-            case DetectedActivity.ON_BICYCLE:
-                return "on_bicycle";
-            case DetectedActivity.ON_FOOT:
-                return "on_foot";
-            case DetectedActivity.STILL:
-                return "still";
-            case DetectedActivity.UNKNOWN:
-                return "unknown";
-            case DetectedActivity.TILTING:
-                return "tilting";
-        }
-        return "unknown";
-    }
-
     private void setupPowerProvider(DeviceNode node) {
         BaseAction wakeUpAction = new BaseAction("WakeUp") {
             @Override
