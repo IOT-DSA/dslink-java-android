@@ -25,6 +25,11 @@ public class DataValueNode extends ValuePoint {
 //        }
     }
 
+    @Override
+    public ValuePoint setValue(DGValue value) {
+        return super.setValue(value);
+    }
+
     public void update(Object obj) {
         if (obj instanceof Boolean) {
             update((Boolean) obj);
