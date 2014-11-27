@@ -62,9 +62,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessStatusCodes;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.*;
+import android.app.*;
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -147,6 +146,7 @@ public class DGMobileContext {
                 });
 
         apiClientBuilder.addApi(LocationServices.API);
+	apiClientBuilder.addApi(ActivityRecognition.API);
 
         apiClientBuilder.setHandler(handler);
 
@@ -392,6 +392,22 @@ public class DGMobileContext {
         if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
             setupScreenProvider(node);
         }
+
+        if (enableNode("activity")) {
+            activityNode = new DataValueNode("Activity", BasicMetaData.SIMPLE_STRING);
+
+            final PendingIntent intent = PendingIntent.getService(getApplicationContext(), 40, new Intent(getApplicationContext(), ActivityRecognitionIntentService.class), PendingIntent.FLAG_UPDATE_CURRENT);
+            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(googleClient, 1000, intent);
+
+            onCleanup(new Action() {
+                @Override
+                public void run() {
+                    ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(googleClient, intent);
+                }
+            });
+
+            node.addChild(activityNode);
+       }
 
         if (preferences.getBoolean("actions.notifications", true)) {
             final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -814,6 +830,26 @@ public class DGMobileContext {
 //        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
 //        node.addChild(rateNode);
 //    }
+
+    protected DataValueNode activityNode;
+
+    private String getActivityNameFromType(int activityType) {
+        switch(activityType) {
+            case DetectedActivity.IN_VEHICLE:
+                return "in_vehicle";
+            case DetectedActivity.ON_BICYCLE:
+                return "on_bicycle";
+            case DetectedActivity.ON_FOOT:
+                return "on_foot";
+            case DetectedActivity.STILL:
+                return "still";
+            case DetectedActivity.UNKNOWN:
+                return "unknown";
+            case DetectedActivity.TILTING:
+                return "tilting";
+        }
+        return "unknown";
+    }
 
     private void setupPowerProvider(DeviceNode node) {
         BaseAction wakeUpAction = new BaseAction("WakeUp") {

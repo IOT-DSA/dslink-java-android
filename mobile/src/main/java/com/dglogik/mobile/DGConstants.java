@@ -26,7 +26,8 @@ public class DGConstants {
             new NodeDescriptor("Humidity", "humidity"),
             new NodeDescriptor("Gyroscope", "gyroscope"),
             new NodeDescriptor("Audio", "audio"),
-            new NodeDescriptor("Music", "music")
+            new NodeDescriptor("Music", "music"),
+            new NodeDescriptor("Activity Recognition", "activity")
     });
 
     public static List<Preference> createNodePreferences(Context context) {
