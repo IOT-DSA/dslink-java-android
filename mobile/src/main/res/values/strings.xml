@@ -10,7 +10,7 @@
     <string name="prefs_start_on_boot">Start on Boot</string>
     <string name="settings_label">DGMobile Settings</string>
     <string name="prefs_stop_low_memory">Stop Link to Free Memory</string>
-    <string name="prefs_stop_low_memory_summary">When Android is starts to run out of memory, the link can be stopped to ensure system stability.</string>
+    <string name="prefs_stop_low_memory_summary">When Android starts to run out of memory, the link can be stopped to ensure system stability.</string>
     <string name="android_wear">Android Wear</string>
     <string name="prefs_start_on_boot_summary">Starts the Link when the device boots.</string>
     <string name="prefs_android_wear_summary">Enables Android Wear Integration.</string>
