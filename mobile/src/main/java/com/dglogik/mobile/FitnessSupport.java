@@ -49,9 +49,15 @@ public class FitnessSupport {
                             context.currentDeviceNode.addChild(heartRateNode);
                         }
 
-                        DataPoint point = dataReadResult.getDataSet(DataType.TYPE_HEART_RATE_BPM)
-                                .getDataPoints()
-                                .get(0);
+                        List<DataPoint> points = dataReadResult.getDataSet(DataType.TYPE_HEART_RATE_BPM)
+                                .getDataPoints();
+
+                        if (points.isEmpty()) {
+                            DGMobileContext.log("Heart Rate Data Points are empty.");
+                            return;
+                        }
+
+                        DataPoint point = points.get(0);
 
                         Value value = point.getValue(Field.FIELD_BPM);
                         DGValue dgValue = DGValue.make((double) value.asFloat());
@@ -74,6 +80,12 @@ public class FitnessSupport {
         public HeartRateNode() {
             super("HeartRate", BasicMetaData.SIMPLE_INT);
             setDisplayName("Heart Rate");
+            setFormatter(new DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " bpm";
+                }
+            });
         }
 
         @Override
@@ -110,7 +122,7 @@ public class FitnessSupport {
 
         @Override
         public boolean hasValueHistory(DGContext cx) {
-            return true;
+            return false;
         }
     }
 }

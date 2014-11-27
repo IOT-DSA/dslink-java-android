@@ -44,6 +44,7 @@ import com.dglogik.dslink.client.command.base.ArgValue;
 import com.dglogik.dslink.client.command.base.ArgValueMetadata;
 import com.dglogik.dslink.client.command.base.Options;
 import com.dglogik.dslink.node.Poller;
+import com.dglogik.dslink.node.ValuePoint;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.dslink.plugin.Plugin;
@@ -65,7 +66,9 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessStatusCodes;
 import com.google.android.gms.location.*;
+
 import android.app.*;
+
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -148,7 +151,7 @@ public class DGMobileContext {
                 });
 
         apiClientBuilder.addApi(LocationServices.API);
-	apiClientBuilder.addApi(ActivityRecognition.API);
+        apiClientBuilder.addApi(ActivityRecognition.API);
 
         apiClientBuilder.setHandler(handler);
 
@@ -174,9 +177,17 @@ public class DGMobileContext {
             @Override
             public void run() {
                 stop = false;
-                try { Thread.sleep(2000); } catch (Exception ignored) {}
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception ignored) {
+                }
                 log("Running Client");
-                while(!stop) { try { Thread.sleep(100); } catch (Exception ignored) {} }
+                while (!stop) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception ignored) {
+                    }
+                }
                 log("Client Complete");
             }
 
@@ -254,11 +265,21 @@ public class DGMobileContext {
 
                 @Override
                 public DGNode[] getRootNodes() {
-                    return new DGNode[] {
+                    return new DGNode[]{
                             devicesNode
                     };
                 }
             });
+
+            final String name = preferences.getString("link.name", "Android")
+                    .replaceAll("\\+", " ")
+                    .replaceAll(" ", "");
+            final String brokerUrl = preferences.getString("broker.url", "");
+
+            link.init(new String[0], new Options(new HashMap<String, ArgValue>() {{
+                put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
+                put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
+            }}, false));
             initializedLink = true;
         }
 
@@ -327,14 +348,24 @@ public class DGMobileContext {
             final DataValueNode latitudeNode = new DataValueNode("Location_Latitude", BasicMetaData.SIMPLE_INT);
             final DataValueNode longitudeNode = new DataValueNode("Location_Longitude", BasicMetaData.SIMPLE_INT);
 
-            latitudeNode.initializeValue = new Action () {
+            ValuePoint.DisplayFormatter formatter = new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + "°";
+                }
+            };
+
+            latitudeNode.setFormatter(formatter);
+            longitudeNode.setFormatter(formatter);
+
+            latitudeNode.initializeValue = new Action() {
                 @Override
                 public void run() {
                     latitudeNode.update(LocationServices.FusedLocationApi.getLastLocation(googleClient).getLatitude());
                 }
             };
 
-            longitudeNode.initializeValue = new Action () {
+            longitudeNode.initializeValue = new Action() {
                 @Override
                 public void run() {
                     longitudeNode.update(LocationServices.FusedLocationApi.getLastLocation(googleClient).getLongitude());
@@ -375,34 +406,41 @@ public class DGMobileContext {
             node.addChild(longitudeNode);
         }
 
-        if (preferences.getBoolean("providers.battery", false)) {
+        if (enableNode("battery")) {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
 
-                poller(new Action() {
-                    @Override
-                    public void run() {
-                        final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-                        assert batteryStatus != null;
-                        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-                        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-                        int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            batteryLevelNode.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + "%";
+                }
+            });
 
-                        boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
-                        boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
+            poller(new Action() {
+                @Override
+                public void run() {
+                    final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    assert batteryStatus != null;
+                    int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                    int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                    int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
-                        double percent = (level / (float) scale) * 100;
+                    boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+                    boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
 
-                        batteryLevelNode.update(percent);
-                        chargerConnectedNode.update(isChargerConnected);
-                        batteryFullNode.update(isFull);
-                    }
-                }).poll(TimeUnit.SECONDS, 4, false);
+                    double percent = (level / (float) scale) * 100;
 
-                node.addChild(batteryLevelNode);
-                node.addChild(batteryFullNode);
-                node.addChild(chargerConnectedNode);
+                    batteryLevelNode.update(percent);
+                    chargerConnectedNode.update(isChargerConnected);
+                    batteryFullNode.update(isFull);
+                }
+            }).poll(TimeUnit.SECONDS, 4, false);
+
+            node.addChild(batteryLevelNode);
+            node.addChild(batteryFullNode);
+            node.addChild(chargerConnectedNode);
 
         }
 
@@ -424,7 +462,7 @@ public class DGMobileContext {
             });
 
             node.addChild(activityNode);
-       }
+        }
 
         if (preferences.getBoolean("actions.notifications", true)) {
             final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -504,6 +542,20 @@ public class DGMobileContext {
             final DataValueNode tempCNode = new DataValueNode("Ambient_Temperature_Celsius", BasicMetaData.SIMPLE_INT);
             final DataValueNode tempFNode = new DataValueNode("Ambient_Temperature_Fahrenheit", BasicMetaData.SIMPLE_INT);
 
+            tempCNode.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " °C";
+                }
+            });
+
+            tempFNode.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " °F";
+                }
+            });
+
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
 
             sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
@@ -527,6 +579,13 @@ public class DGMobileContext {
         if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
             final DataValueNode lux = new DataValueNode("Light_Level", BasicMetaData.SIMPLE_INT);
 
+            lux.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " lux";
+                }
+            });
+
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
             sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
@@ -546,6 +605,13 @@ public class DGMobileContext {
         if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
             final DataValueNode pressure = new DataValueNode("Air_Pressure", BasicMetaData.SIMPLE_INT);
 
+            pressure.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " mbar";
+                }
+            });
+
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
             sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
@@ -564,6 +630,13 @@ public class DGMobileContext {
         if (enableSensor("humidity", Sensor.TYPE_RELATIVE_HUMIDITY)) {
             final DataValueNode humidity = new DataValueNode("Humidity", BasicMetaData.SIMPLE_INT);
 
+            humidity.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + "%";
+                }
+            });
+
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
 
             sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
@@ -581,6 +654,13 @@ public class DGMobileContext {
 
         if (enableSensor("proximity", Sensor.TYPE_PROXIMITY)) {
             final DataValueNode proximity = new DataValueNode("Proximity", BasicMetaData.SIMPLE_INT);
+
+            proximity.setFormatter(new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " cm";
+                }
+            });
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
@@ -601,6 +681,17 @@ public class DGMobileContext {
             final DataValueNode x = new DataValueNode("Gyroscope_X", BasicMetaData.SIMPLE_INT);
             final DataValueNode y = new DataValueNode("Gyroscope_Y", BasicMetaData.SIMPLE_INT);
             final DataValueNode z = new DataValueNode("Gyroscope_Z", BasicMetaData.SIMPLE_INT);
+
+            ValuePoint.DisplayFormatter formatter = new ValuePoint.DisplayFormatter() {
+                @Override
+                public String handle(DGValue dgValue) {
+                    return "" + dgValue.toDouble() + " rad/s";
+                }
+            };
+
+            x.setFormatter(formatter);
+            y.setFormatter(formatter);
+            z.setFormatter(formatter);
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
@@ -935,21 +1026,8 @@ public class DGMobileContext {
                 log("Starting Link");
 
                 linkStarted = true;
-
-                final String name = preferences.getString("link.name", "Android")
-                        .replaceAll("\\+", " ")
-                        .replaceAll(" ", "");
-                final String brokerUrl = preferences.getString("broker.url", "");
-
-                link.init(new String[0], new Options(new HashMap<String, ArgValue>() {{
-                    put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
-                    put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
-                }}, false));
-
                 link.run();
-
                 log("Link Stopped");
-
                 linkStarted = false;
             }
         });
