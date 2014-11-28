@@ -457,8 +457,10 @@ public class DGMobileContext {
             poller(new Action() {
                 @Override
                 public void run() {
-                    if (!batteryLevelNode.hasSubscriptions() && !chargerConnectedNode.hasSubscriptions() && !batteryFullNode.hasSubscriptions())
+                    if (isBatteryLevelInitialized && !batteryLevelNode.hasSubscriptions() && !chargerConnectedNode.hasSubscriptions() && !batteryFullNode.hasSubscriptions())
                         return;
+
+                    isBatteryLevelInitialized = true;
 
                     final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     assert batteryStatus != null;
@@ -959,6 +961,8 @@ public class DGMobileContext {
             setupPowerProvider(node);
         }
     }
+
+    private boolean isBatteryLevelInitialized = false;
 
 //    @TargetApi(20)
 //    private void setupHeartRateMonitor(DeviceNode node) {
