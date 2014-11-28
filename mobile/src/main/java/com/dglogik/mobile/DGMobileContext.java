@@ -456,7 +456,6 @@ public class DGMobileContext {
                 }
             });
 
-
             poller(new Action() {
                 @Override
                 public void run() {
@@ -477,7 +476,10 @@ public class DGMobileContext {
                     double percent = (level / (float) scale) * 100;
 
                     batteryLevelNode.update(percent);
-                    chargerConnectedNode.update(isChargerConnected);
+                    if (lastChargerConnected != isChargerConnected) {
+                        chargerConnectedNode.update(isChargerConnected);
+                        lastChargerConnected = isChargerConnected;
+                    }
                     batteryFullNode.update(isFull);
                 }
             }).poll(TimeUnit.SECONDS, 2, false);
@@ -485,7 +487,7 @@ public class DGMobileContext {
             node.addChild(batteryLevelNode);
             node.addChild(batteryFullNode);
             node.addChild(chargerConnectedNode);
-
+            chargerConnectedNode.setValue(DGValue.make(false));
         }
 
         if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
@@ -1126,6 +1128,8 @@ public class DGMobileContext {
         log("Disconnecting Google API Client");
         googleClient.disconnect();
     }
+
+    private boolean lastChargerConnected = false;
 
     public SpeechRecognizer recognizer;
 
