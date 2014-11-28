@@ -418,9 +418,48 @@ public class DGMobileContext {
                 }
             });
 
+            batteryLevelNode.setGetValueCallback(new DataValueNode.GetValueCallback() {
+                @Override
+                public DGValue handle(DGValue old) {
+                    final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    assert batteryStatus != null;
+                    int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                    int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                    double percent = (level / (float) scale) * 100;
+                    return DGValue.make(percent);
+                }
+            });
+
+
+            batteryLevelNode.setGetValueCallback(new DataValueNode.GetValueCallback() {
+                @Override
+                public DGValue handle(DGValue old) {
+                    final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    assert batteryStatus != null;
+                    int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+                    boolean isFull = status == BatteryManager.BATTERY_STATUS_FULL;
+                    return DGValue.make(isFull);
+                }
+            });
+
+            chargerConnectedNode.setGetValueCallback(new DataValueNode.GetValueCallback() {
+                @Override
+                public DGValue handle(DGValue old) {
+                    final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    assert batteryStatus != null;
+                    int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+                    boolean isChargerConnected = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL;
+                    return DGValue.make(isChargerConnected);
+                }
+            });
+
+
             poller(new Action() {
                 @Override
                 public void run() {
+                    if (!batteryLevelNode.hasSubscriptions() && !chargerConnectedNode.hasSubscriptions() && !batteryFullNode.hasSubscriptions())
+                        return;
+
                     final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     assert batteryStatus != null;
                     int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -436,7 +475,7 @@ public class DGMobileContext {
                     chargerConnectedNode.update(isChargerConnected);
                     batteryFullNode.update(isFull);
                 }
-            }).poll(TimeUnit.SECONDS, 4, false);
+            }).poll(TimeUnit.SECONDS, 2, false);
 
             node.addChild(batteryLevelNode);
             node.addChild(batteryFullNode);
