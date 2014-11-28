@@ -414,7 +414,15 @@ public class DGMobileContext {
             batteryLevelNode.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + "%";
+                    try {
+                        return "" + dgValue.toDouble() + "%";
+                    } catch (Exception e) {
+                        try {
+                            return "" + dgValue.toInteger() + "%";
+                        } catch (Exception e2) {
+                            return "null";
+                        }
+                    }
                 }
             });
 
