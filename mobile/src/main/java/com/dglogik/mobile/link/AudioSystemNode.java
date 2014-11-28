@@ -10,6 +10,7 @@ import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.table.Table;
+import com.dglogik.table.Tables;
 import com.dglogik.value.DGValue;
 
 import java.util.HashMap;
