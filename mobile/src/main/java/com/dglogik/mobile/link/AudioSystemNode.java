@@ -12,8 +12,11 @@ import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.table.Table;
 import com.dglogik.value.DGValue;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import com.dglogik.api.BasicMetaData;
+import com.dglogik.api.DGMetaData;
 
 public class AudioSystemNode extends BaseNode<DataValueNode> {
     public AudioSystemNode() {
@@ -33,7 +36,7 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
         }).poll(TimeUnit.SECONDS, 5, false);
 
 
-        BaseAction setAction = new BaseAction("Set" + name) {
+        BaseAction setAction = new BaseAction("Set") {
             @Override
             public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 int volume = args.get("volume").toInt();
@@ -42,10 +45,23 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
             }
         };
 
+        BaseAction maxAction = new BaseAction("GetMaximum") {
+            @Override
+            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                int max = audioManager.getStreamMaxVolume(stream);
+                return Tables.makeTable(new HashMap<String, DGMetaData>() {{
+                    put("maximum", BasicMetaData.SIMPLE_INT);
+                }}, new HashMap<String, DGValue>() {{
+                    put("maximum", DGValue.make(max));
+                }});
+            }
+        };
+
         setAction.addParam("volume", BasicMetaData.SIMPLE_INT);
 
         addChild(node);
-        addAction(setAction);
+        node.addAction(setAction);
+        node.addAction(maxAction);
     }
 
     public void setupInformationNodes(final AudioManager audioManager) {
