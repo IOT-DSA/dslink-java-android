@@ -122,7 +122,7 @@ public class FitnessSupport {
 
         @Override
         public boolean hasValueHistory(DGContext cx) {
-            return false;
+            return true;
         }
     }
 }

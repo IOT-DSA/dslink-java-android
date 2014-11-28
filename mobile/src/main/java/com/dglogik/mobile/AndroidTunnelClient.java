@@ -43,7 +43,7 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
             public void onCompleted(Exception e, WebSocket webSocket) {
                 if (e != null) {
                     e.printStackTrace();
-                    try { Thread.sleep(1000); } catch (Exception ignored) {}
+                    try { Thread.sleep(100); } catch (Exception ignored) {}
                 }
             }
         });
@@ -80,7 +80,6 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
         socket.setPongCallback(new WebSocket.PongCallback() {
             @Override
             public void onPongReceived(String s) {
-                if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Received a Pong");
                 pingOk();
             }
         });
@@ -115,7 +114,6 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
 
     @Override
     protected void sendPing() throws Exception {
-        if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Sending Ping");
         socket.ping("b00b1e5555");
     }
 }
