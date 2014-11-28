@@ -351,7 +351,7 @@ public class DGMobileContext {
             ValuePoint.DisplayFormatter formatter = new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + "°";
+                    return dgValue.toString() + "°";
                 }
             };
 
@@ -414,15 +414,7 @@ public class DGMobileContext {
             batteryLevelNode.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    try {
-                        return "" + dgValue.toDouble() + "%";
-                    } catch (Exception e) {
-                        try {
-                            return "" + dgValue.toInt() + "%";
-                        } catch (Exception e2) {
-                            return "null";
-                        }
-                    }
+                    return dgValue.toString() + "%";
                 }
             });
 
@@ -594,14 +586,14 @@ public class DGMobileContext {
             tempCNode.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + " °C";
+                    return dgValue.toString() + " °C";
                 }
             });
 
             tempFNode.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + " °F";
+                    return dgValue.toString() + " °F";
                 }
             });
 
@@ -631,7 +623,7 @@ public class DGMobileContext {
             lux.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + " lux";
+                    return dgValue.toString() + " lux";
                 }
             });
 
@@ -657,7 +649,7 @@ public class DGMobileContext {
             pressure.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + " mbar";
+                    return dgValue.toString() + " mbar";
                 }
             });
 
@@ -682,7 +674,7 @@ public class DGMobileContext {
             humidity.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + "%";
+                    return dgValue.toString() + "%";
                 }
             });
 
@@ -707,7 +699,7 @@ public class DGMobileContext {
             proximity.setFormatter(new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + " cm";
+                    return dgValue.toString() + " cm";
                 }
             });
 
@@ -734,7 +726,7 @@ public class DGMobileContext {
             ValuePoint.DisplayFormatter formatter = new ValuePoint.DisplayFormatter() {
                 @Override
                 public String handle(DGValue dgValue) {
-                    return "" + dgValue.toDouble() + " rad/s";
+                    return dgValue.toString() + " rad/s";
                 }
             };
 
