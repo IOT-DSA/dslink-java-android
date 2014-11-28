@@ -475,19 +475,28 @@ public class DGMobileContext {
 
                     double percent = (level / (float) scale) * 100;
 
-                    batteryLevelNode.update(percent);
+                    if (lastBatteryLevel != percent) {
+                        batteryLevelNode.update(percent);
+                        lastBatteryLevel = percent;
+                    }
+
                     if (lastChargerConnected != isChargerConnected) {
                         chargerConnectedNode.update(isChargerConnected);
                         lastChargerConnected = isChargerConnected;
                     }
-                    batteryFullNode.update(isFull);
+                    
+                    if (lastBatteryFull != isFull) {
+                        batteryFullNode.update(isFull);
+                        lastBatteryFull = isFull;
+                    }
                 }
             }).poll(TimeUnit.SECONDS, 2, false);
 
             node.addChild(batteryLevelNode);
             node.addChild(batteryFullNode);
             node.addChild(chargerConnectedNode);
-            chargerConnectedNode.setValue(DGValue.make(false));
+            chargerConnectedNode.update(false);
+            batteryFullNode.update(false);
         }
 
         if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
@@ -1093,6 +1102,8 @@ public class DGMobileContext {
     }
 
     public final Handler handler;
+    private double lastBatteryLevel = 0.0;
+    private boolean lastBatteryFull = false;
 
     public void start() {
         googleClient.connect();
