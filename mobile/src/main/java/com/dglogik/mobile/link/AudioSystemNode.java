@@ -49,7 +49,7 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
         BaseAction maxAction = new BaseAction("GetMaximum") {
             @Override
             public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                int max = audioManager.getStreamMaxVolume(stream);
+                final int max = audioManager.getStreamMaxVolume(stream);
                 return Tables.makeTable(new HashMap<String, DGMetaData>() {{
                     put("maximum", BasicMetaData.SIMPLE_INT);
                 }}, new HashMap<String, DGValue>() {{
