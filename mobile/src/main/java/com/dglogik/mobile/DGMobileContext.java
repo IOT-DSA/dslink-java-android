@@ -30,6 +30,7 @@ import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
@@ -85,6 +86,7 @@ public class DGMobileContext {
     public static final String TAG = "DGMobile";
     public static DGMobileContext CONTEXT;
     public AndroidTunnelClient tunnelClient;
+    public static boolean DEBUG = false;
 
     @NonNull
     public final LinkService service;
@@ -118,6 +120,7 @@ public class DGMobileContext {
         this.wearable = new WearableSupport(this);
         this.fitness = new FitnessSupport(this);
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        DEBUG = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Secure.ADB_ENABLED, 0) == 1;
         GoogleApiClient.Builder apiClientBuilder = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override

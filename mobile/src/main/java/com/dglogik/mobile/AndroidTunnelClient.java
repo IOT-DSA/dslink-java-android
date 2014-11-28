@@ -32,7 +32,7 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
     @Override
     public void stop() {
         super.stop();
-        //DGMobileContext.log("Android Tunnel Client Stopping");
+        if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Stopping");
         if (socket != null) socket.close();
     }
 
@@ -54,12 +54,12 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
     }
 
     private void init() {
-        //DGMobileContext.log("Android Tunnel Client Connected");
+        if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Connected");
 
         socket.setStringCallback(new WebSocket.StringCallback() {
             @Override
             public void onStringAvailable(String s) {
-                //DGMobileContext.log("Android Tunnel Client Received: " + s);
+                if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Received: " + s);
                 try {
                     StringReader reader = new StringReader(s);
                     processRequest(reader);
@@ -73,7 +73,6 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
         socket.setDataCallback(new DataCallback() {
             @Override
             public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
-                //DGMobileContext.log("Android Tunnel Client Got Data");
                 byteBufferList.recycle();
             }
         });
@@ -81,7 +80,7 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
         socket.setPongCallback(new WebSocket.PongCallback() {
             @Override
             public void onPongReceived(String s) {
-                //DGMobileContext.log("Android Tunnel Client Received a Pong");
+                if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Received a Pong");
                 pingOk();
             }
         });
@@ -89,11 +88,10 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
         socket.setClosedCallback(new CompletedCallback() {
             @Override
             public void onCompleted(Exception e) {
-                //Thread.dumpStack();
                 if (e != null) {
                     e.printStackTrace();
                 }
-                //DGMobileContext.log("Android Tunnel Client Closed");
+                if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Closed");
                 disconnected();
                 if (socket.isOpen()) {
                     socket.close();
@@ -112,12 +110,12 @@ public class AndroidTunnelClient extends AbstractTunnelClient {
     protected void responseEnd(Writer out) throws IOException {
         String str = out.toString();
         socket.send(str);
-        //DGMobileContext.log("Android Tunnel Client Sent: " + str);
+        if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Sent: " + str);
     }
 
     @Override
     protected void sendPing() throws Exception {
-        //DGMobileContext.log("Android Tunnel Client Sending Ping");
+        if (DGMobileContext.DEBUG) DGMobileContext.log("Android Tunnel Client Sending Ping");
         socket.ping("b00b1e5555");
     }
 }
