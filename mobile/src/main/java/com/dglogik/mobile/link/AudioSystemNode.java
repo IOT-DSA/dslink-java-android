@@ -58,6 +58,8 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
             }
         };
 
+        maxAction.setHasReturn(true);
+
         setAction.addParam("volume", BasicMetaData.SIMPLE_INT);
 
         addChild(node);

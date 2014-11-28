@@ -537,6 +537,8 @@ public class DGMobileContext {
                 }
             };
 
+            createNotificationAction.setHasReturn(true);
+
             createNotificationAction.addParam("title", BasicMetaData.SIMPLE_STRING);
             createNotificationAction.addParam("content", BasicMetaData.SIMPLE_STRING);
 
