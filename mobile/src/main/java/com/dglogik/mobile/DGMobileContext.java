@@ -418,7 +418,7 @@ public class DGMobileContext {
                         return "" + dgValue.toDouble() + "%";
                     } catch (Exception e) {
                         try {
-                            return "" + dgValue.toInteger() + "%";
+                            return "" + dgValue.toInt() + "%";
                         } catch (Exception e2) {
                             return "null";
                         }
