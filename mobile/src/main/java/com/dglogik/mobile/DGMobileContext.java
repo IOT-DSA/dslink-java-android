@@ -431,7 +431,7 @@ public class DGMobileContext {
             });
 
 
-            batteryLevelNode.setGetValueCallback(new DataValueNode.GetValueCallback() {
+            batteryFullNode.setGetValueCallback(new DataValueNode.GetValueCallback() {
                 @Override
                 public DGValue handle(DGValue old) {
                     final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
