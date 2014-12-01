@@ -55,6 +55,7 @@ android {
     buildToolsVersion "21.1.1"
 
     defaultConfig {
+        // useJack true
         applicationId "com.dglogik.mobile"
         minSdkVersion 17
         targetSdkVersion 19
