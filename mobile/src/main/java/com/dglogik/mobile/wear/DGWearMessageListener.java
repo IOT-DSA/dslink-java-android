@@ -6,10 +6,10 @@ import com.dglogik.api.BasicMetaData;
 import com.dglogik.api.DGMetaData;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
+import com.dglogik.dslink.util.ActionResult;
 import com.dglogik.mobile.DGMobileContext;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
-import com.dglogik.table.Table;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
@@ -104,7 +104,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
                         final BaseAction action = new BaseAction(name) {
                             @Override
-                            public Table invoke(BaseNode baseNode, Map<String, DGValue> args) {
+                            public ActionResult invoke(BaseNode baseNode, Map<String, DGValue> args) {
                                 JSONObject object = new JSONObject();
                                 try {
                                     object.put("action", name);

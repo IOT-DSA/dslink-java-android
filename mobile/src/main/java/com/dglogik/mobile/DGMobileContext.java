@@ -3,6 +3,7 @@ package com.dglogik.mobile;
 import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -26,17 +27,16 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.speech.RecognitionListener;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
 
 import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGMetaData;
 import com.dglogik.api.DGNode;
 import com.dglogik.api.server.AbstractTunnelClient;
 import com.dglogik.dslink.Application;
@@ -50,15 +50,14 @@ import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
 import com.dglogik.dslink.plugin.Plugin;
 import com.dglogik.dslink.tunnel.TunnelClientFactory;
+import com.dglogik.dslink.util.ActionResult;
+import com.dglogik.mobile.link.AudioSystemNode;
 import com.dglogik.mobile.link.DataValueNode;
 import com.dglogik.mobile.link.DeviceNode;
 import com.dglogik.mobile.link.MusicNode;
 import com.dglogik.mobile.link.RootNode;
-import com.dglogik.mobile.link.AudioSystemNode;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
-import com.dglogik.table.Table;
-import com.dglogik.table.Tables;
 import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
@@ -66,10 +65,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessStatusCodes;
-import com.google.android.gms.location.*;
-
-import android.app.*;
-
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -525,7 +524,7 @@ public class DGMobileContext {
             final BaseAction createNotificationAction = new BaseAction("CreateNotification") {
                 @NonNull
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     Notification.Builder builder = new Notification.Builder(getApplicationContext());
 
                     builder.setContentTitle(args.get("title").toString());
@@ -538,22 +537,18 @@ public class DGMobileContext {
 
                     notificationManager.notify(currentNotificationId, notification);
 
-                    return Tables.makeTable(new HashMap<String, DGMetaData>() {{
-                        put("id", BasicMetaData.SIMPLE_INT);
-                    }}, new HashMap<String, DGValue>() {{
+                    return new ActionResult(new HashMap<String, DGValue>() {{
                         put("id", DGValue.make(currentNotificationId));
                     }});
                 }
             };
-
-            createNotificationAction.setHasReturn(true);
 
             createNotificationAction.addParam("title", BasicMetaData.SIMPLE_STRING);
             createNotificationAction.addParam("content", BasicMetaData.SIMPLE_STRING);
 
             final BaseAction destroyNotificationAction = new BaseAction("DestroyNotification") {
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     int id = args.get("id").toInt();
 
                     notificationManager.cancel(id);
@@ -780,7 +775,7 @@ public class DGMobileContext {
             final BaseAction speakAction = new BaseAction("Speak") {
                 @SuppressWarnings("deprecation")
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     speech.speak(args.get("text").toString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
                     return null;
                 }
@@ -801,7 +796,7 @@ public class DGMobileContext {
         if (preferences.getBoolean("actions.open_url", true)) {
             final BaseAction openUrlAction = new BaseAction("OpenUrl") {
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     final Uri url = Uri.parse(args.get("url").toString());
                     execute(new Action() {
                         @Override
@@ -840,7 +835,7 @@ public class DGMobileContext {
         if (preferences.getBoolean("actions.search", true)) {
             final BaseAction searchWebAction = new BaseAction("SearchWeb") {
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     final String query = args.get("query").toString();
                     execute(new Action() {
                         @Override
@@ -875,7 +870,7 @@ public class DGMobileContext {
             final BaseAction startSpeechRecognitionAction = new BaseAction("StartSpeechRecognition") {
                 @SuppressWarnings("deprecation")
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -889,7 +884,7 @@ public class DGMobileContext {
             final BaseAction stopSpeechRecognitionAction = new BaseAction("StopSpeechRecognition") {
                 @SuppressWarnings("deprecation")
                 @Override
-                public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -1004,7 +999,7 @@ public class DGMobileContext {
     private void setupPowerProvider(DeviceNode node) {
         BaseAction wakeUpAction = new BaseAction("WakeUp") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 long time = args.get("time").toLong();
                 powerManager.wakeUp(time);
                 return null;
@@ -1013,7 +1008,7 @@ public class DGMobileContext {
 
         BaseAction sleepAction = new BaseAction("Sleep") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 long time = args.get("time").toLong();
                 powerManager.goToSleep(time);
                 return null;

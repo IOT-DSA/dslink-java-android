@@ -4,20 +4,16 @@ import android.media.AudioManager;
 import android.support.annotation.NonNull;
 
 import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGNode;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
+import com.dglogik.dslink.util.ActionResult;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
-import com.dglogik.table.Table;
-import com.dglogik.table.Tables;
 import com.dglogik.value.DGValue;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGMetaData;
 
 public class AudioSystemNode extends BaseNode<DataValueNode> {
     public AudioSystemNode() {
@@ -39,7 +35,7 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
 
         BaseAction setAction = new BaseAction("Set") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 int volume = args.get("volume").toInt();
                 audioManager.setStreamVolume(stream, volume, AudioManager.FLAG_SHOW_UI);
                 return null;
@@ -48,17 +44,13 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
 
         BaseAction maxAction = new BaseAction("GetMaximum") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 final int max = audioManager.getStreamMaxVolume(stream);
-                return Tables.makeTable(new HashMap<String, DGMetaData>() {{
-                    put("maximum", BasicMetaData.SIMPLE_INT);
-                }}, new HashMap<String, DGValue>() {{
+                return new ActionResult(new HashMap<String, DGValue>() {{
                     put("maximum", DGValue.make(max));
                 }});
             }
         };
-
-        maxAction.setHasReturn(true);
 
         setAction.addParam("volume", BasicMetaData.SIMPLE_INT);
 
@@ -82,8 +74,6 @@ public class AudioSystemNode extends BaseNode<DataValueNode> {
                 isSpeakerphoneOn.update(audioManager.isSpeakerphoneOn());
             }
         }).poll(TimeUnit.SECONDS, 5, false);
-
-
 
         addChild(isMicrophoneActive);
         addChild(isMicrophoneMuted);

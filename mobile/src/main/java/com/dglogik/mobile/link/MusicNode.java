@@ -9,9 +9,9 @@ import android.support.annotation.NonNull;
 import com.dglogik.api.BasicMetaData;
 import com.dglogik.dslink.node.base.BaseAction;
 import com.dglogik.dslink.node.base.BaseNode;
+import com.dglogik.dslink.util.ActionResult;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.DGMobileContext;
-import com.dglogik.table.Table;
 import com.dglogik.value.DGValue;
 
 import java.util.Map;
@@ -24,7 +24,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
     public void init() {
         final BaseAction playArtistAction = new BaseAction("PlayArtist") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 String artist = args.get("artist").toString();
                 log("Playing Artist: " + artist);
                 DGMobileContext.CONTEXT.playSearchArtist(artist);
@@ -34,7 +34,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction playSongAction = new BaseAction("PlaySong") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 String song = args.get("song").toString();
                 log("Playing Song: " + song);
                 DGMobileContext.CONTEXT.playSearchSong(song);
@@ -44,7 +44,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction playAction = new BaseAction("Play") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 sendMusicCommand("play");
                 return null;
             }
@@ -52,7 +52,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction pauseAction = new BaseAction("Pause") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 sendMusicCommand("pause");
                 return null;
             }
@@ -60,7 +60,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction togglePauseAction = new BaseAction("TogglePause") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 sendMusicCommand("togglepause");
                 return null;
             }
@@ -68,7 +68,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction stopAction = new BaseAction("Stop") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 sendMusicCommand("play");
                 return null;
             }
@@ -76,7 +76,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction nextAction = new BaseAction("Next") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 sendMusicCommand("next");
                 return null;
             }
@@ -84,7 +84,7 @@ public class MusicNode extends BaseNode<DataValueNode> {
 
         final BaseAction previousAction = new BaseAction("Previous") {
             @Override
-            public Table invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
                 sendMusicCommand("previous");
                 return null;
             }
