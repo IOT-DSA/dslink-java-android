@@ -29,6 +29,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
@@ -119,7 +120,7 @@ public class DGMobileContext {
         this.wearable = new WearableSupport(this);
         this.fitness = new FitnessSupport(this);
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        DEBUG = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Secure.ADB_ENABLED, 0) == 1;
+        DEBUG = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Global.ADB_ENABLED, 0) == 1;
         GoogleApiClient.Builder apiClientBuilder = new GoogleApiClient.Builder(getApplicationContext())
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
@@ -874,7 +875,9 @@ public class DGMobileContext {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            recognizer.startListening(new Intent());
+                            Intent intent = new Intent();
+                            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                            recognizer.startListening(intent);
                         }
                     });
                     return null;
@@ -913,7 +916,6 @@ public class DGMobileContext {
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {
-
                 }
 
                 @Override
