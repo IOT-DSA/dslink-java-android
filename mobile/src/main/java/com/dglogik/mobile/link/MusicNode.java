@@ -122,8 +122,8 @@ public class MusicNode extends BaseNode<DataValueNode> {
         final DataValueNode trackNode = new DataValueNode("Song_Track", BasicMetaData.SIMPLE_STRING);
 
         artistNode.setDisplayName("Song Artist");
-        artistNode.setDisplayName("Song Album");
-        artistNode.setDisplayName("Song Title");
+        albumNode.setDisplayName("Song Album");
+        trackNode.setDisplayName("Song Title");
 
         artistNode.initializeValue = new Action() {
             @Override
