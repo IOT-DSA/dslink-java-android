@@ -72,8 +72,10 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -792,6 +794,45 @@ public class DGMobileContext {
             });
 
             node.addAction(speakAction);
+        }
+
+        if (preferences.getBoolean("actions.show_maps", true)) {
+            final BaseAction showLocationAction = new BaseAction("ShowLocationMap") {
+                @Override
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse("geo:" + args.get("latitude").toString() + "," + args.get("longitude").toString()));
+                    if (intent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(intent);
+                    }
+                    return null;
+                }
+            };
+
+            final BaseAction showMapAction = new BaseAction("ShowMap") {
+                @Override
+                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+
+                    try {
+                        intent.setData(Uri.parse("geo:0,0?q=" + URLEncoder.encode(args.get("query").toString(), "UTF-8")));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (intent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(intent);
+                    }
+                    return null;
+                }
+            };
+
+            showLocationAction.addParam("latitude", BasicMetaData.SIMPLE_INT);
+            showLocationAction.addParam("longitude", BasicMetaData.SIMPLE_INT);
+            showMapAction.addParam("query", BasicMetaData.SIMPLE_STRING);
+
+            node.addAction(showLocationAction);
+            node.addAction(showMapAction);
         }
 
         if (preferences.getBoolean("actions.open_url", true)) {
