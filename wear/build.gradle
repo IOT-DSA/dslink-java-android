@@ -46,7 +46,7 @@ repositories {
 
 android {
     compileSdkVersion 20
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         applicationId "com.dglogik.mobile"

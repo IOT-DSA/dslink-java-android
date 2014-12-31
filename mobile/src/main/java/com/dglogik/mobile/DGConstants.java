@@ -16,7 +16,6 @@ public class DGConstants {
     @SuppressWarnings("RedundantArrayCreation")
     public static final List<NodeDescriptor> NODES = Arrays.asList(new NodeDescriptor[]{
             new NodeDescriptor("Screen Status", "screen"),
-            new NodeDescriptor("Power Management", "power"),
             new NodeDescriptor("Location Information", "location"),
             new NodeDescriptor("Battery Information", "battery"),
             new NodeDescriptor("Step Counter", "steps"),
@@ -27,7 +26,8 @@ public class DGConstants {
             new NodeDescriptor("Gyroscope", "gyroscope"),
             new NodeDescriptor("Audio", "audio"),
             new NodeDescriptor("Music", "music"),
-            new NodeDescriptor("Activity Recognition", "activity")
+            new NodeDescriptor("Activity Recognition", "activity"),
+            new NodeDescriptor("Heart Rate", "heart_rate")
     });
 
     public static List<Preference> createNodePreferences(Context context) {

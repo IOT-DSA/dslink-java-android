@@ -587,9 +587,9 @@ public class DGMobileContext {
             node.addChild(stepsNode);
         }
 
-//        if (enableSensor("heart_rate", 21)) {
-//            setupHeartRateMonitor(node);
-//        }
+        if (enableSensor("heart_rate", 21)) {
+            setupHeartRateMonitor(node);
+        }
 
         if (enableSensor("temperature", Sensor.TYPE_AMBIENT_TEMPERATURE)) {
             final DataValueNode tempCNode = new DataValueNode("Ambient_Temperature_Celsius", BasicMetaData.SIMPLE_INT);
@@ -968,61 +968,32 @@ public class DGMobileContext {
             node.addAction(startSpeechRecognitionAction);
             node.addAction(stopSpeechRecognitionAction);
         }
-
-        if (enableNode("power")) {
-            log("Power Management Features Enabled");
-            setupPowerProvider(node);
-        }
     }
 
     private boolean isBatteryLevelInitialized = false;
 
-//    @TargetApi(20)
-//    private void setupHeartRateMonitor(DeviceNode node) {
-//        final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
-//        Sensor sensor = sensorManager.getDefaultSensor(21);
-//
-//        sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
-//            @Override
-//            public void onSensorChanged(@NonNull SensorEvent event) {
-//                rateNode.update((double) event.values[0]);
-//            }
-//
-//            @Override
-//            public void onAccuracyChanged(Sensor sensor, int accuracy) {
-//            }
-//        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
-//        node.addChild(rateNode);
-//    }
+    @TargetApi(20)
+    private void setupHeartRateMonitor(DeviceNode node) {
+        Sensor sensor = sensorManager.getDefaultSensor(21);
+
+        if (sensor == null) return;
+
+        final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+
+        sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            @Override
+            public void onSensorChanged(@NonNull SensorEvent event) {
+                rateNode.update((double) event.values[0]);
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+            }
+        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        node.addChild(rateNode);
+    }
 
     protected DataValueNode activityNode;
-
-
-    private void setupPowerProvider(DeviceNode node) {
-        BaseAction wakeUpAction = new BaseAction("WakeUp") {
-            @Override
-            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                long time = args.get("time").toLong();
-                powerManager.wakeUp(time);
-                return null;
-            }
-        };
-
-        BaseAction sleepAction = new BaseAction("Sleep") {
-            @Override
-            public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                long time = args.get("time").toLong();
-                powerManager.goToSleep(time);
-                return null;
-            }
-        };
-
-        wakeUpAction.addParam("time", BasicMetaData.SIMPLE_INT);
-        sleepAction.addParam("time", BasicMetaData.SIMPLE_INT);
-
-        node.addAction(wakeUpAction);
-        node.addAction(sleepAction);
-    }
 
     @TargetApi(20)
     private void setupScreenProvider(DeviceNode node) {
