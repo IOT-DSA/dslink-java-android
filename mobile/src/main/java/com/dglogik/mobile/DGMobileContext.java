@@ -1,26 +1,18 @@
 package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.location.LocationManager;
-import android.media.AudioManager;
-import android.net.Uri;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,38 +20,13 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Display;
-import android.widget.Toast;
 
-import com.dglogik.api.BasicMetaData;
-import com.dglogik.api.DGNode;
-import com.dglogik.api.server.AbstractTunnelClient;
-import com.dglogik.dslink.Application;
-import com.dglogik.dslink.client.Client;
-import com.dglogik.dslink.client.command.base.ArgValue;
-import com.dglogik.dslink.client.command.base.ArgValueMetadata;
-import com.dglogik.dslink.client.command.base.Options;
-import com.dglogik.dslink.node.Poller;
-import com.dglogik.dslink.node.ValuePoint;
-import com.dglogik.dslink.node.base.BaseAction;
-import com.dglogik.dslink.node.base.BaseNode;
-import com.dglogik.dslink.plugin.Plugin;
-import com.dglogik.dslink.tunnel.TunnelClientFactory;
-import com.dglogik.dslink.util.ActionResult;
-import com.dglogik.mobile.link.AudioSystemNode;
-import com.dglogik.mobile.link.DataValueNode;
-import com.dglogik.mobile.link.DeviceNode;
-import com.dglogik.mobile.link.MusicNode;
-import com.dglogik.mobile.link.RootNode;
 import com.dglogik.mobile.ui.ControllerActivity;
-import com.dglogik.mobile.wear.WearableSupport;
-import com.dglogik.value.DGValue;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -72,31 +39,38 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
 
-import java.io.UnsupportedEncodingException;
+import net.engio.mbassy.bus.MBassador;
+
+import org.dsa.iot.core.event.Event;
+import org.dsa.iot.core.event.EventBusFactory;
+import org.dsa.iot.dslink.DSLink;
+import org.dsa.iot.dslink.DSLinkFactory;
+import org.dsa.iot.dslink.connection.ConnectionType;
+import org.dsa.iot.dslink.node.Node;
+import org.dsa.iot.dslink.node.value.Value;
+import org.dsa.iot.dslink.util.Permission;
+import org.vertx.java.core.json.JsonObject;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import ext.javax.servlet.ServletContext;
 
 public class DGMobileContext {
     public static final String TAG = "DGMobile";
     public static DGMobileContext CONTEXT;
-    public AndroidTunnelClient tunnelClient;
     public static boolean DEBUG = false;
+
+    public MBassador<Event> bus;
 
     @NonNull
     public final LinkService service;
-    @NonNull
-    public final WearableSupport wearable;
+/*    @NonNull
+    public final WearableSupport wearable;*/
     public final GoogleApiClient googleClient;
     @NonNull
-    public final Application link;
+    public DSLink link;
     public boolean linkStarted = false;
 
     @NonNull
@@ -105,22 +79,17 @@ public class DGMobileContext {
     public final LocationManager locationManager;
     @NonNull
     public final PowerManager powerManager;
-    @NonNull
-    public final Client client;
+
     public final SharedPreferences preferences;
 
-    public static final RootNode<DeviceNode> devicesNode = new RootNode<>("Devices");
-
-    public DeviceNode currentDeviceNode;
-    public FitnessSupport fitness;
+    public Node currentDeviceNode;
     public boolean mResolvingError;
 
     public DGMobileContext(@NonNull final LinkService service) {
         CONTEXT = this;
         this.service = service;
         this.handler = new Handler(getApplicationContext().getMainLooper());
-        this.wearable = new WearableSupport(this);
-        this.fitness = new FitnessSupport(this);
+/*        this.wearable = new WearableSupport(this);*/
         this.preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         DEBUG = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Global.ADB_ENABLED, 0) == 1;
         GoogleApiClient.Builder apiClientBuilder = new GoogleApiClient.Builder(getApplicationContext())
@@ -176,42 +145,6 @@ public class DGMobileContext {
 
         this.sensorManager = (SensorManager) service.getSystemService(LinkService.SENSOR_SERVICE);
         this.locationManager = (LocationManager) service.getSystemService(LinkService.LOCATION_SERVICE);
-        this.link = Application.get();
-
-        this.client = new Client(false) {
-            @Override
-            public void run() {
-                stop = false;
-                try {
-                    Thread.sleep(2000);
-                } catch (Exception ignored) {
-                }
-                log("Running Client");
-                while (!stop) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (Exception ignored) {
-                    }
-                }
-                log("Client Complete");
-            }
-
-            @Override
-            protected void onStop() {
-                stop = true;
-            }
-        };
-
-        link.setClient(client);
-
-        link.setTunnelClientFactory(new TunnelClientFactory() {
-            @Override
-            public AbstractTunnelClient create(ServletContext servletContext, String uri) {
-                tunnelClient = new AndroidTunnelClient(servletContext, uri);
-
-                return tunnelClient;
-            }
-        });
         powerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
     }
 
@@ -250,50 +183,32 @@ public class DGMobileContext {
     public static boolean initializedLink = false;
 
     public void initialize() {
-        if (preferences.getBoolean("feature.wear", false)) {
-            wearable.initialize();
-        }
+        bus = EventBusFactory.create();
 
-        if (preferences.getBoolean("feature.fitness", false)) {
-            fitness.initialize();
-        }
+        final String name = preferences.getString("link.name", "Android")
+                .replaceAll("\\+", " ")
+                .replaceAll(" ", "");
+        final String brokerUrl = preferences.getString("broker.url", "");
 
         if (!initializedLink) {
-            link.register(new Plugin() {
-                @Override
-                public void preInit(Client client) {
-                }
-
-                @Override
-                public void init(Options options) {
-                }
-
-                @Override
-                public DGNode[] getRootNodes() {
-                    return new DGNode[]{
-                            devicesNode
-                    };
-                }
-            });
-
-            final String name = preferences.getString("link.name", "Android")
-                    .replaceAll("\\+", " ")
-                    .replaceAll(" ", "");
-            final String brokerUrl = preferences.getString("broker.url", "");
-
-            link.init(new String[0], new Options(new HashMap<String, ArgValue>() {{
-                put("url", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(brokerUrl));
-                put("name", new ArgValue(new ArgValueMetadata().setType(ArgValueMetadata.Type.STRING)).set(name));
-            }}, false));
+            link = DSLinkFactory.create().generate(bus, brokerUrl, ConnectionType.WS, name);
             initializedLink = true;
         }
 
-        currentDeviceNode = new DeviceNode(Build.MODEL);
+        Node devicesNode = link.getNodeManager().createRootNode("Devices");
         setupCurrentDevice(currentDeviceNode);
 
         devicesNode.addChild(currentDeviceNode);
 
         startLink();
+
+/*        if (preferences.getBoolean("feature.wear", false)) {
+            wearable.initialize();
+        }
+
+        if (preferences.getBoolean("feature.fitness", false)) {
+            fitness.initialize();
+        }*/
     }
 
     public PackageManager getPackageManager() {
@@ -348,34 +263,13 @@ public class DGMobileContext {
         return eventListener;
     }
 
-    public void setupCurrentDevice(@NonNull DeviceNode node) {
-        if (preferences.getBoolean("providers.location", false)) {
-            final DataValueNode latitudeNode = new DataValueNode("Location_Latitude", BasicMetaData.SIMPLE_INT);
-            final DataValueNode longitudeNode = new DataValueNode("Location_Longitude", BasicMetaData.SIMPLE_INT);
+    public void setupCurrentDevice(@NonNull Node node) {
+/*        if (preferences.getBoolean("providers.location", false)) {
+            final Node latitudeNode = node.createChild("Latitude");
+            final Node longitudeNode = node.createChild("Longitude");
 
-            ValuePoint.DisplayFormatter formatter = new ValuePoint.DisplayFormatter() {
-                @Override
-                public String handle(DGValue dgValue) {
-                    return dgValue.toString() + "°";
-                }
-            };
-
-            latitudeNode.setFormatter(formatter);
-            longitudeNode.setFormatter(formatter);
-
-            latitudeNode.initializeValue = new Action() {
-                @Override
-                public void run() {
-                    latitudeNode.update(LocationServices.FusedLocationApi.getLastLocation(googleClient).getLatitude());
-                }
-            };
-
-            longitudeNode.initializeValue = new Action() {
-                @Override
-                public void run() {
-                    longitudeNode.update(LocationServices.FusedLocationApi.getLastLocation(googleClient).getLongitude());
-                }
-            };
+            latitudeNode.setValue(new Value((int) LocationServices.FusedLocationApi.getLastLocation(googleClient).getLatitude()));
+            longitudeNode.setValue(new Value((int) LocationServices.FusedLocationApi.getLastLocation(googleClient).getLongitude()));
 
             LocationRequest request = new LocationRequest();
 
@@ -387,12 +281,12 @@ public class DGMobileContext {
                 @Override
                 public void onLocationChanged(@NonNull Location location) {
                     if (lastLatitude != location.getLatitude()) {
-                        latitudeNode.update(location.getLatitude());
+                        latitudeNode.setValue(new Value((int) location.getLatitude()));
                         lastLatitude = location.getLatitude();
                     }
 
                     if (lastLongitude != location.getLongitude()) {
-                        longitudeNode.update(location.getLongitude());
+                        longitudeNode.setValue(new Value((int) location.getLongitude()));
                         lastLongitude = location.getLatitude();
                     }
                 }
@@ -409,9 +303,9 @@ public class DGMobileContext {
 
             node.addChild(latitudeNode);
             node.addChild(longitudeNode);
-        }
+        }*/
 
-        if (enableNode("battery")) {
+/*        if (enableNode("battery")) {
             final DataValueNode batteryLevelNode = new DataValueNode("Battery_Level", BasicMetaData.SIMPLE_INT);
             final DataValueNode chargerConnectedNode = new DataValueNode("Charger_Connected", BasicMetaData.SIMPLE_BOOL);
             final DataValueNode batteryFullNode = new DataValueNode("Battery_Full", BasicMetaData.SIMPLE_BOOL);
@@ -486,7 +380,7 @@ public class DGMobileContext {
                         chargerConnectedNode.update(isChargerConnected);
                         lastChargerConnected = isChargerConnected;
                     }
-                    
+
                     if (lastBatteryFull != isFull) {
                         batteryFullNode.update(isFull);
                         lastBatteryFull = isFull;
@@ -499,15 +393,14 @@ public class DGMobileContext {
             node.addChild(chargerConnectedNode);
             chargerConnectedNode.update(false);
             batteryFullNode.update(false);
-        }
+        }*/
 
         if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
             setupScreenProvider(node);
         }
 
         if (enableNode("activity")) {
-            activityNode = new DataValueNode("Activity", BasicMetaData.SIMPLE_STRING);
-
+            activityNode = node.createChild("Activity");
             final PendingIntent intent = PendingIntent.getService(getApplicationContext(), 40, new Intent(getApplicationContext(), ActivityRecognitionIntentService.class), PendingIntent.FLAG_UPDATE_CURRENT);
             ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(googleClient, 1000, intent);
 
@@ -521,7 +414,7 @@ public class DGMobileContext {
             node.addChild(activityNode);
         }
 
-        if (preferences.getBoolean("actions.notifications", true)) {
+ /*       if (preferences.getBoolean("actions.notifications", true)) {
             final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
 
             final BaseAction createNotificationAction = new BaseAction("CreateNotification") {
@@ -570,9 +463,9 @@ public class DGMobileContext {
 
             node.addAction(createNotificationAction);
             node.addAction(destroyNotificationAction);
-        }
+        }*/
 
-        if (enableSensor("steps", 19)) {
+/*        if (enableSensor("steps", 19)) {
             final DataValueNode stepsNode = new DataValueNode("Steps", BasicMetaData.SIMPLE_INT);
             Sensor sensor = sensorManager.getDefaultSensor(19);
 
@@ -587,9 +480,9 @@ public class DGMobileContext {
                 }
             }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
             node.addChild(stepsNode);
-        }
+        }*/
 
-        if (enableSensor("heart_rate", 21)) {
+/*        if (enableSensor("heart_rate", 21)) {
             setupHeartRateMonitor(node);
         }
 
@@ -629,9 +522,9 @@ public class DGMobileContext {
 
             node.addChild(tempCNode);
             node.addChild(tempFNode);
-        }
+        }*/
 
-        if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
+        /*if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
             final DataValueNode lux = new DataValueNode("Light_Level", BasicMetaData.SIMPLE_INT);
 
             lux.setFormatter(new ValuePoint.DisplayFormatter() {
@@ -766,7 +659,7 @@ public class DGMobileContext {
             currentDeviceNode.addChild(x);
             currentDeviceNode.addChild(y);
             currentDeviceNode.addChild(z);
-        }
+        }*/
 
         if (preferences.getBoolean("actions.speak", true)) {
             final TextToSpeech speech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -775,16 +668,15 @@ public class DGMobileContext {
                 }
             });
 
-            final BaseAction speakAction = new BaseAction("Speak") {
-                @SuppressWarnings("deprecation")
-                @Override
-                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    speech.speak(args.get("text").toString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
-                    return null;
-                }
-            };
-
-            speakAction.addParam("text", BasicMetaData.SIMPLE_STRING);
+            currentDeviceNode.createChild("Speak").setAction(new org.dsa.iot.dslink.responder.action.Action(
+                    Permission.WRITE,
+                    new org.vertx.java.core.Handler<JsonObject>() {
+                        @Override
+                        public void handle(JsonObject args) {
+                            speech.speak(args.getString("text"), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
+                        }
+                    }
+            ));
 
             onCleanup(new Action() {
                 @Override
@@ -792,10 +684,9 @@ public class DGMobileContext {
                     speech.stop();
                 }
             });
-
-            node.addAction(speakAction);
         }
 
+/*
         if (preferences.getBoolean("actions.show_maps", true)) {
             final BaseAction showLocationAction = new BaseAction("ShowLocationMap") {
                 @Override
@@ -833,9 +724,9 @@ public class DGMobileContext {
 
             node.addAction(showLocationAction);
             node.addAction(showMapAction);
-        }
+        }*/
 
-        if (preferences.getBoolean("actions.open_url", true)) {
+/*        if (preferences.getBoolean("actions.open_url", true)) {
             final BaseAction openUrlAction = new BaseAction("OpenUrl") {
                 @Override
                 public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
@@ -1008,23 +899,23 @@ public class DGMobileContext {
             node.addChild(lastSpeechNode);
             node.addAction(startSpeechRecognitionAction);
             node.addAction(stopSpeechRecognitionAction);
-        }
+        }*/
     }
 
     private boolean isBatteryLevelInitialized = false;
 
-    @TargetApi(20)
-    private void setupHeartRateMonitor(DeviceNode node) {
+/*    @TargetApi(20)
+    private void setupHeartRateMonitor(Node node) {
         Sensor sensor = sensorManager.getDefaultSensor(21);
 
         if (sensor == null) return;
 
-        final DataValueNode rateNode = new DataValueNode("Heart_Rate", BasicMetaData.SIMPLE_INT);
+        final Node rateNode = node.createChild("Heart_Rate");
 
         sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
             @Override
             public void onSensorChanged(@NonNull SensorEvent event) {
-                rateNode.update((double) event.values[0]);
+                rateNode.setValue(new Value(event.values[0]);
             }
 
             @Override
@@ -1032,14 +923,14 @@ public class DGMobileContext {
             }
         }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
         node.addChild(rateNode);
-    }
+    }*/
 
-    protected DataValueNode activityNode;
+    protected Node activityNode;
 
     @TargetApi(20)
-    private void setupScreenProvider(DeviceNode node) {
+    private void setupScreenProvider(Node node) {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
-        final DataValueNode screenOn = new DataValueNode("Screen_On", BasicMetaData.SIMPLE_BOOL);
+        final Node screenOn = node.createChild("Screen_On");
 
         final DisplayManager.DisplayListener listener = new DisplayManager.DisplayListener() {
             @Override
@@ -1056,7 +947,7 @@ public class DGMobileContext {
                 try {
                     Method method = display.getClass().getMethod("getState");
                     boolean on = ((Integer) method.invoke(display)) == 2;
-                    screenOn.update(on);
+                    screenOn.setValue(new Value(on));
                 } catch (NoSuchMethodException ignored) {
                 } catch (InvocationTargetException | IllegalAccessException e) {
                     e.printStackTrace();
@@ -1073,7 +964,7 @@ public class DGMobileContext {
             }
         });
 
-        screenOn.update(powerManager.isScreenOn());
+        screenOn.setValue(new Value(powerManager.isScreenOn()));
 
         node.addChild(screenOn);
     }
@@ -1088,18 +979,7 @@ public class DGMobileContext {
     private Thread linkThread;
 
     public void startLink() {
-        linkThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                log("Starting Link");
-
-                linkStarted = true;
-                link.run();
-                log("Link Stopped");
-                linkStarted = false;
-            }
-        });
-        linkThread.start();
+        link.connect(false);
     }
 
     public void execute(Action action) {
@@ -1135,16 +1015,9 @@ public class DGMobileContext {
         }
 
         if (linkStarted) {
-            log("Stopping Link");
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    link.stop();
-                    log("Link Stopped");
-                    log("Clearing Device Nodes");
-                    devicesNode.clearChildren();
-                }
-            }).start();
+            link.disconnect();
+            log("Link Stopped");
+            log("Clearing Device Nodes");
         }
 
         log("Disconnecting Google API Client");

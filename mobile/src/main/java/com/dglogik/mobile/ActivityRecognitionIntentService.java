@@ -6,6 +6,8 @@ import android.content.Intent;
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
+import org.dsa.iot.dslink.node.value.Value;
+
 public class ActivityRecognitionIntentService extends IntentService {
     public ActivityRecognitionIntentService() {
         super("ActivityRecognitionIntent");
@@ -17,7 +19,7 @@ public class ActivityRecognitionIntentService extends IntentService {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
             if (DGMobileContext.CONTEXT != null && DGMobileContext.CONTEXT.activityNode != null) {
                 String name = getNameFromType(result.getMostProbableActivity().getType());
-                DGMobileContext.CONTEXT.activityNode.update(name);
+                DGMobileContext.CONTEXT.activityNode.setValue(new Value(name));
             }
         }
     }

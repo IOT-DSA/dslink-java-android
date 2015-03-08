@@ -6,11 +6,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.text.Html;
 
-import com.dglogik.api.DGAction;
-import com.dglogik.api.DGNode;
-import com.dglogik.dslink.node.base.BaseNode;
-import com.dglogik.dslink.util.FakeContext;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -71,32 +66,5 @@ public class Utils {
         }
 
         activity.setTitle(Html.fromHtml("<font color=\"black\">" + activity.getTitle() + "</font>"));
-    }
-
-    public static String createNodeTree(DGNode rootDG, int level) {
-        BaseNode root = (BaseNode) rootDG;
-        StringBuilder builder = new StringBuilder();
-
-        for (int i = 1; i <= level; i++) {
-            builder.append(">");
-        }
-
-        builder.append(" ").append(root.getName()).append('\n');
-
-
-        for (Object it : root.getChildren()) {
-            BaseNode node = (BaseNode) it;
-
-            String part = createNodeTree(node, level + 1);
-            builder.append(part);
-
-            for (Object i : node.getActions(FakeContext.INSTANCE)) {
-                DGAction action = (DGAction) i;
-                String name = action.getName();
-                builder.append("@ ").append(name).append("\n");
-            }
-        }
-
-        return builder.toString();
     }
 }

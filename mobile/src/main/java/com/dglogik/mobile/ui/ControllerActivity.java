@@ -15,9 +15,9 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.dglogik.common.Services;
-import com.dglogik.dslink.node.Poller;
 import com.dglogik.mobile.Action;
 import com.dglogik.mobile.LinkService;
+import com.dglogik.mobile.Poller;
 import com.dglogik.mobile.R;
 import com.dglogik.mobile.Utils;
 
@@ -132,17 +132,8 @@ public class ControllerActivity extends Activity {
             case R.id.action_settings:
                 openSettings();
                 break;
-            case R.id.action_about:
-                openAboutActivity();
-                break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void openAboutActivity() {
-        Intent intent = new Intent();
-        intent.setClass(getApplicationContext(), InfoActivity.class);
-        startActivityForResult(intent, 51);
     }
 
     public void openSettings() {
