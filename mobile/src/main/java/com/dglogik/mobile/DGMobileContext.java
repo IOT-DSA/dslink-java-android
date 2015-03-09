@@ -48,6 +48,8 @@ import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.connection.ConnectionType;
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.node.value.Value;
+import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.responder.action.Parameter;
 import org.dsa.iot.dslink.util.Permission;
 import org.vertx.java.core.json.JsonObject;
 
@@ -196,9 +198,8 @@ public class DGMobileContext {
         }
 
         Node devicesNode = link.getNodeManager().createRootNode("Devices");
+        currentDeviceNode = devicesNode.createChild(Build.MODEL);
         setupCurrentDevice(currentDeviceNode);
-
-        devicesNode.addChild(currentDeviceNode);
 
         startLink();
 
@@ -668,7 +669,7 @@ public class DGMobileContext {
                 }
             });
 
-            currentDeviceNode.createChild("Speak").setAction(new org.dsa.iot.dslink.responder.action.Action(
+            org.dsa.iot.dslink.responder.action.Action speak = new org.dsa.iot.dslink.responder.action.Action(
                     Permission.WRITE,
                     new org.vertx.java.core.Handler<JsonObject>() {
                         @Override
@@ -676,7 +677,11 @@ public class DGMobileContext {
                             speech.speak(args.getString("text"), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
                         }
                     }
-            ));
+            );
+
+            speak.addParameter(new Parameter("text", ValueType.STRING, new Value("")));
+
+            currentDeviceNode.createChild("Speak").setAction(speak);
 
             onCleanup(new Action() {
                 @Override
