@@ -15,7 +15,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.dglogik.common.Services;
-import com.dglogik.mobile.Action;
+import com.dglogik.mobile.Executable;
 import com.dglogik.mobile.LinkService;
 import com.dglogik.mobile.Poller;
 import com.dglogik.mobile.R;
@@ -44,7 +44,7 @@ public class ControllerActivity extends Activity {
 
         Utils.applyDGTheme(this);
 
-        poller = new Poller(new Action() {
+        poller = new Poller(new Executable() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
