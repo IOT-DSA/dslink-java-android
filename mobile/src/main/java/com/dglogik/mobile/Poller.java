@@ -1,5 +1,7 @@
 package com.dglogik.mobile;
 
+import android.support.annotation.NonNull;
+
 import java.util.concurrent.*;
 
 /**
@@ -7,10 +9,9 @@ import java.util.concurrent.*;
  */
 public class Poller {
 
-    private static final ScheduledThreadPool STPE
-            = new ScheduledThreadPool(8, new ThreadFactory() {
+    private static final ScheduledThreadPool STPE = new ScheduledThreadPool(8, new ThreadFactory() {
         @Override
-        public Thread newThread(Runnable r) {
+        public Thread newThread(@NonNull Runnable r) {
             Thread t = new Thread(r);
             t.setDaemon(true);
             return t;

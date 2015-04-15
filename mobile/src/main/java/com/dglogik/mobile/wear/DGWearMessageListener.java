@@ -8,6 +8,7 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import org.dsa.iot.dslink.node.Node;
+import org.dsa.iot.dslink.node.exceptions.DuplicateException;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.node.value.ValueUtils;
@@ -52,7 +53,13 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                 case "points": {
                     DGMobileContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
-                    Node deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device);
+                    Node deviceNode;
+                    try {
+                        deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device);
+                    } catch (DuplicateException e) {
+                        e.printStackTrace();
+                        return;
+                    }
 
                     JSONObject points = data.getJSONObject("points");
                     JSONArray actions = data.getJSONArray("actions");
@@ -91,20 +98,22 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                     throw new IllegalArgumentException();
                             }
 
-                            Node node = deviceNode.createChild(pointName);
-
-                            node.setConfiguration("type", new Value(realType.toJsonString()));
-
-                            dataNodes.put(device + "@" + id, node);
-
-                            deviceNode.addChild(node);
+                            Node node;
+                            try {
+                                node = deviceNode.createChild(pointName);
+                                node.setConfiguration("type", new Value(realType.toJsonString()));
+                                dataNodes.put(device + "@" + id, node);
+                                deviceNode.addChild(node);
+                            } catch (DuplicateException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
                     for (int i = 0; i < actions.length(); i++) {
                         final String name = actions.getString(i);
 
-                        final Action action = new Action(Permission.WRITE, new Handler<JsonObject>() {
+                        final Action action = new Action("Wear_" + device + "_" + name, Permission.WRITE, new Handler<JsonObject>() {
                             @Override
                             public void handle(JsonObject e) {
                                 JSONObject object = new JSONObject();
@@ -119,8 +128,15 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                             }
                         });
 
-                        Node actionNode = deviceNode.createChild(name);
-                        actionNode.setAction(action);
+                        DGMobileContext.CONTEXT.link.getActionRegistry().add(action);
+
+                        Node actionNode;
+                        try {
+                            actionNode = deviceNode.createChild(name);
+                            actionNode.setAction("Wear_" + device + "_" + name);
+                        } catch (DuplicateException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     if (!DGMobileContext.CONTEXT.linkStarted) {

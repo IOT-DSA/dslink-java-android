@@ -55,6 +55,7 @@ import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.connection.ConnectionType;
 import org.dsa.iot.dslink.node.Node;
+import org.dsa.iot.dslink.node.exceptions.DuplicateException;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.responder.action.Action;
@@ -113,7 +114,11 @@ public class DGMobileContext {
                     public void onConnected(Bundle bundle) {
                         Log.i(TAG, "Google API Client Connected");
 
-                        initialize();
+                        try {
+                            initialize();
+                        } catch (DuplicateException e) {
+                            e.printStackTrace();
+                        }
                     }
 
                     @Override
@@ -195,7 +200,7 @@ public class DGMobileContext {
         });
     }
 
-    public void initialize() {
+    public void initialize() throws DuplicateException {
         System.setProperty("dslink.path", getApplicationContext().getFilesDir().getAbsolutePath());
 
         bus = EventBusFactory.create();
@@ -205,7 +210,7 @@ public class DGMobileContext {
                 .replaceAll(" ", "");
         final String brokerUrl = preferences.getString("broker.url", "");
 
-        link = DSLinkFactory.create().generate(bus, brokerUrl, ConnectionType.WS, name);
+        link = DSLinkFactory.create(EventBusFactory.create()).generate(brokerUrl, ConnectionType.WS, name);
 
         devicesNode = link.getNodeManager().createRootNode("Devices");
         currentDeviceNode = devicesNode.createChild(Build.MODEL);
@@ -270,7 +275,7 @@ public class DGMobileContext {
         return eventListener;
     }
 
-    public void setupCurrentDevice(@NonNull Node node) {
+    public void setupCurrentDevice(@NonNull Node node) throws DuplicateException {
         if (preferences.getBoolean("providers.location", false)) {
             final Node latitudeNode = node.createChild("Latitude");
             final Node longitudeNode = node.createChild("Longitude");
@@ -582,7 +587,8 @@ public class DGMobileContext {
                 }
             });
 
-            org.dsa.iot.dslink.responder.action.Action speak = new org.dsa.iot.dslink.responder.action.Action(
+            Action speak = new Action(
+                    "speak",
                     Permission.WRITE,
                     new org.vertx.java.core.Handler<JsonObject>() {
                         @Override
@@ -592,10 +598,12 @@ public class DGMobileContext {
                     }
             );
 
+            link.getActionRegistry().add(speak);
+
             speak.addParameter(new Parameter("text", ValueType.STRING, new Value("")));
 
             Node speakNode = currentDeviceNode.createChild("Speak");
-            speakNode.setAction(speak);
+            speakNode.setAction("speak");
 
             onCleanup(new Executable() {
                 @Override
@@ -606,7 +614,7 @@ public class DGMobileContext {
         }
 
         if (preferences.getBoolean("actions.show_maps", true)) {
-            final Action showLocationAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
+            final Action showLocationAction = new Action("show_location", Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
                 @Override
                 public void handle(JsonObject event) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -618,7 +626,7 @@ public class DGMobileContext {
                 }
             });
 
-            final Action showMapAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
+            final Action showMapAction = new Action("show_map", Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
                 @Override
                 public void handle(JsonObject event) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -638,14 +646,17 @@ public class DGMobileContext {
             showLocationAction.addParameter(new Parameter("latitude", ValueType.NUMBER, new Value(0.0)));
             showLocationAction.addParameter(new Parameter("longitude", ValueType.NUMBER, new Value(0.0)));
 
+            link.getActionRegistry().add(showLocationAction);
+            link.getActionRegistry().add(showMapAction);
+
             Node a = node.createChild("ShowLocationMap");
-            a.setAction(showLocationAction);
+            a.setAction("show_location");
             Node b = node.createChild("ShowMap");
-            b.setAction(showMapAction);
+            b.setAction("show_map");
         }
 
         if (preferences.getBoolean("actions.open_url", true)) {
-            final Action openUrlAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
+            final Action openUrlAction = new Action("open_url", Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
 
                 @Override
                 public void handle(JsonObject event) {
@@ -663,13 +674,15 @@ public class DGMobileContext {
                     });
                 }
             });
+
+            link.getActionRegistry().add(openUrlAction);
             openUrlAction.addParameter(new Parameter("url", ValueType.STRING, new Value("http://wwww.google.com")));
 
-            node.createChild("OpenUrl").setAction(openUrlAction);
+            node.createChild("OpenUrl").setAction("open_url");
         }
 
         if (preferences.getBoolean("actions.search", true)) {
-            node.createChild("Search").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
+            final Action searchAction = new Action("search", Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
                 @Override
                 public void handle(JsonObject event) {
                     final String query = event.getObject("params").getString("query");
@@ -685,14 +698,16 @@ public class DGMobileContext {
                         }
                     });
                 }
-            }));
+            });
+            link.getActionRegistry().add(searchAction);
+            node.createChild("Search").setAction("search");
         }
         if (preferences.getBoolean("providers.speech", true)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
 
             final Node lastSpeechNode = node.createChild("Recognized_Speech");
 
-            final Action startSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
+            final Action startSpeechRecognitionAction = new Action("start_speech_recognition", Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
                 @Override
                 public void handle(JsonObject event) {
                     handler.post(new Runnable() {
@@ -706,7 +721,9 @@ public class DGMobileContext {
                 }
             });
 
-            final Action stopSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
+            link.getActionRegistry().add(startSpeechRecognitionAction);
+
+            final Action stopSpeechRecognitionAction = new Action("stop_speech_recognition", Permission.WRITE, new org.vertx.java.core.Handler<JsonObject>() {
                 @Override
                 public void handle(JsonObject event) {
                     handler.post(new Runnable() {
@@ -718,10 +735,12 @@ public class DGMobileContext {
                 }
             });
 
+            link.getActionRegistry().add(stopSpeechRecognitionAction);
+
             Node startSpeechRecognition = node.createChild("StartSpeechRecognition");
-            startSpeechRecognition.setAction(startSpeechRecognitionAction);
+            startSpeechRecognition.setAction("start_speech_recognition");
             Node stopSpeechRecognition = node.createChild("StopSpeechRecognition");
-            stopSpeechRecognition.setAction(stopSpeechRecognitionAction);
+            stopSpeechRecognition.setAction("stop_speech_recognition");
 
             recognizer.setRecognitionListener(new RecognitionListener() {
                 @Override
@@ -793,7 +812,7 @@ public class DGMobileContext {
     private boolean isBatteryLevelInitialized = false;
 
     @TargetApi(20)
-    private void setupHeartRateMonitor(Node node) {
+    private void setupHeartRateMonitor(Node node) throws DuplicateException {
         Sensor sensor = sensorManager.getDefaultSensor(21);
 
         if (sensor == null) return;
@@ -817,7 +836,7 @@ public class DGMobileContext {
     protected Node activityNode;
 
     @TargetApi(20)
-    private void setupScreenProvider(Node node) {
+    private void setupScreenProvider(Node node) throws DuplicateException {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
         final Node screenOn = node.createChild("Screen_On");
 
