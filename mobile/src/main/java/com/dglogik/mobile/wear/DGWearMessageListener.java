@@ -8,18 +8,13 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import org.dsa.iot.dslink.node.Node;
-import org.dsa.iot.dslink.node.exceptions.DuplicateException;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.node.value.ValueUtils;
-import org.dsa.iot.dslink.responder.action.Action;
-import org.dsa.iot.dslink.util.Permission;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -54,12 +49,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                     DGMobileContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
                     Node deviceNode;
-                    try {
-                        deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device);
-                    } catch (DuplicateException e) {
-                        e.printStackTrace();
-                        return;
-                    }
+                    deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device).build();
 
                     JSONObject points = data.getJSONObject("points");
                     JSONArray actions = data.getJSONArray("actions");
@@ -99,43 +89,10 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                             }
 
                             Node node;
-                            try {
-                                node = deviceNode.createChild(pointName);
-                                node.setConfiguration("type", new Value(realType.toJsonString()));
-                                dataNodes.put(device + "@" + id, node);
-                                deviceNode.addChild(node);
-                            } catch (DuplicateException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < actions.length(); i++) {
-                        final String name = actions.getString(i);
-
-                        final Action action = new Action("Wear_" + device + "_" + name, Permission.WRITE, new Handler<JsonObject>() {
-                            @Override
-                            public void handle(JsonObject e) {
-                                JSONObject object = new JSONObject();
-
-                                try {
-                                    object.put("action", name);
-                                } catch (JSONException err) {
-                                    err.printStackTrace();
-                                }
-
-                                Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
-                            }
-                        });
-
-                        DGMobileContext.CONTEXT.link.getActionRegistry().add(action);
-
-                        Node actionNode;
-                        try {
-                            actionNode = deviceNode.createChild(name);
-                            actionNode.setAction("Wear_" + device + "_" + name);
-                        } catch (DuplicateException e) {
-                            e.printStackTrace();
+                            node = deviceNode.createChild(pointName).build();
+                            node.setConfig("type", new Value(realType.toJsonString()));
+                            dataNodes.put(device + "@" + id, node);
+                            deviceNode.addChild(node);
                         }
                     }
 

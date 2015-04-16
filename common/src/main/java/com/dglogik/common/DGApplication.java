@@ -10,18 +10,10 @@ import org.acra.ACRA;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
-@ReportsCrashes(
-        formKey = "",
-        mode = ReportingInteractionMode.DIALOG,
-        mailTo = "k.endfinger@dglogik.com"
-)
 public class DGApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // The following line triggers the initialization of ACRA
-        ACRA.init(this);
     }
 
     @Override
