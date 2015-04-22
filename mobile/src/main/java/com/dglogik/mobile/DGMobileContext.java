@@ -249,10 +249,17 @@ public class DGMobileContext {
             preferences.edit().putString("link.key", keys.serialize()).apply();
         }
 
+        File file = new File(fileDir.getAbsolutePath() + "/" + "dslink.json");
+
+        // We have to delete this. It's a sad fact.
+        if (file.exists()) {
+            file.delete();
+        }
+
         Configuration config = new Configuration();
         config.setConnectionType(ConnectionType.WEB_SOCKET);
         config.setDsId(name);
-        config.setSerializationPath(new File(fileDir.getAbsolutePath() + "/" + "dslink.json"));
+        config.setSerializationPath(file);
         config.setResponder(true);
         config.setKeys(keys);
         config.setRequester(false);
@@ -626,7 +633,7 @@ public class DGMobileContext {
                         startActivity(intent);
                     }
                 }
-            })).build();
+            }).addParameter(new Parameter("query", ValueType.STRING))).build();
         }
 
         if (preferences.getBoolean("actions.open_url", true)) {
@@ -672,12 +679,15 @@ public class DGMobileContext {
                     });
                 }
             });
+            searchAction.addParameter(new Parameter("query", ValueType.STRING));
             node.createChild("Search").setAction(searchAction).build();
         }
         if (preferences.getBoolean("providers.speech", true)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
 
             final Node lastSpeechNode = node.createChild("Recognized_Speech").build();
+
+            lastSpeechNode.setValue(new Value(""));
 
             final Action startSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
