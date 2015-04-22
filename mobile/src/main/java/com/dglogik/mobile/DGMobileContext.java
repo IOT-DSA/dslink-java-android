@@ -1,7 +1,6 @@
 package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
-import android.app.Application;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
@@ -53,7 +52,6 @@ import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.DSLinkHandler;
 import org.dsa.iot.dslink.DSLinkProvider;
 import org.dsa.iot.dslink.config.Configuration;
-import org.dsa.iot.dslink.connection.ConnectionManager;
 import org.dsa.iot.dslink.connection.ConnectionType;
 import org.dsa.iot.dslink.handshake.LocalKeys;
 import org.dsa.iot.dslink.node.Node;
@@ -74,7 +72,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DGMobileContext {

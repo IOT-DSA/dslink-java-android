@@ -8,6 +8,9 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import org.dsa.iot.dslink.node.Node;
+import org.dsa.iot.dslink.node.Permission;
+import org.dsa.iot.dslink.node.actions.Action;
+import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.node.value.ValueUtils;
@@ -15,6 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.vertx.java.core.Handler;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -94,6 +98,25 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                             dataNodes.put(device + "@" + id, node);
                             deviceNode.addChild(node);
                         }
+                    }
+
+                    for (int i = 0; i < actions.length(); i++) {
+                        final String name = actions.getString(i);
+
+                        final Action action = new Action(Permission.WRITE, new Handler<ActionResult>() {
+                            @Override
+                            public void handle(ActionResult actionResult) {
+                                JSONObject object = new JSONObject();
+                                try {
+                                    object.put("action", name);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
+                            }
+                        });
+
+                        deviceNode.createChild(name).setAction(action).build();
                     }
 
                     if (!DGMobileContext.CONTEXT.linkStarted) {
