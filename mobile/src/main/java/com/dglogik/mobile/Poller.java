@@ -8,8 +8,7 @@ import java.util.concurrent.*;
  * Polls devices at set intervals.
  */
 public class Poller {
-
-    private static final ScheduledThreadPool STPE = new ScheduledThreadPool(8, new ThreadFactory() {
+    public static final ScheduledThreadPool STPE = new ScheduledThreadPool(8, new ThreadFactory() {
         @Override
         public Thread newThread(@NonNull Runnable r) {
             Thread t = new Thread(r);

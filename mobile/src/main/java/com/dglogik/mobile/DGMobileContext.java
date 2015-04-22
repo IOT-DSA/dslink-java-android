@@ -1,6 +1,7 @@
 package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
@@ -62,6 +63,7 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.util.Objects;
 import org.vertx.java.core.json.JsonObject;
 
 import java.io.File;
@@ -72,6 +74,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DGMobileContext {
@@ -197,6 +200,8 @@ public class DGMobileContext {
     }
 
     public void initialize() {
+        Objects.setThreadPool(Poller.STPE);
+        Objects.setDaemonThreadPool(Poller.STPE);
         System.setProperty("dslink.path", getApplicationContext().getFilesDir().getAbsolutePath());
         File fileDir = getApplicationContext().getFilesDir();
         if (!fileDir.exists()) {
@@ -207,7 +212,7 @@ public class DGMobileContext {
                 .replaceAll(" ", "");
         final String brokerUrl = preferences.getString("broker.url", "");
 
-        DSLinkHandler handler = new DSLinkHandler() {
+        final DSLinkHandler handler = new DSLinkHandler() {
             @Override
             public void preInit() {
                 super.preInit();
@@ -222,7 +227,12 @@ public class DGMobileContext {
 
                 devicesNode = link.getNodeManager().createRootNode("Devices").build();
                 currentDeviceNode = devicesNode.createChild(Build.MODEL).build();
-                setupCurrentDevice(currentDeviceNode);
+                execute(new Executable() {
+                    @Override
+                    public void run() {
+                        setupCurrentDevice(currentDeviceNode);
+                    }
+                });
             }
 
             @Override
@@ -245,7 +255,7 @@ public class DGMobileContext {
         Configuration config = new Configuration();
         config.setConnectionType(ConnectionType.WEB_SOCKET);
         config.setDsId(name);
-        config.setSerializationPath(fileDir);
+        config.setSerializationPath(new File(fileDir.getAbsolutePath() + "/" + "dslink.json"));
         config.setResponder(true);
         config.setKeys(keys);
         config.setRequester(false);
@@ -320,9 +330,6 @@ public class DGMobileContext {
             final Node latitudeNode = node.createChild("Latitude").build();
             final Node longitudeNode = node.createChild("Longitude").build();
 
-            latitudeNode.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
-            longitudeNode.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
-
             Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
 
             if (lastLocation != null) {
@@ -369,10 +376,9 @@ public class DGMobileContext {
             final Node chargerConnectedNode = node.createChild("Charger_Connected").build();
             final Node batteryFullNode = node.createChild("Battery_Full").build();
 
-            batteryFullNode.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
-            chargerConnectedNode.setConfig("type", new Value(ValueType.BOOL.toJsonString()));
-            batteryFullNode.setConfig("type", new Value(ValueType.BOOL.toJsonString()));
-
+            batteryFullNode.setValue(new Value(false));
+            chargerConnectedNode.setValue(new Value(false));
+            batteryLevelNode.setValue(new Value(0.0));
             poller(new Executable() {
                 @Override
                 public void run() {
@@ -417,7 +423,7 @@ public class DGMobileContext {
         if (enableNode("activity")) {
             activityNode = node.createChild("Activity").build();
 
-            activityNode.setConfig("type", new Value(ValueType.STRING.toJsonString()));
+            activityNode.setValue(new Value(""));
 
             final PendingIntent intent = PendingIntent.getService(getApplicationContext(), 40, new Intent(getApplicationContext(), ActivityRecognitionIntentService.class), PendingIntent.FLAG_UPDATE_CURRENT);
             ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(googleClient, 1000, intent);
@@ -432,7 +438,7 @@ public class DGMobileContext {
 
         if (enableSensor("steps", 19)) {
             final Node stepsNode = node.createChild("Steps").build();
-            stepsNode.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
+            stepsNode.setValue(new Value(0));
 
             Sensor sensor = sensorManager.getDefaultSensor(19);
 
@@ -493,7 +499,7 @@ public class DGMobileContext {
         if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
             final Node pressure = node.createChild("Air_Pressure").build();
 
-            pressure.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
+            pressure.setValue(new Value(0.0));
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
@@ -512,7 +518,8 @@ public class DGMobileContext {
         if (enableSensor("humidity", Sensor.TYPE_RELATIVE_HUMIDITY)) {
             final Node humidity = node.createChild("Humidity").build();
 
-            humidity.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
+
+            humidity.setValue(new Value(0.0));
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
 
@@ -531,7 +538,7 @@ public class DGMobileContext {
         if (enableSensor("proximity", Sensor.TYPE_PROXIMITY)) {
             final Node proximity = node.createChild("Proximity").build();
 
-            proximity.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
+            proximity.setValue(new Value(0.0));
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
@@ -553,7 +560,7 @@ public class DGMobileContext {
             final Node z = node.createChild("Gyroscope_Z").build();
 
             for (Node m : new Node[]{x, y, z}) {
-                m.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
+                m.setValue(new Value(0.0));
             }
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -784,7 +791,8 @@ public class DGMobileContext {
 
         final Node rateNode = node.createChild("Heart_Rate").build();
 
-        node.setConfig("type", new Value(ValueType.NUMBER.toJsonString()));
+
+        node.setValue(new Value(0.0));
 
         sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
             @Override
@@ -805,7 +813,7 @@ public class DGMobileContext {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
         final Node screenOn = node.createChild("Screen_On").build();
 
-        screenOn.setConfig("type", new Value(ValueType.BOOL.toJsonString()));
+        screenOn.setValue(new Value(true));
 
         final DisplayManager.DisplayListener listener = new DisplayManager.DisplayListener() {
             @Override

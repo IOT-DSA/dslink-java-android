@@ -90,7 +90,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
                             Node node;
                             node = deviceNode.createChild(pointName).build();
-                            node.setConfig("type", new Value(realType.toJsonString()));
+                            node.setConfig("type", new Value(realType.name().toLowerCase()));
                             dataNodes.put(device + "@" + id, node);
                             deviceNode.addChild(node);
                         }
