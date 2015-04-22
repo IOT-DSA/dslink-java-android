@@ -52,6 +52,7 @@ import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.DSLinkHandler;
 import org.dsa.iot.dslink.DSLinkProvider;
 import org.dsa.iot.dslink.config.Configuration;
+import org.dsa.iot.dslink.connection.ConnectionManager;
 import org.dsa.iot.dslink.connection.ConnectionType;
 import org.dsa.iot.dslink.handshake.LocalKeys;
 import org.dsa.iot.dslink.node.Node;
@@ -208,6 +209,12 @@ public class DGMobileContext {
 
         DSLinkHandler handler = new DSLinkHandler() {
             @Override
+            public void preInit() {
+                super.preInit();
+                log("Pre-Init");
+            }
+
+            @Override
             public void onResponderInitialized(DSLink link) {
                 super.onResponderInitialized(link);
 
@@ -239,10 +246,11 @@ public class DGMobileContext {
         config.setConnectionType(ConnectionType.WEB_SOCKET);
         config.setDsId(name);
         config.setSerializationPath(fileDir);
-        config.setAuthEndpoint(brokerUrl);
         config.setResponder(true);
         config.setKeys(keys);
         config.setRequester(false);
+        config.setAuthEndpoint(brokerUrl);
+        config.validate();
 
         handler.setConfig(config);
 
@@ -421,57 +429,6 @@ public class DGMobileContext {
                 }
             });
         }
-
- /*       if (preferences.getBoolean("actions.notifications", true)) {
-            final NotificationManager notificationManager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
-
-            final BaseAction createNotificationAction = new BaseAction("CreateNotification") {
-                @NonNull
-                @Override
-                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    Notification.Builder builder = new Notification.Builder(getApplicationContext());
-
-                    builder.setContentTitle(args.get("title").toString());
-                    builder.setContentText(args.get("content").toString());
-                    builder.setSmallIcon(R.drawable.ic_launcher);
-
-                    Notification notification = builder.build();
-
-                    currentNotificationId++;
-
-                    notificationManager.notify(currentNotificationId, notification);
-
-                    return new ActionResult(new HashMap<String, DGValue>() {{
-                        put("id", DGValue.make(currentNotificationId));
-                    }});
-                }
-            };
-
-            createNotificationAction.addParam("title", BasicMetaData.SIMPLE_STRING);
-            createNotificationAction.addParam("content", BasicMetaData.SIMPLE_STRING);
-
-            final BaseAction destroyNotificationAction = new BaseAction("DestroyNotification") {
-                @Override
-                public ActionResult invoke(BaseNode baseNode, @NonNull Map<String, DGValue> args) {
-                    int id = args.get("id").toInt();
-
-                    notificationManager.cancel(id);
-                    return null;
-                }
-            };
-
-            destroyNotificationAction.addParam("id", BasicMetaData.SIMPLE_INT);
-
-            onCleanup(new Action() {
-                @Override
-                public void run() {
-                    notificationManager.cancelAll();
-                }
-            });
-
-            node.addAction(createNotificationAction);
-            node.addAction(destroyNotificationAction);
-        }*/
 
         if (enableSensor("steps", 19)) {
             final Node stepsNode = node.createChild("Steps").build();
