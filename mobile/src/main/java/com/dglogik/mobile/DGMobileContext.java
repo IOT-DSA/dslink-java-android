@@ -901,7 +901,9 @@ public class DGMobileContext {
             } catch (Exception ignored) {}
         }
 
-        link.stop();
+        if (link != null) {
+            link.stop();
+        }
 
         log("Link Stopped");
         log("Clearing Device Nodes");
