@@ -129,7 +129,6 @@ public class LinkService extends Service {
         providers.add(new ScreenProvider());
         providers.add(new HealthProvider());
         providers.add(new SpeechProvider());
-
         providers.add(new GyroscopeProvider());
 
         for (Provider provider : providers) {

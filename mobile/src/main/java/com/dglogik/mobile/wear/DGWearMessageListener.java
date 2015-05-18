@@ -52,8 +52,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                 case "points": {
                     DGMobileContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
-                    Node deviceNode;
-                    deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device).build();
+                    Node deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device).build();
 
                     JSONObject points = data.getJSONObject("points");
                     JSONArray actions = data.getJSONArray("actions");
@@ -76,25 +75,22 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 id = pointName + "_" + pointValueName;
                             }
 
-                            ValueType realType;
+                            Node node = deviceNode.createChild(pointName).build();
 
                             switch (valueType) {
                                 case 0:
-                                    realType = ValueType.STRING;
+                                    node.setValue(new Value(""));
                                     break;
                                 case 1:
-                                    realType = ValueType.NUMBER;
+                                    node.setValue(new Value(0.0));
                                     break;
                                 case 2:
-                                    realType = ValueType.BOOL;
+                                    node.setValue(new Value((Boolean) null));
                                     break;
                                 default:
                                     throw new IllegalArgumentException();
                             }
 
-                            Node node;
-                            node = deviceNode.createChild(pointName).build();
-                            node.setConfig("type", new Value(realType.name().toLowerCase()));
                             dataNodes.put(device + "@" + id, node);
                             deviceNode.addChild(node);
                         }
