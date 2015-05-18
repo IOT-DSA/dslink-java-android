@@ -84,7 +84,6 @@ public class DGMobileContext {
     @NonNull
     public final WearableSupport wearable;
     public final GoogleApiClient googleClient;
-    @NonNull
     public DSLinkProvider link;
     public boolean linkStarted = false;
 
@@ -223,7 +222,9 @@ public class DGMobileContext {
                 log("Initialized");
 
                 devicesNode = link.getNodeManager().createRootNode("Devices").build();
-                currentDeviceNode = devicesNode.createChild(Build.MODEL).build();
+                final String DEVICE_ID = Build.SERIAL != null ? Build.SERIAL : Build.MODEL;
+                currentDeviceNode = devicesNode.createChild(DEVICE_ID).build();
+                currentDeviceNode.setDisplayName(Build.MODEL);
                 execute(new Executable() {
                     @Override
                     public void run() {
@@ -380,6 +381,10 @@ public class DGMobileContext {
             final Node chargerConnectedNode = node.createChild("Charger_Connected").build();
             final Node batteryFullNode = node.createChild("Battery_Full").build();
 
+            batteryFullNode.setDisplayName("Battery Full");
+            chargerConnectedNode.setDisplayName("Charger Connected");
+            batteryLevelNode.setDisplayName("Battery Level");
+
             batteryFullNode.setValue(new Value(false));
             chargerConnectedNode.setValue(new Value(false));
             batteryLevelNode.setValue(new Value(0.0));
@@ -466,6 +471,9 @@ public class DGMobileContext {
             final Node tempCNode = node.createChild("Ambient_Temperature_Celsius").build();
             final Node tempFNode = node.createChild("Ambient_Temperature_Fahrenheit").build();
 
+            tempCNode.setDisplayName("Ambient Temperature - Celsius");
+            tempFNode.setDisplayName("Ambient Temperature - Fahrenheit");
+
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
 
             sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
@@ -486,6 +494,8 @@ public class DGMobileContext {
         if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
             final Node lux = node.createChild("Light_Level").build();
 
+            lux.setDisplayName("Light Level");
+
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
             sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
@@ -502,6 +512,8 @@ public class DGMobileContext {
 
         if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
             final Node pressure = node.createChild("Air_Pressure").build();
+
+            pressure.setDisplayName("Air Pressure");
 
             pressure.setValue(new Value(0.0));
 
@@ -521,7 +533,6 @@ public class DGMobileContext {
 
         if (enableSensor("humidity", Sensor.TYPE_RELATIVE_HUMIDITY)) {
             final Node humidity = node.createChild("Humidity").build();
-
 
             humidity.setValue(new Value(0.0));
 
@@ -563,6 +574,10 @@ public class DGMobileContext {
             final Node y = node.createChild("Gyroscope_Y").build();
             final Node z = node.createChild("Gyroscope_Z").build();
 
+            x.setDisplayName("Gyroscope X");
+            y.setDisplayName("Gyroscope Y");
+            z.setDisplayName("Gyroscope Z");
+
             for (Node m : new Node[]{x, y, z}) {
                 m.setValue(new Value(0.0));
             }
@@ -593,7 +608,7 @@ public class DGMobileContext {
             Node speakNode = currentDeviceNode.createChild("Speak").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
-                    speech.speak(event.getJsonIn().getObject("params").getString("text"), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
+                    speech.speak(event.getParameter("text").getString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
                 }
             }).addParameter(new Parameter("text", ValueType.STRING, new Value("")))).build();
 
@@ -606,25 +621,24 @@ public class DGMobileContext {
         }
 
         if (preferences.getBoolean("actions.show_maps", true)) {
-            Node a = node.createChild("ShowLocationMap").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            node.createChild("ShowLocationMap").setDisplayName("Show Location Map").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    JsonObject params = event.getJsonIn().getObject("params");
-                    intent.setData(Uri.parse("geo:" + params.getString("latitude") + "," + params.getString("longitude")));
+                    intent.setData(Uri.parse("geo:" + event.getParameter("latitude").getNumber() + "," + event.getParameter("longitude").getNumber()));
                     if (intent.resolveActivity(getPackageManager()) != null) {
                         startActivity(intent);
                     }
                 }
             }).addParameter(new Parameter("latitude", ValueType.NUMBER, new Value(0.0))).addParameter(new Parameter("longitude", ValueType.NUMBER, new Value(0.0)))).build();
 
-            Node b = node.createChild("ShowMap").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            node.createChild("ShowMap").setDisplayName("Show Map").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
 
                     try {
-                        intent.setData(Uri.parse("geo:0,0?q=" + URLEncoder.encode(event.getJsonIn().getObject("params").getString("query"), "UTF-8")));
+                        intent.setData(Uri.parse("geo:0,0?q=" + URLEncoder.encode(event.getParameter("query").getString(), "UTF-8")));
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
@@ -641,8 +655,7 @@ public class DGMobileContext {
 
                 @Override
                 public void handle(ActionResult event) {
-                    JsonObject params = event.getJsonIn().getObject("params");
-                    final Uri url = Uri.parse(params.getString("url"));
+                    final Uri url = Uri.parse(event.getParameter("url").getString());
                     execute(new Executable() {
                         @Override
                         public void run() {
@@ -658,14 +671,14 @@ public class DGMobileContext {
 
             openUrlAction.addParameter(new Parameter("url", ValueType.STRING, new Value("http://wwww.google.com")));
 
-            node.createChild("OpenUrl").setAction(openUrlAction).build();
+            node.createChild("OpenUrl").setDisplayName("Open Url").setAction(openUrlAction).build();
         }
 
         if (preferences.getBoolean("actions.search", true)) {
             final Action searchAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
-                    final String query = event.getJsonIn().getObject("params").getString("query");
+                    final String query = event.getParameter("query").getString();
                     execute(new Executable() {
                         @Override
                         public void run() {
@@ -687,6 +700,7 @@ public class DGMobileContext {
 
             final Node lastSpeechNode = node.createChild("Recognized_Speech").build();
 
+            lastSpeechNode.setDisplayName("Recognized Speech");
             lastSpeechNode.setValue(new Value(""));
 
             final Action startSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
@@ -717,8 +731,10 @@ public class DGMobileContext {
             });
 
             Node startSpeechRecognition = node.createChild("StartSpeechRecognition").build();
+            startSpeechRecognition.setDisplayName("Start Speech Recognition");
             startSpeechRecognition.setAction(startSpeechRecognitionAction);
             Node stopSpeechRecognition = node.createChild("StopSpeechRecognition").build();
+            stopSpeechRecognition.setDisplayName("Stop Speech Recognition");
             stopSpeechRecognition.setAction(stopSpeechRecognitionAction);
 
             recognizer.setRecognitionListener(new RecognitionListener() {
@@ -797,9 +813,9 @@ public class DGMobileContext {
         if (sensor == null) return;
 
         final Node rateNode = node.createChild("Heart_Rate").build();
+        rateNode.setDisplayName("Heart Rate");
 
-
-        node.setValue(new Value(0.0));
+        rateNode.setValue(new Value(0.0));
 
         sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
             @Override
@@ -819,6 +835,7 @@ public class DGMobileContext {
     private void setupScreenProvider(Node node) {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
         final Node screenOn = node.createChild("Screen_On").build();
+        screenOn.setDisplayName("Screen On");
 
         screenOn.setValue(new Value(true));
 
