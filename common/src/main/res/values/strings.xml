@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">Common</string>
-    <string name="errorDialog">DGMobile has crashed.</string>
-    <string name="error_dialog_text">ERROR!</string>
+    <string name="crash_message">DSAndroid has crashed.</string>
 </resources>
