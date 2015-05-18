@@ -8,6 +8,7 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import org.dsa.iot.dslink.node.Node;
+import org.dsa.iot.dslink.node.NodeBuilder;
 import org.dsa.iot.dslink.node.Permission;
 import org.dsa.iot.dslink.node.actions.Action;
 import org.dsa.iot.dslink.node.actions.ActionResult;
@@ -75,21 +76,23 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 id = pointName + "_" + pointValueName;
                             }
 
-                            Node node = deviceNode.createChild(pointName).build();
+                            NodeBuilder builder = deviceNode.createChild(pointName);
 
                             switch (valueType) {
                                 case 0:
-                                    node.setValue(new Value(""));
+                                    builder.setValueType(ValueType.STRING);
                                     break;
                                 case 1:
-                                    node.setValue(new Value(0.0));
+                                    builder.setValueType(ValueType.NUMBER);
                                     break;
                                 case 2:
-                                    node.setValue(new Value((Boolean) null));
+                                    builder.setValueType(ValueType.BOOL);
                                     break;
                                 default:
                                     throw new IllegalArgumentException();
                             }
+
+                            Node node = builder.build();
 
                             dataNodes.put(device + "@" + id, node);
                             deviceNode.addChild(node);

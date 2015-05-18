@@ -332,8 +332,8 @@ public class DGMobileContext {
 
     public void setupCurrentDevice(@NonNull Node node)  {
         if (preferences.getBoolean("providers.location", false)) {
-            final Node latitudeNode = node.createChild("Latitude").build();
-            final Node longitudeNode = node.createChild("Longitude").build();
+            final Node latitudeNode = node.createChild("Latitude").setValueType(ValueType.NUMBER).build();
+            final Node longitudeNode = node.createChild("Longitude").setValueType(ValueType.NUMBER).build();
 
             Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleClient);
 
@@ -377,17 +377,14 @@ public class DGMobileContext {
         }
 
         if (enableNode("battery")) {
-            final Node batteryLevelNode = node.createChild("Battery_Level").build();
-            final Node chargerConnectedNode = node.createChild("Charger_Connected").build();
-            final Node batteryFullNode = node.createChild("Battery_Full").build();
+            final Node batteryLevelNode = node.createChild("Battery_Level").setValueType(ValueType.NUMBER).build();
+            final Node chargerConnectedNode = node.createChild("Charger_Connected").setValueType(ValueType.BOOL).build();
+            final Node batteryFullNode = node.createChild("Battery_Full").setValueType(ValueType.BOOL).build();
 
             batteryFullNode.setDisplayName("Battery Full");
             chargerConnectedNode.setDisplayName("Charger Connected");
             batteryLevelNode.setDisplayName("Battery Level");
 
-            batteryFullNode.setValue(new Value(false));
-            chargerConnectedNode.setValue(new Value(false));
-            batteryLevelNode.setValue(new Value(0.0));
             poller(new Executable() {
                 @Override
                 public void run() {
@@ -430,9 +427,18 @@ public class DGMobileContext {
         }
 
         if (enableNode("activity")) {
-            activityNode = node.createChild("Activity").build();
+            activityNode = node.createChild("Activity").setValueType(ValueType.makeEnum(
+                    "in_vehicle",
+                    "on_bicycle",
+                    "running",
+                    "walking",
+                    "on_foot",
+                    "still",
+                    "tilting",
+                    "unknown"
+            )).build();
 
-            activityNode.setValue(new Value(""));
+            activityNode.setValue(new Value("unknown"));
 
             final PendingIntent intent = PendingIntent.getService(getApplicationContext(), 40, new Intent(getApplicationContext(), ActivityRecognitionIntentService.class), PendingIntent.FLAG_UPDATE_CURRENT);
             ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(googleClient, 1000, intent);
@@ -446,9 +452,9 @@ public class DGMobileContext {
         }
 
         if (enableSensor("steps", 19)) {
-            final Node stepsNode = node.createChild("Steps").build();
+            final Node stepsNode = node.createChild("Steps").setValueType(ValueType.NUMBER).build();
+            stepsNode.setValue(new Value(0.0));
             stepsNode.setDisplayName("Step Count");
-            stepsNode.setValue(new Value(0));
 
             Sensor sensor = sensorManager.getDefaultSensor(19);
 
@@ -469,8 +475,8 @@ public class DGMobileContext {
         }
 
         if (enableSensor("temperature", Sensor.TYPE_AMBIENT_TEMPERATURE)) {
-            final Node tempCNode = node.createChild("Ambient_Temperature_Celsius").build();
-            final Node tempFNode = node.createChild("Ambient_Temperature_Fahrenheit").build();
+            final Node tempCNode = node.createChild("Ambient_Temperature_Celsius").setValueType(ValueType.NUMBER).build();
+            final Node tempFNode = node.createChild("Ambient_Temperature_Fahrenheit").setValueType(ValueType.NUMBER).build();
 
             tempCNode.setDisplayName("Ambient Temperature - Celsius");
             tempFNode.setDisplayName("Ambient Temperature - Fahrenheit");
@@ -494,6 +500,7 @@ public class DGMobileContext {
 
         if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
             final Node lux = node.createChild("Light_Level").build();
+            lux.setValueType(ValueType.NUMBER);
 
             lux.setDisplayName("Light Level");
 
@@ -512,11 +519,9 @@ public class DGMobileContext {
         }
 
         if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
-            final Node pressure = node.createChild("Air_Pressure").build();
+            final Node pressure = node.createChild("Air_Pressure").setValueType(ValueType.NUMBER).build();
 
             pressure.setDisplayName("Air Pressure");
-
-            pressure.setValue(new Value(0.0));
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
@@ -533,9 +538,7 @@ public class DGMobileContext {
         }
 
         if (enableSensor("humidity", Sensor.TYPE_RELATIVE_HUMIDITY)) {
-            final Node humidity = node.createChild("Humidity").build();
-
-            humidity.setValue(new Value(0.0));
+            final Node humidity = node.createChild("Humidity").setValueType(ValueType.NUMBER).build();
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
 
@@ -552,9 +555,7 @@ public class DGMobileContext {
         }
 
         if (enableSensor("proximity", Sensor.TYPE_PROXIMITY)) {
-            final Node proximity = node.createChild("Proximity").build();
-
-            proximity.setValue(new Value(0.0));
+            final Node proximity = node.createChild("Proximity").setValueType(ValueType.NUMBER).build();
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
@@ -571,17 +572,13 @@ public class DGMobileContext {
         }
 
         if (enableSensor("gyroscope", Sensor.TYPE_GYROSCOPE)) {
-            final Node x = node.createChild("Gyroscope_X").build();
-            final Node y = node.createChild("Gyroscope_Y").build();
-            final Node z = node.createChild("Gyroscope_Z").build();
+            final Node x = node.createChild("Gyroscope_X").setValueType(ValueType.NUMBER).build();
+            final Node y = node.createChild("Gyroscope_Y").setValueType(ValueType.NUMBER).build();
+            final Node z = node.createChild("Gyroscope_Z").setValueType(ValueType.NUMBER).build();
 
             x.setDisplayName("Gyroscope X");
             y.setDisplayName("Gyroscope Y");
             z.setDisplayName("Gyroscope Z");
-
-            for (Node m : new Node[]{x, y, z}) {
-                m.setValue(new Value(0.0));
-            }
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
@@ -606,7 +603,7 @@ public class DGMobileContext {
                 }
             });
 
-            Node speakNode = currentDeviceNode.createChild("Speak").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            currentDeviceNode.createChild("Speak").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     speech.speak(event.getParameter("text").getString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
@@ -699,10 +696,9 @@ public class DGMobileContext {
         if (preferences.getBoolean("providers.speech", true)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
 
-            final Node lastSpeechNode = node.createChild("Recognized_Speech").build();
+            final Node lastSpeechNode = node.createChild("Recognized_Speech").setValueType(ValueType.STRING).build();
 
             lastSpeechNode.setDisplayName("Recognized Speech");
-            lastSpeechNode.setValue(new Value(""));
 
             final Action startSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
@@ -813,10 +809,8 @@ public class DGMobileContext {
 
         if (sensor == null) return;
 
-        final Node rateNode = node.createChild("Heart_Rate").build();
+        final Node rateNode = node.createChild("Heart_Rate").setValueType(ValueType.NUMBER).build();
         rateNode.setDisplayName("Heart Rate");
-
-        rateNode.setValue(new Value(0.0));
 
         sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
             @Override
@@ -835,10 +829,8 @@ public class DGMobileContext {
     @TargetApi(20)
     private void setupScreenProvider(Node node) {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
-        final Node screenOn = node.createChild("Screen_On").build();
+        final Node screenOn = node.createChild("Screen_On").setValueType(ValueType.BOOL).build();
         screenOn.setDisplayName("Screen On");
-
-        screenOn.setValue(new Value(true));
 
         final DisplayManager.DisplayListener listener = new DisplayManager.DisplayListener() {
             @Override

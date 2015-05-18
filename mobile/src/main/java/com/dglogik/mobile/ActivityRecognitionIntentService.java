@@ -30,14 +30,18 @@ public class ActivityRecognitionIntentService extends IntentService {
                 return "in_vehicle";
             case DetectedActivity.ON_BICYCLE:
                 return "on_bicycle";
+            case DetectedActivity.RUNNING:
+                return "running";
+            case DetectedActivity.WALKING:
+                return "walking";
             case DetectedActivity.ON_FOOT:
                 return "on_foot";
             case DetectedActivity.STILL:
                 return "still";
-            case DetectedActivity.UNKNOWN:
-                return "unknown";
             case DetectedActivity.TILTING:
                 return "tilting";
+            case DetectedActivity.UNKNOWN:
+                return "unknown";
         }
         return "unknown";
     }
