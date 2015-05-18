@@ -447,6 +447,7 @@ public class DGMobileContext {
 
         if (enableSensor("steps", 19)) {
             final Node stepsNode = node.createChild("Steps").build();
+            stepsNode.setDisplayName("Step Count");
             stepsNode.setValue(new Value(0));
 
             Sensor sensor = sensorManager.getDefaultSensor(19);
