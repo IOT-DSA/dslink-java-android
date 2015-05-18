@@ -25,7 +25,7 @@ public class LinkService extends Service {
     public void onCreate() {
         context = new DGMobileContext(this);
         Notification.Builder builder = new Notification.Builder(getApplicationContext());
-        builder.setContentTitle("DGMobile Link");
+        builder.setContentTitle("DSAndroid Link");
         builder.setContentText("Link is Running");
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 1, new Intent(getApplicationContext(), ControllerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);

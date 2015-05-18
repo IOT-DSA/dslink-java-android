@@ -47,6 +47,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.wearable.Wearable;
 
+import org.acra.ACRA;
+import org.acra.ErrorReporter;
+import org.acra.ExceptionHandlerInitializer;
 import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.DSLinkHandler;
@@ -101,6 +104,33 @@ public class DGMobileContext {
     public boolean mResolvingError;
 
     public DGMobileContext(@NonNull final LinkService service) {
+        ACRA.getErrorReporter().setExceptionHandlerInitializer(new ExceptionHandlerInitializer() {
+            @Override
+            public void initializeExceptionHandler(ErrorReporter reporter) {
+                StringBuilder enabledBuilder = new StringBuilder();
+                StringBuilder disabledBuilder = new StringBuilder();
+                for (NodeDescriptor descriptor : DGConstants.NODES) {
+                    boolean enabled = preferences.getBoolean("providers." + descriptor.getId(), descriptor.isDefaultEnabled());
+                    if (enabled) {
+                        if (enabledBuilder.length() != 0) {
+                            enabledBuilder.append(",");
+                        }
+                        enabledBuilder.append(descriptor.getName());
+                    } else {
+                        if (disabledBuilder.length() != 0) {
+                            disabledBuilder.append(",");
+                        }
+                        disabledBuilder.append(descriptor.getName());
+                    }
+                }
+
+                reporter.putCustomData("enabledNodes", enabledBuilder.toString());
+                reporter.putCustomData("disabledNodes", disabledBuilder.toString());
+                reporter.putCustomData("wearEnabled", "" + preferences.getBoolean("feature.wear", false));
+                reporter.putCustomData("fitnessEnabled", "" + preferences.getBoolean("feature.fitness", false));
+            }
+        });
+
         CONTEXT = this;
         this.service = service;
         this.handler = new Handler(getApplicationContext().getMainLooper());
@@ -196,6 +226,15 @@ public class DGMobileContext {
     }
 
     public void initialize() {
+        for (String key : new String[] {
+                "brokerUrl",
+                "linkName",
+                "responderConnected",
+                "responderInitialized"
+        }) {
+            ACRA.getErrorReporter().removeCustomData(key);
+        }
+
         Objects.setThreadPool(Poller.STPE);
         Objects.setDaemonThreadPool(Poller.STPE);
         System.setProperty("dslink.path", getApplicationContext().getFilesDir().getAbsolutePath());
@@ -208,6 +247,8 @@ public class DGMobileContext {
                 .replaceAll(" ", "");
         final String brokerUrl = preferences.getString("broker.url", "");
 
+        ACRA.getErrorReporter().putCustomData("linkName", name);
+        ACRA.getErrorReporter().putCustomData("brokerUrl", brokerUrl);
         final DSLinkHandler handler = new DSLinkHandler() {
             @Override
             public void preInit() {
@@ -218,6 +259,8 @@ public class DGMobileContext {
             @Override
             public void onResponderInitialized(DSLink link) {
                 super.onResponderInitialized(link);
+
+                ACRA.getErrorReporter().putCustomData("responderInitialized", "true");
 
                 log("Initialized");
 
@@ -236,6 +279,8 @@ public class DGMobileContext {
             @Override
             public void onResponderConnected(DSLink link) {
                 super.onResponderConnected(link);
+
+                ACRA.getErrorReporter().putCustomData("responderConnected", "true");
 
                 log("Connected");
             }
