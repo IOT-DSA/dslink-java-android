@@ -20,6 +20,7 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
+import org.acra.ACRA;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,7 +56,7 @@ public class LinkService extends Service {
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                     @Override
                     public void onConnected(Bundle bundle) {
-                        Utils.log("DGWear Connected to the Google API Client");
+                        Utils.log("DSWear Connected to the Google API Client");
                         init();
                     }
 
@@ -70,7 +71,7 @@ public class LinkService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         googleClient.connect();
-        Utils.log("Starting DGWear");
+        Utils.log("Starting DSWear");
         return START_STICKY;
     }
 
@@ -156,7 +157,7 @@ public class LinkService extends Service {
         try {
             send("stop", new HashMap<String, Object>());
         } catch (JSONException e) {
-            e.printStackTrace();
+            ACRA.getErrorReporter().handleException(e);
         }
         for (Provider provider : providers) {
             provider.destroy();

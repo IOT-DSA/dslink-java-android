@@ -3,6 +3,7 @@ package com.dglogik.wear;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 
+import org.acra.ACRA;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -40,7 +41,7 @@ public class RequestListener implements MessageApi.MessageListener {
                     }
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                ACRA.getErrorReporter().handleException(e);
             }
         }
     }
@@ -55,6 +56,10 @@ public class RequestListener implements MessageApi.MessageListener {
         final HashMap<String, Map<String, Integer>> points = new HashMap<>();
 
         for (Provider provider : providers) {
+            if (!provider.supported()) {
+                continue;
+            }
+
             points.put(provider.name(), provider.valueTypes());
         }
 
@@ -83,7 +88,7 @@ public class RequestListener implements MessageApi.MessageListener {
                 }
             }
         } catch (JSONException | InterruptedException e) {
-            e.printStackTrace();
+            ACRA.getErrorReporter().handleException(e);
         }
     }
 }

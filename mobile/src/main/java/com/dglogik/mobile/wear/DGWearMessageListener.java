@@ -83,11 +83,11 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 id = pointName + "_" + pointValueName;
                             }
 
-                            if (deviceNode.getChildren().containsKey(pointName)) {
-                                deviceNode.removeChild(pointName);
+                            if (deviceNode.getChildren().containsKey(id)) {
+                                deviceNode.removeChild(id);
                             }
 
-                            NodeBuilder builder = deviceNode.createChild(pointName);
+                            NodeBuilder builder = deviceNode.createChild(id);
 
                             switch (valueType) {
                                 case 0:
