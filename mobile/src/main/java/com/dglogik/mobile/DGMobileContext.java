@@ -64,6 +64,8 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.serializer.SerializationManager;
+import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
 import org.vertx.java.core.json.JsonObject;
 
@@ -128,6 +130,13 @@ public class DGMobileContext {
                 reporter.putCustomData("disabledNodes", disabledBuilder.toString());
                 reporter.putCustomData("wearEnabled", "" + preferences.getBoolean("feature.wear", false));
                 reporter.putCustomData("fitnessEnabled", "" + preferences.getBoolean("feature.fitness", false));
+                if (realLink != null) {
+                    try {
+                        Serializer serializer = new Serializer(realLink.getNodeManager());
+                        reporter.putCustomData("nodes", serializer.serialize().encode());
+                    } catch (Exception ignored) {
+                    }
+                }
             }
         });
 
@@ -260,6 +269,8 @@ public class DGMobileContext {
             public void onResponderInitialized(DSLink link) {
                 super.onResponderInitialized(link);
 
+                realLink = link;
+
                 ACRA.getErrorReporter().putCustomData("responderInitialized", "true");
 
                 log("Initialized");
@@ -322,6 +333,8 @@ public class DGMobileContext {
             wearable.initialize();
         }
     }
+
+    DSLink realLink;
 
     public PackageManager getPackageManager() {
         return getApplicationContext().getPackageManager();
