@@ -22,6 +22,7 @@ import org.json.JSONTokener;
 import org.vertx.java.core.Handler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -53,7 +54,13 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                 case "points": {
                     DGMobileContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
-                    Node deviceNode = DGMobileContext.CONTEXT.devicesNode.createChild(device).build();
+                    Node devicesNode = DGMobileContext.CONTEXT.devicesNode;
+
+                    if (devicesNode.getChildren().containsKey(event.getSourceNodeId())) {
+                        devicesNode.removeChild(event.getSourceNodeId());
+                    }
+
+                    Node deviceNode = devicesNode.createChild(event.getSourceNodeId()).setDisplayName(device).build();
 
                     JSONObject points = data.getJSONObject("points");
                     JSONArray actions = data.getJSONArray("actions");
@@ -76,6 +83,10 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 id = pointName + "_" + pointValueName;
                             }
 
+                            if (deviceNode.getChildren().containsKey(pointName)) {
+                                deviceNode.removeChild(pointName);
+                            }
+
                             NodeBuilder builder = deviceNode.createChild(pointName);
 
                             switch (valueType) {
@@ -94,7 +105,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
 
                             Node node = builder.build();
 
-                            dataNodes.put(device + "@" + id, node);
+                            dataNodes.put(event.getSourceNodeId() + "@" + id, node);
                         }
                     }
 
@@ -114,11 +125,11 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                             }
                         });
 
-                        deviceNode.createChild(name).setAction(action).build();
-                    }
+                        if (deviceNode.getChildren().containsKey(name)) {
+                            deviceNode.removeChild(name);
+                        }
 
-                    if (!DGMobileContext.CONTEXT.linkStarted) {
-                        DGMobileContext.CONTEXT.startLink();
+                        deviceNode.createChild(name).setAction(action).build();
                     }
                     break;
                 }
@@ -140,10 +151,10 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                             id = pointName + "_" + name;
                         }
 
-                        Node node = dataNodes.get(device + "@" + id);
+                        Node node = dataNodes.get(event.getSourceNodeId() + "@" + id);
 
                         if (node == null) {
-                            DGMobileContext.log("ERROR: Node not found: " + device + "@" + id);
+                            DGMobileContext.log("ERROR: Node not found: " + event.getSourceNodeId() + "@" + id);
                             continue;
                         }
 
@@ -160,6 +171,12 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                     String name = DGMobileContext.CONTEXT.wearable.namesMap.get(event.getSourceNodeId());
                     DGMobileContext.CONTEXT.devicesNode.removeChild(name);
                     DGMobileContext.CONTEXT.wearable.wearNodes.remove(event.getSourceNodeId());
+                    HashSet<String> keys = new HashSet<>(dataNodes.keySet());
+                    for (String key : keys) {
+                        if (key.startsWith(event.getSourceNodeId() + "@")) {
+                            dataNodes.remove(key);
+                        }
+                    }
                     break;
             }
         } catch (JSONException e) {
