@@ -24,6 +24,7 @@ public class DGConstants {
             new NodeDescriptor("Air Pressure", "pressure"),
             new NodeDescriptor("Humidity", "humidity"),
             new NodeDescriptor("Gyroscope", "gyroscope"),
+            new NodeDescriptor("Proximity", "proximity"),
             new NodeDescriptor("Audio", "audio"),
             new NodeDescriptor("Music", "music"),
             new NodeDescriptor("Activity Recognition", "activity"),
