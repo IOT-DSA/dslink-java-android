@@ -12,11 +12,7 @@ import org.acra.annotation.ReportsCrashes;
 import org.acra.sender.HttpSender;
 
 @ReportsCrashes(
-        httpMethod = HttpSender.Method.PUT,
-        reportType = HttpSender.Type.JSON,
-        formUri = "http://directcode.org:5984/acra-dsandroid/_design/acra-storage/_update/report",
-        formUriBasicAuthLogin = "reporter",
-        formUriBasicAuthPassword = "reporter"
+        formUri = "https://collector.tracepot.com/9f2d3e1a"
 )
 public class DGApplication extends Application {
     @Override
