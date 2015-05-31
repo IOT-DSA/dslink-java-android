@@ -42,9 +42,9 @@ task distCopyApk(type: Copy) {
     dependsOn "mobile:lint", "mobile:assembleRelease"
     from 'mobile/build/outputs/apk/mobile-release.apk'
     into 'build/apk'
-    rename "mobile-release.apk", "DGMobile.apk"
+    rename "mobile-release.apk", "DSAndroid.apk"
 }
 
-task dist(description: "Builds DGMobile", group: "build") {
+task dist(description: "Builds DSAndroid", group: "build") {
     dependsOn "distCopyApk"
 }
