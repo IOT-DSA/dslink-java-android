@@ -3,10 +3,9 @@ package com.dglogik.common;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 public class Services {
-    public static boolean isServiceRunning(@NonNull Context context, @NonNull Class<? extends Service> clazz) {
+    public static boolean isServiceRunning(Context context, Class<? extends Service> clazz) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
