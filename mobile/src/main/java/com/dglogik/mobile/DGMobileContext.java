@@ -64,10 +64,8 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
-import org.dsa.iot.dslink.serializer.SerializationManager;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
-import org.vertx.java.core.json.JsonObject;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -188,7 +186,7 @@ public class DGMobileContext {
         }
 
         if (preferences.getBoolean("feature.fitness", false)) {
-            apiClientBuilder.addApi(Fitness.API);
+            apiClientBuilder.addApi(Fitness.SENSORS_API);
             apiClientBuilder
                     .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
                     .addScope(new Scope(Scopes.FITNESS_BODY_READ));
