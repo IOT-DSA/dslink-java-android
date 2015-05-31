@@ -13,52 +13,23 @@ buildscript {
     }
 }
 
-ext {
-    repos = [
-            releases : 'http://git.dglogik.com:8081/content/repositories/releases',
-            snapshots: 'http://git.dglogik.com:8081/content/repositories/snapshots'
-    ]
-
-    // Credentials can be optionally specified in ~/.gradle/gradle.properties
-    if (!project.hasProperty("nexusUsername"))
-        nexusUsername = System.console().readLine("\nUsername: ");
-
-    if (!project.hasProperty("nexusPassword"))
-        nexusPassword = System.console().readPassword("\nPassword: ").toString();
-}
-
 repositories {
     jcenter()
-    maven {
-        url repos.releases
-        credentials {
-            username nexusUsername
-            password nexusPassword
-        }
-    }
 
     maven {
         url 'https://oss.sonatype.org/content/repositories/jetty-snapshots/'
     }
-
-    maven {
-        url repos.snapshots
-        credentials {
-            username nexusUsername
-            password nexusPassword
-        }
-    }
 }
 
 android {
-    compileSdkVersion 19
+    compileSdkVersion 22
     buildToolsVersion "21.1.2"
 
     defaultConfig {
         // useJack true
         applicationId "com.dglogik.mobile"
         minSdkVersion 17
-        targetSdkVersion 19
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
         multiDexEnabled true

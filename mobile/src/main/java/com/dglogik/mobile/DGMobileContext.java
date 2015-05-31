@@ -827,8 +827,17 @@ public class DGMobileContext {
                     log("Speech Results");
                     List<Float> scores = new ArrayList<>();
                     List<String> possibles = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+
+                    if (possibles == null) {
+                        return;
+                    }
+
                     {
                         float[] sc = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+                        if (sc == null) {
+                            return;
+                        }
+
                         for (float score : sc) {
                             scores.add(score);
                         }
