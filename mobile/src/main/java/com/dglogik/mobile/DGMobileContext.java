@@ -1,6 +1,8 @@
 package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
@@ -30,8 +32,11 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.view.Display;
+import android.widget.Toast;
 
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
@@ -57,6 +62,7 @@ import org.dsa.iot.dslink.DSLinkProvider;
 import org.dsa.iot.dslink.config.Configuration;
 import org.dsa.iot.dslink.connection.ConnectionType;
 import org.dsa.iot.dslink.handshake.LocalKeys;
+import org.dsa.iot.dslink.methods.StreamState;
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.node.Permission;
 import org.dsa.iot.dslink.node.actions.Action;
@@ -66,6 +72,8 @@ import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
+import org.vertx.java.core.json.JsonArray;
+import org.vertx.java.core.json.JsonObject;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -272,6 +280,7 @@ public class DGMobileContext {
                 ACRA.getErrorReporter().putCustomData("responderInitialized", "true");
 
                 log("Initialized");
+                Toast.makeText(getApplicationContext(), "DSAndroid Initialized", Toast.LENGTH_SHORT).show();
 
                 devicesNode = link.getNodeManager().createRootNode("Devices").build();
                 final String DEVICE_ID = Build.SERIAL != null ? Build.SERIAL : Build.MODEL;
@@ -288,9 +297,8 @@ public class DGMobileContext {
             @Override
             public void onResponderConnected(DSLink link) {
                 super.onResponderConnected(link);
-
+                Toast.makeText(getApplicationContext(), "DSAndroid Connected", Toast.LENGTH_SHORT).show();
                 ACRA.getErrorReporter().putCustomData("responderConnected", "true");
-
                 log("Connected");
             }
         };
@@ -749,6 +757,11 @@ public class DGMobileContext {
             searchAction.addParameter(new Parameter("query", ValueType.STRING));
             node.createChild("Search").setAction(searchAction).build();
         }
+
+        if (preferences.getBoolean("providers.notifications", true)) {
+            setupNotificationsProvider(node);
+        }
+
         if (preferences.getBoolean("providers.speech", true)) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
 
@@ -930,6 +943,56 @@ public class DGMobileContext {
         });
 
         screenOn.setValue(new Value(powerManager.isScreenOn()));
+    }
+
+    private void setupNotificationsProvider(Node node) {
+        node
+                .createChild("Create_Notification")
+                .setDisplayName("Create Notification")
+                .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                            @Override
+                            public void handle(ActionResult result) {
+                                String title = result.getParameter("title").getString();
+                                String content = result.getParameter("content").getString();
+
+                                if (title == null || content == null) {
+                                    result.setStreamState(StreamState.CLOSED);
+                                    return;
+                                }
+
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                                builder.setSmallIcon(com.dglogik.common.R.mipmap.ic_launcher);
+                                builder.setContentTitle(title);
+                                builder.setContentText(content);
+                                Notification notification = builder.build();
+                                NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+                                int id = currentNotificationId++;
+                                manager.notify(id, notification);
+                                result.getUpdates().addObject(new JsonObject().putValue("id", id));
+                                result.setStreamState(StreamState.CLOSED);
+                            }
+                        })
+                                .addParameter(new Parameter("title", ValueType.STRING))
+                                .addParameter(new Parameter("content", ValueType.STRING))
+                                .addResult(new Parameter("id", ValueType.NUMBER))
+                ).build();
+
+        node.createChild("Destroy_Notification")
+                .setDisplayName("Destroy Notification")
+                .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                            @Override
+                            public void handle(ActionResult result) {
+                                Number n = result.getParameter("id").getNumber();
+                                if (n == null) {
+                                    result.setStreamState(StreamState.CLOSED);
+                                    return;
+                                }
+                                int id = n.intValue();
+                                NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+                                manager.cancel(id);
+                            }
+                        }).addParameter(new Parameter("id", ValueType.NUMBER))
+                ).build();
     }
 
     public boolean enableSensor(String id, int type) {

@@ -14,7 +14,7 @@ public class DGConstants {
     public static final int BRAND_COLOR = Color.parseColor("#4dd0e1");
 
     @SuppressWarnings("RedundantArrayCreation")
-    public static final List<NodeDescriptor> NODES = Arrays.asList(new NodeDescriptor[]{
+    public static final List<NodeDescriptor> NODES = Arrays.asList(new NodeDescriptor[] {
             new NodeDescriptor("Screen Status", "screen"),
             new NodeDescriptor("Location Information", "location"),
             new NodeDescriptor("Battery Information", "battery"),
@@ -25,10 +25,11 @@ public class DGConstants {
             new NodeDescriptor("Humidity", "humidity"),
             new NodeDescriptor("Gyroscope", "gyroscope"),
             new NodeDescriptor("Proximity", "proximity"),
-            new NodeDescriptor("Audio", "audio"),
-            new NodeDescriptor("Music", "music"),
+//            new NodeDescriptor("Audio", "audio"),
+//            new NodeDescriptor("Music", "music"),
             new NodeDescriptor("Activity Recognition", "activity"),
-            new NodeDescriptor("Heart Rate", "heart_rate")
+            new NodeDescriptor("Heart Rate", "heart_rate"),
+            new NodeDescriptor("Notifications", "notifications")
     });
 
     public static List<Preference> createNodePreferences(Context context) {

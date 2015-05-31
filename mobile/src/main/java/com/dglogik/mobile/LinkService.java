@@ -26,7 +26,7 @@ public class LinkService extends Service {
         context = new DGMobileContext(this);
         Notification.Builder builder = new Notification.Builder(getApplicationContext());
         builder.setContentTitle("DSAndroid Link");
-        builder.setSmallIcon(R.drawable.ic_action_about);
+        builder.setSmallIcon(com.dglogik.common.R.mipmap.ic_launcher);
         builder.setContentText("Android Link is Running");
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 1, new Intent(getApplicationContext(), ControllerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
