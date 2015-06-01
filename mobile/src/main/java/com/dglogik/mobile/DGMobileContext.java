@@ -280,7 +280,12 @@ public class DGMobileContext {
                 ACRA.getErrorReporter().putCustomData("responderInitialized", "true");
 
                 log("Initialized");
-                Toast.makeText(getApplicationContext(), "DSAndroid Initialized", Toast.LENGTH_SHORT).show();
+                execute(new Executable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), "DSAndroid Initialized", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
                 devicesNode = link.getNodeManager().createRootNode("Devices").build();
                 final String DEVICE_ID = Build.SERIAL != null ? Build.SERIAL : Build.MODEL;
@@ -297,7 +302,12 @@ public class DGMobileContext {
             @Override
             public void onResponderConnected(DSLink link) {
                 super.onResponderConnected(link);
-                Toast.makeText(getApplicationContext(), "DSAndroid Connected", Toast.LENGTH_SHORT).show();
+                execute(new Executable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), "DSAndroid Connected", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 ACRA.getErrorReporter().putCustomData("responderConnected", "true");
                 log("Connected");
             }
