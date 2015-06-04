@@ -2,7 +2,6 @@ package com.dglogik.mobile;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
@@ -72,7 +71,6 @@ import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
-import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import java.io.File;
@@ -85,6 +83,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("deprecation")
 public class DGMobileContext {
     public static final String TAG = "DGMobile";
     public static DGMobileContext CONTEXT;
@@ -96,7 +95,6 @@ public class DGMobileContext {
     public final WearableSupport wearable;
     public final GoogleApiClient googleClient;
     public DSLinkProvider link;
-    public boolean linkStarted = false;
 
     @NonNull
     public final SensorManager sensorManager;
@@ -109,7 +107,6 @@ public class DGMobileContext {
 
     public Node currentDeviceNode;
     public Node devicesNode;
-    public boolean mResolvingError;
 
     public DGMobileContext(@NonNull final LinkService service) {
         ACRA.getErrorReporter().setExceptionHandlerInitializer(new ExceptionHandlerInitializer() {
@@ -208,8 +205,6 @@ public class DGMobileContext {
         powerManager = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
     }
 
-    private boolean stop = false;
-
     public void playSearchArtist(final String artist) {
         execute(new Executable() {
             @Override
@@ -240,6 +235,7 @@ public class DGMobileContext {
         });
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public void initialize() {
         for (String key : new String[] {
                 "brokerUrl",
@@ -462,7 +458,6 @@ public class DGMobileContext {
             poller(new Executable() {
                 @Override
                 public void run() {
-                    isBatteryLevelInitialized = true;
 
                     final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     assert batteryStatus != null;
@@ -496,7 +491,7 @@ public class DGMobileContext {
             batteryFullNode.setValue(new Value(false));
         }
 
-        if (Build.VERSION.SDK_INT >= 20 && preferences.getBoolean("providers.screen", false)) {
+        if (Build.VERSION.SDK_INT >= 20 && enableNode("screen")) {
             setupScreenProvider(node);
         }
 
@@ -768,11 +763,11 @@ public class DGMobileContext {
             node.createChild("Search").setAction(searchAction).build();
         }
 
-        if (preferences.getBoolean("providers.notifications", true)) {
+        if (enableNode("notifications")) {
             setupNotificationsProvider(node);
         }
 
-        if (preferences.getBoolean("providers.speech", true)) {
+        if (enableNode("speech")) {
             recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
 
             final Node lastSpeechNode = node.createChild("Recognized_Speech").setValueType(ValueType.STRING).build();
@@ -888,8 +883,6 @@ public class DGMobileContext {
             });
         }
     }
-
-    private boolean isBatteryLevelInitialized = false;
 
     @TargetApi(20)
     private void setupHeartRateMonitor(Node node) {
