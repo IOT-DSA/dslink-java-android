@@ -71,6 +71,7 @@ import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import java.io.File;
@@ -284,7 +285,12 @@ public class DGMobileContext {
                 });
 
                 devicesNode = link.getNodeManager().createRootNode("Devices").build();
-                final String DEVICE_ID = Build.SERIAL != null ? Build.SERIAL : Build.MODEL;
+                String DEVICE_ID = Build.SERIAL != null ? Build.SERIAL : Build.MODEL;
+
+                if (DEVICE_ID == null) {
+                    DEVICE_ID = Build.DEVICE;
+                }
+
                 currentDeviceNode = devicesNode.createChild(DEVICE_ID).build();
                 currentDeviceNode.setDisplayName(Build.MODEL);
                 execute(new Executable() {
@@ -458,7 +464,6 @@ public class DGMobileContext {
             poller(new Executable() {
                 @Override
                 public void run() {
-
                     final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     assert batteryStatus != null;
                     int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -954,27 +959,35 @@ public class DGMobileContext {
                 .setDisplayName("Create Notification")
                 .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                             @Override
-                            public void handle(ActionResult result) {
-                                String title = result.getParameter("title").getString();
-                                String content = result.getParameter("content").getString();
+                            public void handle(final ActionResult result) {
+                                execute(new Executable() {
+                                    @Override
+                                    public void run() {
+                                        final String title = result.getParameter("title").getString();
+                                        final String content = result.getParameter("content").getString();
 
-                                if (title == null || content == null) {
-                                    result.setStreamState(StreamState.CLOSED);
-                                    return;
-                                }
-
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                                builder.setSmallIcon(com.dglogik.common.R.mipmap.ic_launcher);
-                                builder.setContentTitle(title);
-                                builder.setContentText(content);
-                                Notification notification = builder.build();
-                                NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
-                                int id = currentNotificationId++;
-                                manager.notify(id, notification);
-                                result.getUpdates().addObject(new JsonObject().putValue("id", id));
-                                result.setStreamState(StreamState.CLOSED);
+                                        if (title == null || content == null) {
+                                            result.setStreamState(StreamState.CLOSED);
+                                            return;
+                                        }
+                                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                                        builder.setSmallIcon(com.dglogik.common.R.mipmap.ic_launcher);
+                                        builder.setContentTitle(title);
+                                        builder.setContentText(content);
+                                        Notification notification = builder.build();
+                                        NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+                                        int id = currentNotificationId++;
+                                        manager.notify(id, notification);
+                                        JsonArray updates = new JsonArray();
+                                        result.setUpdates(updates);
+                                        JsonArray firstUpdate = new JsonArray();
+                                        updates.addArray(firstUpdate);
+                                        firstUpdate.addObject(new JsonObject().putValue("id", id));
+                                        result.setStreamState(StreamState.CLOSED);
+                                    }
+                                });
                             }
-                        })
+                        }, Action.InvokeMode.ASYNC)
                                 .addParameter(new Parameter("title", ValueType.STRING))
                                 .addParameter(new Parameter("content", ValueType.STRING))
                                 .addResult(new Parameter("id", ValueType.NUMBER))
@@ -984,17 +997,23 @@ public class DGMobileContext {
                 .setDisplayName("Destroy Notification")
                 .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                             @Override
-                            public void handle(ActionResult result) {
-                                Number n = result.getParameter("id").getNumber();
-                                if (n == null) {
-                                    result.setStreamState(StreamState.CLOSED);
-                                    return;
-                                }
-                                int id = n.intValue();
-                                NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
-                                manager.cancel(id);
+                            public void handle(final ActionResult result) {
+                                execute(new Executable() {
+                                    @Override
+                                    public void run() {
+                                        Number n = result.getParameter("id").getNumber();
+                                        if (n == null) {
+                                            result.setStreamState(StreamState.CLOSED);
+                                            return;
+                                        }
+                                        int id = n.intValue();
+                                        NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
+                                        manager.cancel(id);
+                                        result.setStreamState(StreamState.CLOSED);
+                                    }
+                                });
                             }
-                        }).addParameter(new Parameter("id", ValueType.NUMBER))
+                        }, Action.InvokeMode.ASYNC).addParameter(new Parameter("id", ValueType.NUMBER))
                 ).build();
     }
 
@@ -1002,7 +1021,7 @@ public class DGMobileContext {
         return enableNode(id) && !sensorManager.getSensorList(type).isEmpty();
     }
 
-    public int currentNotificationId = 0;
+    public int currentNotificationId = 1;
 
     public void startLink() {
         link.start();

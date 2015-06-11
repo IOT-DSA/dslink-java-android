@@ -30,6 +30,7 @@ public class LinkService extends Service {
         builder.setContentText("Android Link is Running");
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 1, new Intent(getApplicationContext(), ControllerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(pendingIntent);
+        builder.setOngoing(true);
         notification = builder.build();
     }
 
@@ -46,7 +47,9 @@ public class LinkService extends Service {
 
     @Override
     public void onDestroy() {
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         stopForeground(true);
+        nm.cancel(0);
         DGMobileContext.log("Destroying Context");
         context.destroy();
     }
