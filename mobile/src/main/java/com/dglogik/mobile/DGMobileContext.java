@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -69,6 +70,7 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.node.value.ValueUtils;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
 import org.vertx.java.core.json.JsonArray;
@@ -82,6 +84,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("deprecation")
@@ -407,6 +410,8 @@ public class DGMobileContext {
     }
 
     public void setupCurrentDevice(@NonNull Node node)  {
+        setupOpenApplicationProvider(node);
+
         if (preferences.getBoolean("providers.location", false)) {
             final Node latitudeNode = node.createChild("Latitude").setValueType(ValueType.NUMBER).build();
             final Node longitudeNode = node.createChild("Longitude").setValueType(ValueType.NUMBER).build();
@@ -450,6 +455,36 @@ public class DGMobileContext {
                     LocationServices.FusedLocationApi.removeLocationUpdates(googleClient, listener);
                 }
             });
+        }
+
+        if (enableNode("music")) {
+            final Node sendMusicCommandNode = node.createChild("Send_Music_Command")
+                    .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                        @Override
+                        public void handle(ActionResult e) {
+                            String command = e.getParameter("command").getString();
+                            sendMusicCommand(command);
+                        }
+                    })
+                            .addParameter(new Parameter("command",
+                                    ValueType.makeEnum("play", "pause", "stop", "next", "previous", "togglepause")
+                            ))).build();
+        }
+
+        if (enableNode("current_app")) {
+            final Node getForegroundApplicationNode = node.createChild("Get_Foreground_Application")
+                    .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                        @Override
+                        public void handle(ActionResult e) {
+                            String pkg = Utils.getForegroundActivityPackage();
+                            JsonArray results = new JsonArray();
+                            JsonObject res = new JsonObject();
+                            ValueUtils.toJson(res, "app", new Value(pkg));
+                            e.setUpdates(results);
+                        }
+                    }).addResult(new Parameter("app", ValueType.STRING)))
+                    .setDisplayName("Get Foreground Application")
+                    .build();
         }
 
         if (enableNode("battery")) {
@@ -915,8 +950,7 @@ public class DGMobileContext {
     @TargetApi(20)
     private void setupScreenProvider(Node node) {
         final DisplayManager displayManager = (DisplayManager) service.getSystemService(Context.DISPLAY_SERVICE);
-        final Node screenOn = node.createChild("Screen_On").setValueType(ValueType.BOOL).build();
-        screenOn.setDisplayName("Screen On");
+        final Node screenOn = node.createChild("Screen_On").setDisplayName("Screen On").setValueType(ValueType.BOOL).build();
 
         final DisplayManager.DisplayListener listener = new DisplayManager.DisplayListener() {
             @Override
@@ -953,10 +987,53 @@ public class DGMobileContext {
         screenOn.setValue(new Value(powerManager.isScreenOn()));
     }
 
+    private void setupOpenApplicationProvider(Node node) {
+        final Map<String, Intent> LABEL_TO_CLASSES = new HashMap<>();
+
+        Node openAppNode = node.createChild("Open_Application").setAction(
+                new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                    @Override
+                    public void handle(ActionResult result) {
+                        String app = result.getParameter("app").getString();
+                        startActivity(LABEL_TO_CLASSES.get(app));
+                    }
+                }).addParameter(new Parameter("app", ValueType.ENUM))
+        ).setDisplayName("Open Application").build();
+
+        final JsonObject p = openAppNode.getAction().getParams().get(0);
+
+        Executable updater = new Executable() {
+            @Override
+            public void run() {
+                List<ApplicationInfo> apps = getApplicationContext().getPackageManager().getInstalledApplications(0);
+                StringBuilder sb = new StringBuilder();
+                for (ApplicationInfo app : apps) {
+                    Intent launchIntent = getApplicationContext().getPackageManager().getLaunchIntentForPackage(app.packageName);
+
+                    if (launchIntent == null) {
+                        continue;
+                    }
+
+                    String label = app.loadLabel(getApplicationContext().getPackageManager()).toString();
+                    sb.append(label);
+                    LABEL_TO_CLASSES.put(label, launchIntent);
+                    sb.append(',');
+                }
+
+                if (sb.charAt(sb.length() - 1) == ',') {
+                    sb.deleteCharAt(sb.length() - 1);
+                }
+
+                p.putString("type", "enum[" + sb.toString() + "]");
+            }
+        };
+
+        poller(updater).poll(TimeUnit.MINUTES, 1, false);
+    }
+
     private void setupNotificationsProvider(Node node) {
         node
                 .createChild("Create_Notification")
-                .setDisplayName("Create Notification")
                 .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                             @Override
                             public void handle(final ActionResult result) {
@@ -991,7 +1068,7 @@ public class DGMobileContext {
                                 .addParameter(new Parameter("title", ValueType.STRING))
                                 .addParameter(new Parameter("content", ValueType.STRING))
                                 .addResult(new Parameter("id", ValueType.NUMBER))
-                ).build();
+                ).setDisplayName("Create Notification").build();
 
         node.createChild("Destroy_Notification")
                 .setDisplayName("Destroy Notification")

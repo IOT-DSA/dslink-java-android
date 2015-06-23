@@ -2,7 +2,12 @@ package com.dglogik.mobile;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
+import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.Html;
 
@@ -10,13 +15,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class Utils {
     @NonNull
@@ -73,5 +73,28 @@ public class Utils {
         }
 
         activity.setTitle(Html.fromHtml("<font color=\"black\">" + activity.getTitle() + "</font>"));
+    }
+
+    @SuppressWarnings({"deprecation", "ResourceType"})
+    public static String getForegroundActivityPackage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            UsageStatsManager mUsageStatsManager = (UsageStatsManager) DGMobileContext.CONTEXT.getApplicationContext().getSystemService("usagestats");
+            long time = System.currentTimeMillis();
+            List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000 * 10, time);
+            if (stats != null) {
+                SortedMap<Long, UsageStats> mySortedMap = new TreeMap<>();
+                for (UsageStats usageStats : stats) {
+                    mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                }
+
+                if (!mySortedMap.isEmpty()) {
+                    return mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                }
+            }
+        } else {
+            ActivityManager am = (ActivityManager) DGMobileContext.CONTEXT.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+            return am.getRunningTasks(0).get(0).topActivity.getPackageName();
+        }
+        return null;
     }
 }

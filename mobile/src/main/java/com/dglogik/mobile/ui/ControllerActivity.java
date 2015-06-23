@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -64,11 +66,20 @@ public class ControllerActivity extends Activity {
         startPolling();
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, @NonNull KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
+            openSettings();
+            return true;
+        }
+        return false;
+    }
+
     public boolean checkSettings() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String brokerUrl = preferences.getString("broker.url", "");
 
-        if (brokerUrl == null || brokerUrl.isEmpty()) {
+        if (brokerUrl.isEmpty()) {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
 
             dialogBuilder.setTitle("Broker URL not specified.");
@@ -229,7 +240,7 @@ public class ControllerActivity extends Activity {
 
         if (!Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             startService(new Intent(getApplicationContext(), LinkService.class));
-            Toast.makeText(getApplicationContext(), "Started DGMobile Link", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Started DSAndroid Link", Toast.LENGTH_LONG).show();
         }
         syncButtons();
     }
@@ -237,7 +248,7 @@ public class ControllerActivity extends Activity {
     public void onStopButtonClicked(View view) {
         if (Services.isServiceRunning(getApplicationContext(), LinkService.class)) {
             stopService(new Intent(getApplicationContext(), LinkService.class));
-            Toast.makeText(getApplicationContext(), "Stopped DGMobile Link", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Stopped DSAndroid Link", Toast.LENGTH_LONG).show();
         }
         syncButtons();
     }

@@ -26,10 +26,12 @@ public class DGConstants {
             new NodeDescriptor("Gyroscope", "gyroscope"),
             new NodeDescriptor("Proximity", "proximity"),
 //            new NodeDescriptor("Audio", "audio"),
-//            new NodeDescriptor("Music", "music"),
+            new NodeDescriptor("Music", "music"),
             new NodeDescriptor("Activity Recognition", "activity"),
             new NodeDescriptor("Heart Rate", "heart_rate"),
-            new NodeDescriptor("Notifications", "notifications")
+            new NodeDescriptor("Notifications", "notifications"),
+            new NodeDescriptor("Speech", "speech"),
+            new NodeDescriptor("Current Application", "current_app")
     });
 
     public static List<Preference> createNodePreferences(Context context) {
