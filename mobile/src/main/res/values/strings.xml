@@ -25,5 +25,6 @@
     <string name="prefs_link_category">Link</string>
     <string name="prefs_link_name">Link Name</string>
     <string name="prefs_link_name_summary">Name of the Link</string>
-
+    <string name="advanced_pref_category">Advanced</string>
+    <string name="location_update_type">Location Update Type</string>
 </resources>

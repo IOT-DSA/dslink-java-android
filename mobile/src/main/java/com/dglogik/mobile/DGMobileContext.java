@@ -430,7 +430,14 @@ public class DGMobileContext {
 
             request.setFastestInterval(500);
             request.setInterval(3000);
-            request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+            int priority;
+
+            String priorityName = preferences.getString("advanced.location.update", "102");
+
+            priority = Integer.parseInt(priorityName);
+
+            request.setPriority(priority);
 
             final LocationListener listener = new LocationListener() {
                 @Override

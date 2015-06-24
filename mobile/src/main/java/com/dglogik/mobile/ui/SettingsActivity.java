@@ -18,10 +18,12 @@ public class SettingsActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, @NonNull KeyEvent event) {
+
         if (keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
             finish();
             return true;
+        } else {
+            return super.onKeyDown(keyCode, event);
         }
-        return false;
     }
 }

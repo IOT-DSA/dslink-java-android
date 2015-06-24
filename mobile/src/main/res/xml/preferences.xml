@@ -49,4 +49,14 @@
     <PreferenceCategory
         android:title="@string/prefs_nodes_category"
         android:key="nodes"/>
+
+    <PreferenceCategory
+        android:title="@string/advanced_pref_category">
+        <ListPreference
+            android:title="@string/location_update_type"
+            android:key="advanced.location.update"
+            android:defaultValue="102"
+            android:entries="@array/location_update_labels"
+            android:entryValues="@array/location_update_types"/>
+    </PreferenceCategory>
 </PreferenceScreen>

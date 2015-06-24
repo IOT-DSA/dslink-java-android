@@ -71,8 +71,9 @@ public class ControllerActivity extends Activity {
         if (keyCode == KeyEvent.KEYCODE_BUTTON_R1) {
             openSettings();
             return true;
+        } else {
+            return super.onKeyDown(keyCode, event);
         }
-        return false;
     }
 
     public boolean checkSettings() {

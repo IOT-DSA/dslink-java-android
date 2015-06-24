@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="location_update_types">
+        <item>102</item>
+        <item>100</item>
+        <item>104</item>
+        <item>105</item>
+    </string-array>
+
+    <string-array name="location_update_labels">
+        <item>Balanced (Default)</item>
+        <item>High Accuracy</item>
+        <item>Low Power</item>
+        <item>No Power</item>
+    </string-array>
+</resources>
