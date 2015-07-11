@@ -94,16 +94,16 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="play-services-base-7.5.0" level="project" />
-    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
-    <orderEntry type="library" exported="" name="wearable-1.2.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v13-22.2.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-22.2.0" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-22.2.0" level="project" />
+    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
     <orderEntry type="library" exported="" name="multidex-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="play-services-wearable-7.5.0" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-22.2.0" level="project" />
+    <orderEntry type="library" exported="" name="support-v13-22.2.0" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-22.2.0" level="project" />
+    <orderEntry type="library" exported="" name="play-services-base-7.5.0" level="project" />
+    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-22.0.0" level="project" />
-    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
+    <orderEntry type="library" exported="" name="wearable-1.2.0" level="project" />
     <orderEntry type="module" module-name="common" exported="" />
   </component>
 </module>

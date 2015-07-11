@@ -96,16 +96,16 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="play-services-maps-7.5.0" level="project" />
-    <orderEntry type="library" exported="" name="play-services-fitness-7.5.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-22.0.0" level="project" />
-    <orderEntry type="library" exported="" name="play-services-base-7.5.0" level="project" />
-    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
-    <orderEntry type="library" exported="" name="support-annotations-22.0.0" level="project" />
+    <orderEntry type="library" exported="" name="play-services-location-7.5.0" level="project" />
+    <orderEntry type="library" exported="" name="arca" level="project" />
+    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
     <orderEntry type="library" exported="" name="multidex-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="play-services-wearable-7.5.0" level="project" />
-    <orderEntry type="library" exported="" name="arca" level="project" />
-    <orderEntry type="library" exported="" name="play-services-location-7.5.0" level="project" />
-    <orderEntry type="library" exported="" name="guava-18.0" level="project" />
+    <orderEntry type="library" exported="" name="play-services-base-7.5.0" level="project" />
+    <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-22.0.0" level="project" />
+    <orderEntry type="library" exported="" name="play-services-fitness-7.5.0" level="project" />
+    <orderEntry type="library" exported="" name="play-services-maps-7.5.0" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-22.0.0" level="project" />
   </component>
 </module>

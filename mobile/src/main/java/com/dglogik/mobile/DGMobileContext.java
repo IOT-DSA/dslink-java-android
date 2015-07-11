@@ -68,6 +68,8 @@ import org.dsa.iot.dslink.node.Permission;
 import org.dsa.iot.dslink.node.actions.Action;
 import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
+import org.dsa.iot.dslink.node.actions.table.Row;
+import org.dsa.iot.dslink.node.actions.table.Table;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.node.value.ValueUtils;
@@ -484,10 +486,10 @@ public class DGMobileContext {
                         @Override
                         public void handle(ActionResult e) {
                             String pkg = Utils.getForegroundActivityPackage();
-                            JsonArray results = new JsonArray();
-                            JsonObject res = new JsonObject();
-                            ValueUtils.toJson(res, "app", new Value(pkg));
-                            e.setUpdates(results);
+                            Table table = e.getTable();
+                            Row row = new Row();
+                            row.addValue(new Value(pkg));
+                            table.addRow(row);
                         }
                     }).addResult(new Parameter("app", ValueType.STRING)))
                     .setDisplayName("Get Foreground Application")
@@ -1062,16 +1064,13 @@ public class DGMobileContext {
                                         NotificationManagerCompat manager = NotificationManagerCompat.from(getApplicationContext());
                                         int id = currentNotificationId++;
                                         manager.notify(id, notification);
-                                        JsonArray updates = new JsonArray();
-                                        result.setUpdates(updates);
-                                        JsonArray firstUpdate = new JsonArray();
-                                        updates.addArray(firstUpdate);
-                                        firstUpdate.addObject(new JsonObject().putValue("id", id));
-                                        result.setStreamState(StreamState.CLOSED);
+                                        Row row = new Row();
+                                        row.addValue(new Value(id));
+                                        result.getTable().addRow(row);
                                     }
                                 });
                             }
-                        }, Action.InvokeMode.ASYNC)
+                        })
                                 .addParameter(new Parameter("title", ValueType.STRING))
                                 .addParameter(new Parameter("content", ValueType.STRING))
                                 .addResult(new Parameter("id", ValueType.NUMBER))
@@ -1097,7 +1096,7 @@ public class DGMobileContext {
                                     }
                                 });
                             }
-                        }, Action.InvokeMode.ASYNC).addParameter(new Parameter("id", ValueType.NUMBER))
+                        }).addParameter(new Parameter("id", ValueType.NUMBER))
                 ).build();
     }
 
