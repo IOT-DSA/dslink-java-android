@@ -72,10 +72,8 @@ import org.dsa.iot.dslink.node.actions.table.Row;
 import org.dsa.iot.dslink.node.actions.table.Table;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
-import org.dsa.iot.dslink.node.value.ValueUtils;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
-import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import java.io.File;
