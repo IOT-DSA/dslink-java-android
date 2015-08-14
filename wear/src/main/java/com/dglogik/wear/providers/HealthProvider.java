@@ -47,6 +47,8 @@ public class HealthProvider extends Provider {
         };
 
         sensorManager.registerListener(eventListener, heartRateSensor, SensorManager.SENSOR_DELAY_NORMAL);
+
+        setEnabled();
     }
 
     @Override
@@ -71,5 +73,6 @@ public class HealthProvider extends Provider {
     @Override
     public void destroy() {
         LinkService.INSTANCE.sensorManager.unregisterListener(eventListener);
+        setDisabled();
     }
 }

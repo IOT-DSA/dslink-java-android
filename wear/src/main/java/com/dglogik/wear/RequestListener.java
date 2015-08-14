@@ -43,6 +43,22 @@ public class RequestListener implements MessageApi.MessageListener {
             } catch (JSONException e) {
                 ACRA.getErrorReporter().handleException(e);
             }
+        } else if (messageEvent.getPath().equals("/wear/subscribe")) {
+            String id = new String(messageEvent.getData());
+            String provider = id.split("_")[0];
+            for (Provider p : LinkService.INSTANCE.providers) {
+                if (p.name().equals(provider) && !p.isEnabled()) {
+                    p.setup();
+                }
+            }
+        } else if (messageEvent.getPath().equals("/wear/unsubscribe")) {
+            String id = new String(messageEvent.getData());
+            String provider = id.split("_")[0];
+            for (Provider p : LinkService.INSTANCE.providers) {
+                if (p.name().equals(provider) && p.isEnabled()) {
+                    p.destroy();
+                }
+            }
         }
     }
 

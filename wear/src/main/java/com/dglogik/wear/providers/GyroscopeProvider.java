@@ -38,6 +38,7 @@ public class GyroscopeProvider extends Provider {
         };
 
         LinkService.INSTANCE.sensorManager.registerListener(eventListener, LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE), SensorManager.SENSOR_DELAY_NORMAL);
+        setEnabled();
     }
 
     @Override
@@ -57,5 +58,6 @@ public class GyroscopeProvider extends Provider {
     @Override
     public void destroy() {
         LinkService.INSTANCE.sensorManager.unregisterListener(eventListener);
+        setDisabled();
     }
 }

@@ -93,6 +93,7 @@ public class SpeechProvider extends Provider {
 
             }
         });
+        setEnabled();
     }
 
     @Override
@@ -110,5 +111,6 @@ public class SpeechProvider extends Provider {
     @Override
     public void destroy() {
         if (recognizer != null) recognizer.destroy();
+        setDisabled();
     }
 }

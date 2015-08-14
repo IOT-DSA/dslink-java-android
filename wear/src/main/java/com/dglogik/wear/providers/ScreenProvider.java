@@ -43,6 +43,7 @@ public class ScreenProvider extends Provider {
             }
         };
         displayManager.registerDisplayListener(displayListener, new Handler());
+        setEnabled();
     }
 
     @Override
@@ -60,5 +61,6 @@ public class ScreenProvider extends Provider {
     @Override
     public void destroy() {
         displayManager.unregisterDisplayListener(displayListener);
+        setDisabled();
     }
 }

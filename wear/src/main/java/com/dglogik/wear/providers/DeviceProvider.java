@@ -28,6 +28,8 @@ public class DeviceProvider extends Provider {
             put("Manufacturer", Build.MANUFACTURER);
             put("Type", Build.TYPE);
         }});
+
+        setEnabled();
     }
 
     @Override
@@ -51,5 +53,6 @@ public class DeviceProvider extends Provider {
 
     @Override
     public void destroy() {
+        setDisabled();
     }
 }

@@ -8,12 +8,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class Provider {
+    private boolean enabled = false;
+
     public Map<String, Object> currentValues;
 
     public abstract String name();
     public abstract void setup();
     public abstract boolean supported();
     public abstract Map<String, Integer> valueTypes();
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled() {
+        enabled = true;
+    }
+
+    public void setDisabled() {
+        enabled = false;
+    }
 
     public void update(final Map<String, Object> values) {
         currentValues = values;

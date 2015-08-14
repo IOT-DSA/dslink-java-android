@@ -35,6 +35,7 @@ public class StepsProvider extends Provider {
             }
         };
         LinkService.INSTANCE.sensorManager.registerListener(eventListener, LinkService.INSTANCE.sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER), SensorManager.SENSOR_DELAY_NORMAL);
+        setEnabled();
     }
 
     @Override
@@ -52,5 +53,6 @@ public class StepsProvider extends Provider {
     @Override
     public void destroy() {
         LinkService.INSTANCE.sensorManager.unregisterListener(eventListener);
+        setDisabled();
     }
 }

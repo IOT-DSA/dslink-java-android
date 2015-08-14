@@ -2,6 +2,7 @@ package com.dglogik.mobile.wear;
 
 import android.support.annotation.NonNull;
 
+import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.DGMobileContext;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
@@ -48,7 +49,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
             String type = data.getString("type");
             String device = data.getString("device");
 
-            DGMobileContext.log("Wearable " + device + " sent " + type);
+            DGMobileContext.log("Wearable " + device + " sent " + type + ": " + data.toString());
 
             switch (type) {
                 case "points": {
@@ -56,7 +57,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                     DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
                     Node devicesNode = DGMobileContext.CONTEXT.devicesNode;
 
-                    if (devicesNode.getChildren().containsKey(event.getSourceNodeId())) {
+                    if (devicesNode.hasChild(event.getSourceNodeId())) {
                         devicesNode.removeChild(event.getSourceNodeId());
                     }
 
@@ -76,14 +77,16 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                         while (pointValueNames.hasNext()) {
                             String pointValueName = (String) pointValueNames.next();
                             int valueType = pointValues.getInt(pointValueName);
-                            String id;
+                            String mid;
                             if (pointValues.length() == 1 && pointValueName.equals("value")) {
-                                id = pointName;
+                                mid = pointName;
                             } else {
-                                id = pointName + "_" + pointValueName;
+                                mid = pointName + "_" + pointValueName;
                             }
 
-                            if (deviceNode.getChildren().containsKey(id)) {
+                            final String id = mid;
+
+                            if (deviceNode.hasChild(id)) {
                                 deviceNode.removeChild(id);
                             }
 
@@ -104,6 +107,30 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                             }
 
                             Node node = builder.build();
+
+                            final Wrapper<Integer> n = new Wrapper<>(0);
+
+                            node.getListener().setOnSubscribeHandler(new Handler<Node>() {
+                                @Override
+                                public void handle(Node node) {
+                                    if (n.getValue() == 0) {
+                                        Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/subscribe", id.getBytes());
+                                    }
+
+                                    n.setValue(n.getValue() + 1);
+                                }
+                            });
+
+                            node.getListener().setOnUnsubscribeHandler(new Handler<Node>() {
+                                @Override
+                                public void handle(Node node) {
+                                    n.setValue(n.getValue() - 1);
+
+                                    if (n.getValue() == 0) {
+                                        Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/unsubscribe", id.getBytes());
+                                    }
+                                }
+                            });
 
                             dataNodes.put(event.getSourceNodeId() + "@" + id, node);
                         }
