@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DGConstants {
+public class Constants {
     public static final String START_ON_BOOT = "start.on.boot";
 
     public static final int BRAND_COLOR = Color.parseColor("#4dd0e1");
@@ -36,7 +36,7 @@ public class DGConstants {
 
     public static List<Preference> createNodePreferences(Context context) {
         List<Preference> preferences = new ArrayList<>();
-        for (NodeDescriptor descriptor : DGConstants.NODES) {
+        for (NodeDescriptor descriptor : Constants.NODES) {
             Preference preference = descriptor.createCheckboxPreference(context);
             preferences.add(preference);
         }

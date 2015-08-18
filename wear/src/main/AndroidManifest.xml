@@ -10,7 +10,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.DeviceDefault"
-        android:name="com.dglogik.common.DGApplication">
+        android:name="com.dglogik.common.DSApplication">
 
         <activity android:exported="true" android:name="com.dglogik.wear.ControllerActivity">
             <intent-filter>

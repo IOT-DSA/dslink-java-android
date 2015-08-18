@@ -14,7 +14,7 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.widget.Toast;
 
-import com.dglogik.mobile.DGConstants;
+import com.dglogik.mobile.Constants;
 import com.dglogik.mobile.R;
 import com.google.android.gms.common.AccountPicker;
 
@@ -27,7 +27,7 @@ public class SettingsFragment extends PreferenceFragment {
         addPreferencesFromResource(R.xml.preferences);
         PreferenceCategory nodesCategory = (PreferenceCategory) findPreference("nodes");
 
-        for (Preference preference : DGConstants.createNodePreferences(getActivity().getApplicationContext())) {
+        for (Preference preference : Constants.createNodePreferences(getActivity().getApplicationContext())) {
             nodesCategory.addPreference(preference);
         }
 

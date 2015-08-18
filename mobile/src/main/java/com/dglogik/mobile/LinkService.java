@@ -12,7 +12,7 @@ import com.dglogik.mobile.ui.ControllerActivity;
 import org.jetbrains.annotations.Nullable;
 
 public class LinkService extends Service {
-    public DGMobileContext context;
+    public DSContext context;
     public Notification notification;
 
     @Nullable
@@ -23,7 +23,7 @@ public class LinkService extends Service {
 
     @Override
     public void onCreate() {
-        context = new DGMobileContext(this);
+        context = new DSContext(this);
         Notification.Builder builder = new Notification.Builder(getApplicationContext());
         builder.setContentTitle("DSAndroid Link");
         builder.setSmallIcon(com.dglogik.common.R.mipmap.ic_launcher);
@@ -50,7 +50,7 @@ public class LinkService extends Service {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         stopForeground(true);
         nm.cancel(0);
-        DGMobileContext.log("Destroying Context");
+        DSContext.log("Destroying Context");
         context.destroy();
     }
 

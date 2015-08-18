@@ -8,9 +8,9 @@ import java.io.IOException;
 
 @SuppressWarnings({"deprecation"})
 public class CameraSupport {
-    public DGMobileContext context;
+    public DSContext context;
 
-    public CameraSupport(DGMobileContext context) {
+    public CameraSupport(DSContext context) {
         this.context = context;
     }
 

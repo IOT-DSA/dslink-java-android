@@ -3,7 +3,7 @@ package com.dglogik.mobile.wear;
 import android.support.annotation.NonNull;
 
 import com.dglogik.common.Wrapper;
-import com.dglogik.mobile.DGMobileContext;
+import com.dglogik.mobile.DSContext;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-public class DGWearMessageListener implements MessageApi.MessageListener {
+public class WearMessageListener implements MessageApi.MessageListener {
     @NonNull
     private final Map<String, Node> dataNodes = new HashMap<>();
 
@@ -49,13 +49,13 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
             String type = data.getString("type");
             String device = data.getString("device");
 
-            DGMobileContext.log("Wearable " + device + " sent " + type + ": " + data.toString());
+            DSContext.log("Wearable " + device + " sent " + type + ": " + data.toString());
 
             switch (type) {
                 case "points": {
-                    DGMobileContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
-                    DGMobileContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
-                    Node devicesNode = DGMobileContext.CONTEXT.devicesNode;
+                    DSContext.CONTEXT.wearable.wearNodes.add(event.getSourceNodeId());
+                    DSContext.CONTEXT.wearable.namesMap.put(event.getSourceNodeId(), device);
+                    Node devicesNode = DSContext.CONTEXT.devicesNode;
 
                     if (devicesNode.hasChild(event.getSourceNodeId())) {
                         devicesNode.removeChild(event.getSourceNodeId());
@@ -114,7 +114,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 @Override
                                 public void handle(Node node) {
                                     if (n.getValue() == 0) {
-                                        Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/subscribe", id.getBytes());
+                                        Wearable.MessageApi.sendMessage(DSContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/subscribe", id.getBytes());
                                     }
 
                                     n.setValue(n.getValue() + 1);
@@ -127,7 +127,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                     n.setValue(n.getValue() - 1);
 
                                     if (n.getValue() == 0) {
-                                        Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/unsubscribe", id.getBytes());
+                                        Wearable.MessageApi.sendMessage(DSContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/unsubscribe", id.getBytes());
                                     }
                                 }
                             });
@@ -148,7 +148,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
+                                Wearable.MessageApi.sendMessage(DSContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/action", object.toString().getBytes());
                             }
                         });
 
@@ -181,7 +181,7 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                         Node node = dataNodes.get(event.getSourceNodeId() + "@" + id);
 
                         if (node == null) {
-                            DGMobileContext.log("ERROR: Node not found: " + event.getSourceNodeId() + "@" + id);
+                            DSContext.log("ERROR: Node not found: " + event.getSourceNodeId() + "@" + id);
                             continue;
                         }
 
@@ -192,12 +192,12 @@ public class DGWearMessageListener implements MessageApi.MessageListener {
                     break;
                 }
                 case "ready":
-                    Wearable.MessageApi.sendMessage(DGMobileContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/init", null);
+                    Wearable.MessageApi.sendMessage(DSContext.CONTEXT.googleClient, event.getSourceNodeId(), "/wear/init", null);
                     break;
                 case "stop":
-                    String name = DGMobileContext.CONTEXT.wearable.namesMap.get(event.getSourceNodeId());
-                    DGMobileContext.CONTEXT.devicesNode.removeChild(name);
-                    DGMobileContext.CONTEXT.wearable.wearNodes.remove(event.getSourceNodeId());
+                    String name = DSContext.CONTEXT.wearable.namesMap.get(event.getSourceNodeId());
+                    DSContext.CONTEXT.devicesNode.removeChild(name);
+                    DSContext.CONTEXT.wearable.wearNodes.remove(event.getSourceNodeId());
                     HashSet<String> keys = new HashSet<>(dataNodes.keySet());
                     for (String key : keys) {
                         if (key.startsWith(event.getSourceNodeId() + "@")) {

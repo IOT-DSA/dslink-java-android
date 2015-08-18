@@ -8,7 +8,7 @@
     <string name="prefs_nodes_category">Nodes</string>
     <string name="prefs_control_category">Control</string>
     <string name="prefs_start_on_boot">Start on Boot</string>
-    <string name="settings_label">DGMobile Settings</string>
+    <string name="settings_label">DSAndroid Settings</string>
     <string name="prefs_stop_low_memory">Stop Link to Free Memory</string>
     <string name="prefs_stop_low_memory_summary">When Android starts to run out of memory, the link can be stopped to ensure system stability.</string>
     <string name="android_wear">Android Wear</string>
@@ -16,8 +16,8 @@
     <string name="prefs_android_wear_summary">Enables Android Wear Integration.</string>
     <string name="action_about">About</string>
     <string name="title_activity_about">About</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="about">DGMobile is a Data Source Link for DGLux5</string>
+    <string name="hello_world">Hello World!</string>
+    <string name="about">DSAndroid is a DSLink for Android Devices</string>
     <string name="prefs_broker_category">Broker</string>
     <string name="prefs_broker_url">Broker URL</string>
     <string name="prefs_broker_url_summary">The Broker\'s URL</string>

@@ -14,7 +14,7 @@ import org.acra.sender.HttpSender;
 @ReportsCrashes(
         formUri = "https://collector.tracepot.com/9f2d3e1a"
 )
-public class DGApplication extends Application {
+public class DSApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();

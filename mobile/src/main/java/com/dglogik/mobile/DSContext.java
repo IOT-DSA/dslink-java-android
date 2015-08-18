@@ -38,6 +38,7 @@ import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
 
+import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.google.android.gms.common.ConnectionResult;
@@ -88,9 +89,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("deprecation")
-public class DGMobileContext {
-    public static final String TAG = "DGMobile";
-    public static DGMobileContext CONTEXT;
+public class DSContext {
+    public static final String TAG = "DSAndroid";
+    public static DSContext CONTEXT;
     public static boolean DEBUG = false;
 
     @NonNull
@@ -112,13 +113,13 @@ public class DGMobileContext {
     public Node currentDeviceNode;
     public Node devicesNode;
 
-    public DGMobileContext(@NonNull final LinkService service) {
+    public DSContext(@NonNull final LinkService service) {
         ACRA.getErrorReporter().setExceptionHandlerInitializer(new ExceptionHandlerInitializer() {
             @Override
             public void initializeExceptionHandler(ErrorReporter reporter) {
                 StringBuilder enabledBuilder = new StringBuilder();
                 StringBuilder disabledBuilder = new StringBuilder();
-                for (NodeDescriptor descriptor : DGConstants.NODES) {
+                for (NodeDescriptor descriptor : Constants.NODES) {
                     boolean enabled = preferences.getBoolean("providers." + descriptor.getId(), descriptor.isDefaultEnabled());
                     if (enabled) {
                         if (enabledBuilder.length() != 0) {
@@ -280,12 +281,6 @@ public class DGMobileContext {
                 ACRA.getErrorReporter().putCustomData("responderInitialized", "true");
 
                 log("Initialized");
-                execute(new Executable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(), "DSAndroid Initialized", Toast.LENGTH_SHORT).show();
-                    }
-                });
 
                 devicesNode = link.getNodeManager().createRootNode("Devices").build();
                 String DEVICE_ID = Build.SERIAL != null ? Build.SERIAL : Build.MODEL;
@@ -374,7 +369,7 @@ public class DGMobileContext {
 
     public boolean enableNode(String id) {
         NodeDescriptor desc = null;
-        for (NodeDescriptor descriptor : DGConstants.NODES) {
+        for (NodeDescriptor descriptor : Constants.NODES) {
             if (descriptor.getId().equals(id)) {
                 desc = descriptor;
             }
@@ -426,10 +421,10 @@ public class DGMobileContext {
                 longitudeNode.setValue(new Value(0.0));
             }
 
-            LocationRequest request = new LocationRequest();
+            final LocationRequest request = new LocationRequest();
 
-            request.setFastestInterval(500);
-            request.setInterval(3000);
+            request.setFastestInterval(250);
+            request.setInterval(1000);
 
             int priority;
 
@@ -454,12 +449,28 @@ public class DGMobileContext {
                 }
             };
 
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, listener);
+            final Wrapper<Boolean> n = new Wrapper<>(false);
+
+            addLazyValues(new Node[]{latitudeNode, longitudeNode}, new Executable() {
+                @Override
+                public void run() {
+                    LocationServices.FusedLocationApi.requestLocationUpdates(googleClient, request, listener);
+                    n.setValue(true);
+                }
+            }, new Executable() {
+                @Override
+                public void run() {
+                    LocationServices.FusedLocationApi.removeLocationUpdates(googleClient, listener);
+                    n.setValue(false);
+                }
+            });
 
             onCleanup(new Executable() {
                 @Override
                 public void run() {
-                    LocationServices.FusedLocationApi.removeLocationUpdates(googleClient, listener);
+                    if (n.getValue()) {
+                        LocationServices.FusedLocationApi.removeLocationUpdates(googleClient, listener);
+                    }
                 }
             });
         }
@@ -503,9 +514,15 @@ public class DGMobileContext {
             chargerConnectedNode.setDisplayName("Charger Connected");
             batteryLevelNode.setDisplayName("Battery Level");
 
+            final Wrapper<Boolean> n = new Wrapper<>(false);
+
             poller(new Executable() {
                 @Override
                 public void run() {
+                    if (!n.getValue()) {
+                        return;
+                    }
+
                     final Intent batteryStatus = getApplicationContext().registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
                     assert batteryStatus != null;
                     int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
@@ -534,6 +551,18 @@ public class DGMobileContext {
                 }
             }).poll(TimeUnit.SECONDS, 2, false);
 
+            addLazyValues(new Node[]{batteryFullNode, batteryFullNode, chargerConnectedNode}, new Executable() {
+                @Override
+                public void run() {
+                    n.setValue(true);
+                }
+            }, new Executable() {
+                @Override
+                public void run() {
+                    n.setValue(false);
+                }
+            });
+
             chargerConnectedNode.setValue(new Value(false));
             batteryFullNode.setValue(new Value(false));
         }
@@ -554,15 +583,30 @@ public class DGMobileContext {
                     "unknown"
             )).build();
 
+            final Wrapper<Boolean> n = new Wrapper<>(false);
+
             activityNode.setValue(new Value("unknown"));
 
             final PendingIntent intent = PendingIntent.getService(getApplicationContext(), 40, new Intent(getApplicationContext(), ActivityRecognitionIntentService.class), PendingIntent.FLAG_UPDATE_CURRENT);
-            ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(googleClient, 1000, intent);
+
+            addLazyValues(new Node[]{activityNode}, new Executable() {
+                @Override
+                public void run() {
+                    ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(googleClient, 1000, intent);
+                }
+            }, new Executable() {
+                @Override
+                public void run() {
+                    ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(googleClient, intent);
+                }
+            });
 
             onCleanup(new Executable() {
                 @Override
                 public void run() {
-                    ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(googleClient, intent);
+                    if (n.getValue()) {
+                        ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(googleClient, intent);
+                    }
                 }
             });
         }
@@ -574,7 +618,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(19);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{stepsNode}, sensor, sensorEventListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     stepsNode.setValue(new Value(event.values[0]));
@@ -583,7 +627,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }));
         }
 
         if (enableSensor("heart_rate", 21)) {
@@ -599,7 +643,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{tempCNode, tempFNode}, sensor, sensorEventListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     double celsius = (double) event.values[0];
@@ -611,7 +655,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }));
         }
 
         if (enableSensor("light_level", Sensor.TYPE_LIGHT)) {
@@ -622,7 +666,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{lux}, sensor, new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     lux.setValue(new Value(event.values[0]));
@@ -631,7 +675,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, 6000);
+            });
         }
 
         if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
@@ -641,7 +685,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{pressure}, sensor, sensorEventListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     pressure.setValue(new Value(event.values[0]));
@@ -650,7 +694,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }));
         }
 
         if (enableSensor("humidity", Sensor.TYPE_RELATIVE_HUMIDITY)) {
@@ -658,7 +702,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{humidity}, sensor, sensorEventListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     humidity.setValue(new Value(event.values[0]));
@@ -667,7 +711,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }));
         }
 
         if (enableSensor("proximity", Sensor.TYPE_PROXIMITY)) {
@@ -675,7 +719,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{proximity}, sensor, sensorEventListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     proximity.setValue(new Value(event.values[0]));
@@ -684,7 +728,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }));
         }
 
         if (enableSensor("gyroscope", Sensor.TYPE_GYROSCOPE)) {
@@ -698,7 +742,7 @@ public class DGMobileContext {
 
             Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-            sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+            addSensorHandler(new Node[]{x, y, z}, sensor, sensorEventListener(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(@NonNull SensorEvent event) {
                     x.setValue(new Value(event.values[0]));
@@ -709,7 +753,7 @@ public class DGMobileContext {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
                 }
-            }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            }));
         }
 
         if (preferences.getBoolean("actions.speak", true)) {
@@ -940,7 +984,7 @@ public class DGMobileContext {
         final Node rateNode = node.createChild("Heart_Rate").setValueType(ValueType.NUMBER).build();
         rateNode.setDisplayName("Heart Rate");
 
-        sensorManager.registerListener(sensorEventListener(new SensorEventListener() {
+        addSensorHandler(new Node[]{rateNode}, sensor, sensorEventListener(new SensorEventListener() {
             @Override
             public void onSensorChanged(@NonNull SensorEvent event) {
                 rateNode.setValue(new Value(event.values[0]));
@@ -949,10 +993,90 @@ public class DGMobileContext {
             @Override
             public void onAccuracyChanged(Sensor sensor, int accuracy) {
             }
-        }), sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }));
     }
 
     protected Node activityNode;
+
+    private void addSensorHandler(Node[] nodes, final Sensor sensor, final SensorEventListener listener) {
+        addSensorHandler(nodes, sensor, listener, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void addSensorHandler(Node[] nodes, final Sensor sensor, final SensorEventListener listener, final int update) {
+        final Wrapper<Integer> n = new Wrapper<>(0);
+        final Wrapper<Boolean> s = new Wrapper<>(false);
+
+        final Executable doCheck = new Executable() {
+            @Override
+            public void run() {
+                if (n.getValue() <= 0) {
+                    sensorManager.unregisterListener(listener, sensor);
+                    s.setValue(false);
+                } else {
+                    if (!s.getValue()) {
+                        sensorManager.registerListener(listener, sensor, update);
+                        s.setValue(true);
+                    }
+                }
+            }
+        };
+
+        for (Node node : nodes) {
+            node.getListener().setOnSubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+                @Override
+                public void handle(Node node) {
+                    n.setValue(n.getValue() + 1);
+                    doCheck.run();
+                }
+            });
+
+            node.getListener().setOnUnsubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+                @Override
+                public void handle(Node node) {
+                    n.setValue(n.getValue() - 1);
+                    doCheck.run();
+                }
+            });
+        }
+    }
+
+    private void addLazyValues(Node[] nodes, final Executable enable, final Executable disable) {
+        final Wrapper<Integer> n = new Wrapper<>(0);
+        final Wrapper<Boolean> s = new Wrapper<>(false);
+
+        final Executable doCheck = new Executable() {
+            @Override
+            public void run() {
+                if (n.getValue() <= 0) {
+                    disable.run();
+                    s.setValue(false);
+                } else {
+                    if (!s.getValue()) {
+                        enable.run();
+                        s.setValue(true);
+                    }
+                }
+            }
+        };
+
+        for (Node node : nodes) {
+            node.getListener().setOnSubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+                @Override
+                public void handle(Node node) {
+                    n.setValue(n.getValue() + 1);
+                    doCheck.run();
+                }
+            });
+
+            node.getListener().setOnUnsubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+                @Override
+                public void handle(Node node) {
+                    n.setValue(n.getValue() - 1);
+                    doCheck.run();
+                }
+            });
+        }
+    }
 
     @TargetApi(20)
     private void setupScreenProvider(Node node) {

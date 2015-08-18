@@ -2,7 +2,7 @@ package com.dglogik.mobile.wear;
 
 import android.support.annotation.NonNull;
 
-import com.dglogik.mobile.DGMobileContext;
+import com.dglogik.mobile.DSContext;
 import com.dglogik.mobile.Executable;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Node;
@@ -16,18 +16,18 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class WearableSupport {
-    public final DGMobileContext context;
+    public final DSContext context;
     @NonNull
     public final Map<String, Node> nodes;
     public final Map<String, String> namesMap = new HashMap<>();
 
-    public WearableSupport(DGMobileContext context) {
+    public WearableSupport(DSContext context) {
         this.context = context;
         this.nodes = new HashMap<>();
     }
 
     public void initialize() {
-        final DGWearMessageListener messageListener = new DGWearMessageListener();
+        final WearMessageListener messageListener = new WearMessageListener();
         Wearable.MessageApi.addListener(context.googleClient, messageListener);
 
         context.onCleanup(new Executable() {

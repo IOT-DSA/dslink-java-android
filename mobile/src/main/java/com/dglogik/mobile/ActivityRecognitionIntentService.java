@@ -17,9 +17,9 @@ public class ActivityRecognitionIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (ActivityRecognitionResult.hasResult(intent)) {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
-            if (DGMobileContext.CONTEXT != null && DGMobileContext.CONTEXT.activityNode != null) {
+            if (DSContext.CONTEXT != null && DSContext.CONTEXT.activityNode != null) {
                 String name = getNameFromType(result.getMostProbableActivity().getType());
-                DGMobileContext.CONTEXT.activityNode.setValue(new Value(name));
+                DSContext.CONTEXT.activityNode.setValue(new Value(name));
             }
         }
     }
