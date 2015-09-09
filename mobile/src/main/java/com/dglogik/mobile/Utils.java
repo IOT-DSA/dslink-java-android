@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.Html;
 
@@ -68,6 +69,10 @@ public class Utils {
         }
 
         activity.setTitle(Html.fromHtml("<font color=\"black\">" + activity.getTitle() + "</font>"));
+    }
+
+    public static boolean isRunningOnGlass() {
+        return "Google".equalsIgnoreCase(Build.MANUFACTURER) && Build.MODEL.startsWith("Glass");
     }
 
     public static String getForegroundActivityPackage() {

@@ -23,6 +23,7 @@ public class Constants {
             new NodeDescriptor("Light Level", "light_level"),
             new NodeDescriptor("Air Pressure", "pressure"),
             new NodeDescriptor("Humidity", "humidity"),
+            new NodeDescriptor("Rotation", "rotation"),
             new NodeDescriptor("Gyroscope", "gyroscope"),
             new NodeDescriptor("Proximity", "proximity"),
 //            new NodeDescriptor("Audio", "audio"),

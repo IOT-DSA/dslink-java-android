@@ -180,9 +180,14 @@ public class DSContext {
                             }
                             return;
                         }
-                        Log.e(TAG, "Google API Client Connection Failed! Code = " + connectionResult.getErrorCode());
-                        ControllerActivity.DID_FAIL = true;
-                        ControllerActivity.ERROR_MESSAGE = "Google API Client Failed to Connect: Code = " + connectionResult.getErrorCode();
+
+                        if (!Utils.isRunningOnGlass()) {
+                            Log.e(TAG, "Google API Client Connection Failed! Code = " + connectionResult.getErrorCode());
+                            ControllerActivity.DID_FAIL = true;
+                            ControllerActivity.ERROR_MESSAGE = "Google API Client Failed to Connect: Code = " + connectionResult.getErrorCode();
+                        } else {
+                            initialize();
+                        }
                     }
                 });
 
@@ -407,7 +412,7 @@ public class DSContext {
     public void setupCurrentDevice(@NonNull Node node)  {
         setupOpenApplicationProvider(node);
 
-        if (preferences.getBoolean("providers.location", false)) {
+        if (preferences.getBoolean("providers.location", false) && !Utils.isRunningOnGlass()) {
             final Node latitudeNode = node.createChild("Latitude").setValueType(ValueType.NUMBER).build();
             final Node longitudeNode = node.createChild("Longitude").setValueType(ValueType.NUMBER).build();
 
@@ -483,10 +488,9 @@ public class DSContext {
                             String command = e.getParameter("command").getString();
                             sendMusicCommand(command);
                         }
-                    })
-                            .addParameter(new Parameter("command",
+                    }).addParameter(new Parameter("command",
                                     ValueType.makeEnum("play", "pause", "stop", "next", "previous", "togglepause")
-                            ))).build();
+                    ))).setDisplayName("Send Music Command").build();
         }
 
         if (enableNode("current_app")) {
@@ -571,7 +575,7 @@ public class DSContext {
             setupScreenProvider(node);
         }
 
-        if (enableNode("activity")) {
+        if (enableNode("activity") && !Utils.isRunningOnGlass()) {
             activityNode = node.createChild("Activity").setValueType(ValueType.makeEnum(
                     "in_vehicle",
                     "on_bicycle",
@@ -730,6 +734,32 @@ public class DSContext {
                 }
             }));
         }
+
+        if (enableSensor("rotation", Sensor.TYPE_ROTATION_VECTOR)) {
+            final Node x = node.createChild("Rotation_X").setValueType(ValueType.NUMBER).build();
+            final Node y = node.createChild("Rotation_Y").setValueType(ValueType.NUMBER).build();
+            final Node z = node.createChild("Rotation_Z").setValueType(ValueType.NUMBER).build();
+
+            x.setDisplayName("Rotation X");
+            y.setDisplayName("Rotation Y");
+            z.setDisplayName("Rotation Z");
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+            addSensorHandler(new Node[]{x, y, z}, sensor, sensorEventListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    x.setValue(new Value(event.values[0]));
+                    y.setValue(new Value(event.values[1]));
+                    z.setValue(new Value(event.values[2]));
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }));
+        }
+
 
         if (enableSensor("gyroscope", Sensor.TYPE_GYROSCOPE)) {
             final Node x = node.createChild("Gyroscope_X").setValueType(ValueType.NUMBER).build();
