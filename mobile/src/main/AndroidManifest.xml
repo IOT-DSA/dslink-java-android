@@ -58,6 +58,11 @@
             android:exported="true"
             android:label="@string/settings_label" />
 
+        <activity
+            android:name="com.dglogik.mobile.ui.SpeechReadingActivity"
+            android:exported="true"
+            android:label="@string/read_speech" />
+
         <service
           android:name=".ActivityRecognitionIntentService"
           android:label="ActivityRecognitionService"

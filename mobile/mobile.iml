@@ -88,21 +88,22 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" name="logging-0.10.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="bcprov-jdk15on-1.51" level="project" />
     <orderEntry type="library" exported="" name="guava-18.0" level="project" />
     <orderEntry type="library" exported="" name="vertx-core" level="project" />
+    <orderEntry type="library" exported="" name="dslink-commons" level="project" />
     <orderEntry type="library" exported="" name="AndroidAsync" level="project" />
-    <orderEntry type="library" exported="" name="logback-core-1.1.3" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.2.0" level="project" />
     <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
-    <orderEntry type="library" exported="" name="jackson-core-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="jcommander-1.47" level="project" />
+    <orderEntry type="library" exported="" name="jackson-core-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="jackson-databind-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="slf4j-api-1.7.9" level="project" />
-    <orderEntry type="library" exported="" name="logback-classic-1.1.3" level="project" />
     <orderEntry type="library" exported="" name="multidex-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="jackson-annotations-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="netty-all-4.0.21.Final" level="project" />
+    <orderEntry type="library" exported="" name="runtime_shared-0.10.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="dslink-sdk" level="project" />
     <orderEntry type="module" module-name="common" exported="" />
   </component>

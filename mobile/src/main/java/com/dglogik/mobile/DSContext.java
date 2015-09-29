@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
@@ -40,6 +41,7 @@ import android.widget.Toast;
 
 import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.ui.ControllerActivity;
+import com.dglogik.mobile.ui.SpeechReadingActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
@@ -909,6 +911,23 @@ public class DSContext {
                 }
             });
 
+            final Action requestVoiceInputAction = new Action(Permission.READ, new org.vertx.java.core.Handler<ActionResult>() {
+                @Override
+                public void handle(final ActionResult result) {
+                    result.setStreamState(StreamState.INITIALIZED);
+                    requestVoiceInput(new org.vertx.java.core.Handler<String>() {
+                        @Override
+                        public void handle(String s) {
+                            Table table = result.getTable();
+                            table.addRow(Row.make(new Value(s)));
+                            table.close();
+                        }
+                    });
+                }
+            });
+
+            requestVoiceInputAction.addResult(new Parameter("input", ValueType.STRING));
+
 
             final Action stopSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
                 @Override
@@ -928,6 +947,9 @@ public class DSContext {
             Node stopSpeechRecognition = node.createChild("StopSpeechRecognition").build();
             stopSpeechRecognition.setDisplayName("Stop Speech Recognition");
             stopSpeechRecognition.setAction(stopSpeechRecognitionAction);
+            Node requestVoiceInputNode = node.createChild("Request_Voice_Input").build();
+            requestVoiceInputNode.setDisplayName("Request Voice Input");
+            requestVoiceInputNode.setAction(requestVoiceInputAction);
 
             recognizer.setRecognitionListener(new RecognitionListener() {
                 @Override
@@ -1068,6 +1090,18 @@ public class DSContext {
                 }
             });
         }
+    }
+
+    public void requestVoiceInput(final org.vertx.java.core.Handler<String> callback) {
+        Intent intent = new Intent(getApplicationContext(), SpeechReadingActivity.class);
+        intent.putExtra("receiver", new ResultReceiver(handler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                super.onReceiveResult(resultCode, resultData);
+                callback.handle(resultData.getString("input"));
+            }
+        });
+        startActivity(intent);
     }
 
     private void addLazyValues(Node[] nodes, final Executable enable, final Executable disable) {
