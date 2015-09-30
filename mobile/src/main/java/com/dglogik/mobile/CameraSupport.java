@@ -2,7 +2,7 @@ package com.dglogik.mobile;
 
 import android.hardware.Camera;
 
-import org.vertx.java.core.Handler;
+import org.dsa.iot.dslink.util.handler.Handler;
 
 import java.io.IOException;
 

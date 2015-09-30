@@ -16,11 +16,11 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.node.value.ValueUtils;
+import org.dsa.iot.dslink.util.handler.Handler;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.vertx.java.core.Handler;
 
 import java.util.HashMap;
 import java.util.HashSet;

@@ -77,7 +77,7 @@ import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.Objects;
-import org.vertx.java.core.json.JsonObject;
+import org.dsa.iot.dslink.util.json.JsonObject;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -258,8 +258,8 @@ public class DSContext {
             ACRA.getErrorReporter().removeCustomData(key);
         }
 
-        Objects.setThreadPool(Poller.STPE);
-        Objects.setDaemonThreadPool(Poller.STPE);
+/*        Objects.setThreadPool(Poller.STPE);
+        Objects.setDaemonThreadPool(Poller.STPE);*/
         System.setProperty("dslink.path", getApplicationContext().getFilesDir().getAbsolutePath());
         File fileDir = getApplicationContext().getFilesDir();
         if (!fileDir.exists()) {
@@ -484,20 +484,20 @@ public class DSContext {
 
         if (enableNode("music")) {
             final Node sendMusicCommandNode = node.createChild("Send_Music_Command")
-                    .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                    .setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                         @Override
                         public void handle(ActionResult e) {
                             String command = e.getParameter("command").getString();
                             sendMusicCommand(command);
                         }
                     }).addParameter(new Parameter("command",
-                                    ValueType.makeEnum("play", "pause", "stop", "next", "previous", "togglepause")
+                            ValueType.makeEnum("play", "pause", "stop", "next", "previous", "togglepause")
                     ))).setDisplayName("Send Music Command").build();
         }
 
         if (enableNode("current_app")) {
             final Node getForegroundApplicationNode = node.createChild("Get_Foreground_Application")
-                    .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                    .setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                         @Override
                         public void handle(ActionResult e) {
                             String pkg = Utils.getForegroundActivityPackage();
@@ -795,7 +795,7 @@ public class DSContext {
                 }
             });
 
-            currentDeviceNode.createChild("Speak").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            currentDeviceNode.createChild("Speak").setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     speech.speak(event.getParameter("text").getString(), TextToSpeech.QUEUE_ADD, new HashMap<String, String>());
@@ -811,7 +811,7 @@ public class DSContext {
         }
 
         if (preferences.getBoolean("actions.show_maps", true)) {
-            node.createChild("ShowLocationMap").setDisplayName("Show Location Map").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            node.createChild("ShowLocationMap").setDisplayName("Show Location Map").setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -822,7 +822,7 @@ public class DSContext {
                 }
             }).addParameter(new Parameter("latitude", ValueType.NUMBER, new Value(0.0))).addParameter(new Parameter("longitude", ValueType.NUMBER, new Value(0.0)))).build();
 
-            node.createChild("ShowMap").setDisplayName("Show Map").setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            node.createChild("ShowMap").setDisplayName("Show Map").setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -841,7 +841,7 @@ public class DSContext {
         }
 
         if (preferences.getBoolean("actions.open_url", true)) {
-            final Action openUrlAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            final Action openUrlAction = new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
 
                 @Override
                 public void handle(ActionResult event) {
@@ -865,7 +865,7 @@ public class DSContext {
         }
 
         if (preferences.getBoolean("actions.search", true)) {
-            final Action searchAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            final Action searchAction = new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     final String query = event.getParameter("query").getString();
@@ -897,7 +897,7 @@ public class DSContext {
 
             lastSpeechNode.setDisplayName("Recognized Speech");
 
-            final Action startSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            final Action startSpeechRecognitionAction = new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     handler.post(new Runnable() {
@@ -911,11 +911,11 @@ public class DSContext {
                 }
             });
 
-            final Action requestVoiceInputAction = new Action(Permission.READ, new org.vertx.java.core.Handler<ActionResult>() {
+            final Action requestVoiceInputAction = new Action(Permission.READ, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(final ActionResult result) {
                     result.setStreamState(StreamState.INITIALIZED);
-                    requestVoiceInput(new org.vertx.java.core.Handler<String>() {
+                    requestVoiceInput(new org.dsa.iot.dslink.util.handler.Handler<String>() {
                         @Override
                         public void handle(String s) {
                             Table table = result.getTable();
@@ -929,7 +929,7 @@ public class DSContext {
             requestVoiceInputAction.addResult(new Parameter("input", ValueType.STRING));
 
 
-            final Action stopSpeechRecognitionAction = new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+            final Action stopSpeechRecognitionAction = new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                 @Override
                 public void handle(ActionResult event) {
                     handler.post(new Runnable() {
@@ -1074,7 +1074,7 @@ public class DSContext {
         };
 
         for (Node node : nodes) {
-            node.getListener().setOnSubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+            node.getListener().setOnSubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
                 public void handle(Node node) {
                     n.setValue(n.getValue() + 1);
@@ -1082,7 +1082,7 @@ public class DSContext {
                 }
             });
 
-            node.getListener().setOnUnsubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+            node.getListener().setOnUnsubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
                 public void handle(Node node) {
                     n.setValue(n.getValue() - 1);
@@ -1092,7 +1092,7 @@ public class DSContext {
         }
     }
 
-    public void requestVoiceInput(final org.vertx.java.core.Handler<String> callback) {
+    public void requestVoiceInput(final org.dsa.iot.dslink.util.handler.Handler<String> callback) {
         Intent intent = new Intent(getApplicationContext(), SpeechReadingActivity.class);
         intent.putExtra("receiver", new ResultReceiver(handler) {
             @Override
@@ -1124,7 +1124,7 @@ public class DSContext {
         };
 
         for (Node node : nodes) {
-            node.getListener().setOnSubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+            node.getListener().setOnSubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
                 public void handle(Node node) {
                     n.setValue(n.getValue() + 1);
@@ -1132,7 +1132,7 @@ public class DSContext {
                 }
             });
 
-            node.getListener().setOnUnsubscribeHandler(new org.vertx.java.core.Handler<Node>() {
+            node.getListener().setOnUnsubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
                 public void handle(Node node) {
                     n.setValue(n.getValue() - 1);
@@ -1186,7 +1186,7 @@ public class DSContext {
         final Map<String, Intent> LABEL_TO_CLASSES = new HashMap<>();
 
         Node openAppNode = node.createChild("Open_Application").setAction(
-                new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                     @Override
                     public void handle(ActionResult result) {
                         String app = result.getParameter("app").getString();
@@ -1219,7 +1219,7 @@ public class DSContext {
                     sb.deleteCharAt(sb.length() - 1);
                 }
 
-                p.putString("type", "enum[" + sb.toString() + "]");
+                p.put("type", "enum[" + sb.toString() + "]");
             }
         };
 
@@ -1229,7 +1229,7 @@ public class DSContext {
     private void setupNotificationsProvider(Node node) {
         node
                 .createChild("Create_Notification")
-                .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                .setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                             @Override
                             public void handle(final ActionResult result) {
                                 execute(new Executable() {
@@ -1264,7 +1264,7 @@ public class DSContext {
 
         node.createChild("Destroy_Notification")
                 .setDisplayName("Destroy Notification")
-                .setAction(new Action(Permission.WRITE, new org.vertx.java.core.Handler<ActionResult>() {
+                .setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
                             @Override
                             public void handle(final ActionResult result) {
                                 execute(new Executable() {
