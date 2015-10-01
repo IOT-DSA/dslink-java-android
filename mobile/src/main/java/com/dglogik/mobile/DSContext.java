@@ -11,6 +11,7 @@ import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -43,7 +44,6 @@ import android.widget.Toast;
 import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.ui.PictureTakingActivity;
-import com.dglogik.mobile.ui.PictureTakingActivityOld;
 import com.dglogik.mobile.ui.SpeechReadingActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.google.android.gms.common.ConnectionResult;
@@ -71,12 +71,14 @@ import org.dsa.iot.dslink.handshake.LocalKeys;
 import org.dsa.iot.dslink.methods.StreamState;
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.node.Permission;
+import org.dsa.iot.dslink.node.Writable;
 import org.dsa.iot.dslink.node.actions.Action;
 import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.actions.table.Row;
 import org.dsa.iot.dslink.node.actions.table.Table;
 import org.dsa.iot.dslink.node.value.Value;
+import org.dsa.iot.dslink.node.value.ValuePair;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.json.JsonObject;
@@ -260,8 +262,6 @@ public class DSContext {
             ACRA.getErrorReporter().removeCustomData(key);
         }
 
-/*        Objects.setThreadPool(Poller.STPE);
-        Objects.setDaemonThreadPool(Poller.STPE);*/
         System.setProperty("dslink.path", getApplicationContext().getFilesDir().getAbsolutePath());
         File fileDir = getApplicationContext().getFilesDir();
         if (!fileDir.exists()) {
@@ -498,18 +498,9 @@ public class DSContext {
         }
 
         if (enableNode("current_app")) {
-            final Node getForegroundApplicationNode = node.createChild("Get_Foreground_Application")
-                    .setAction(new Action(Permission.WRITE, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
-                        @Override
-                        public void handle(ActionResult e) {
-                            String pkg = Utils.getForegroundActivityPackage();
-                            Table table = e.getTable();
-                            Row row = new Row();
-                            row.addValue(new Value(pkg));
-                            table.addRow(row);
-                        }
-                    }).addResult(new Parameter("app", ValueType.STRING)))
-                    .setDisplayName("Get Foreground Application")
+            final Node currentApplicationNode = node.createChild("Current_Application")
+                    .setDisplayName("Current Application")
+                    .setValueType(ValueType.STRING)
                     .build();
         }
 
@@ -703,6 +694,27 @@ public class DSContext {
                     });
                 }
             });
+
+            final Node flashlightNode = node.createChild("Flashlight").build();
+            flashlightNode.setValueType(ValueType.makeBool("On", "Off"));
+            flashlightNode.setWritable(Writable.WRITE);
+            flashlightNode.getListener().setValueHandler(new org.dsa.iot.dslink.util.handler.Handler<ValuePair>() {
+                @Override
+                public void handle(final ValuePair pair) {
+                    execute(new Executable() {
+                        @Override
+                        public void run() {
+                            Value value = pair.getCurrent();
+                            if (value.getBool()) {
+                                turnOnFlashlight();
+                            } else {
+                                turnOffFlashlight();
+                            }
+                        }
+                    });
+                }
+            });
+            flashlightNode.setValue(new Value(cam != null));
 
             takePictureAction.addParameter(new Parameter("direction", ValueType.makeEnum("Back", "Front")));
             takePictureAction.addResult(new Parameter("image", ValueType.STRING));
@@ -1224,6 +1236,24 @@ public class DSContext {
         screenOn.setValue(new Value(powerManager.isScreenOn()));
     }
 
+    public void turnOnFlashlight() {
+        cam = Camera.open();
+        Camera.Parameters p = cam.getParameters();
+        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        cam.setParameters(p);
+        cam.startPreview();
+    }
+
+    public void turnOffFlashlight() {
+        if (cam != null) {
+            cam.stopPreview();
+            cam.release();
+            cam = null;
+        }
+    }
+
+    private Camera cam;
+
     private void setupOpenApplicationProvider(Node node) {
         final Map<String, Intent> LABEL_TO_CLASSES = new HashMap<>();
 
@@ -1326,6 +1356,11 @@ public class DSContext {
                             }
                         }).addParameter(new Parameter("id", ValueType.NUMBER))
                 ).build();
+
+        node.createChild("Active_Notifications")
+                .setDisplayName("Active Notifications")
+                .setValueType(ValueType.NUMBER)
+                .build();
     }
 
     public boolean enableSensor(String id, int type) {

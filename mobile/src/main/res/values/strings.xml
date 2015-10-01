@@ -30,4 +30,7 @@
     <string name="read_speech">Speech Reader</string>
     <string name="take_picture">Take Picture</string>
     <string name="camera_error">Camera Error</string>
+    <string name="accessibility_label">DSAndroid</string>
+    <string name="accessibility_service_desc">DSAndroid Accessibility Service</string>
+    <string name="notification_listener_service">Notification Listener</string>
 </resources>
