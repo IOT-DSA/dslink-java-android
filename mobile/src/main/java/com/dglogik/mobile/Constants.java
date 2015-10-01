@@ -32,7 +32,8 @@ public class Constants {
             new NodeDescriptor("Heart Rate", "heart_rate"),
             new NodeDescriptor("Notifications", "notifications"),
             new NodeDescriptor("Speech", "speech"),
-            new NodeDescriptor("Current Application", "current_app")
+            new NodeDescriptor("Current Application", "current_app"),
+            new NodeDescriptor("Camera", "camera")
     });
 
     public static List<Preference> createNodePreferences(Context context) {

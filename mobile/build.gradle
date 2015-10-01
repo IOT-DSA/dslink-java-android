@@ -22,14 +22,14 @@ repositories {
 }
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 23
     buildToolsVersion "22.0.1"
 
     defaultConfig {
         // useJack true
         applicationId "com.dglogik.mobile"
-        minSdkVersion 19
-        targetSdkVersion 22
+        minSdkVersion 21
+        targetSdkVersion 23
         versionCode 1
         versionName "1.1"
         multiDexEnabled true
@@ -57,7 +57,6 @@ android {
     }
 
     dexOptions {
-        incremental = true
         javaMaxHeapSize = "4g"
     }
 }

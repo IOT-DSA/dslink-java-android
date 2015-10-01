@@ -35,12 +35,15 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Display;
 import android.widget.Toast;
 
 import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.ui.ControllerActivity;
+import com.dglogik.mobile.ui.PictureTakingActivity;
+import com.dglogik.mobile.ui.PictureTakingActivityOld;
 import com.dglogik.mobile.ui.SpeechReadingActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.google.android.gms.common.ConnectionResult;
@@ -76,7 +79,6 @@ import org.dsa.iot.dslink.node.actions.table.Table;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.dsa.iot.dslink.serializer.Serializer;
-import org.dsa.iot.dslink.util.Objects;
 import org.dsa.iot.dslink.util.json.JsonObject;
 
 import java.io.File;
@@ -684,6 +686,33 @@ public class DSContext {
             });
         }
 
+        if (enableNode("camera")) {
+            final Action takePictureAction = new Action(Permission.READ, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
+                @Override
+                public void handle(final ActionResult event) {
+                    Value value = event.getParameter("direction");
+                    event.setStreamState(StreamState.INITIALIZED);
+                    requestTakePicture(value.getString(), new org.dsa.iot.dslink.util.handler.Handler<byte[]>() {
+                        @Override
+                        public void handle(byte[] bytes) {
+                            Table table = event.getTable();
+                            String out = Base64.encodeToString(bytes, Base64.DEFAULT);
+                            table.addRow(Row.make(new Value(out)));
+                            table.close();
+                        }
+                    });
+                }
+            });
+
+            takePictureAction.addParameter(new Parameter("direction", ValueType.makeEnum("Back", "Front")));
+            takePictureAction.addResult(new Parameter("image", ValueType.STRING));
+
+            final Node takePictureNode = node.createChild("Take_Picture")
+                    .setDisplayName("Take Picture")
+                    .setAction(takePictureAction)
+                    .build();
+        }
+
         if (enableSensor("pressure", Sensor.TYPE_PRESSURE)) {
             final Node pressure = node.createChild("Air_Pressure").setValueType(ValueType.NUMBER).build();
 
@@ -1099,6 +1128,19 @@ public class DSContext {
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 super.onReceiveResult(resultCode, resultData);
                 callback.handle(resultData.getString("input"));
+            }
+        });
+        startActivity(intent);
+    }
+
+    public void requestTakePicture(String direction, final org.dsa.iot.dslink.util.handler.Handler<byte[]> callback) {
+        Intent intent = new Intent(getApplicationContext(), PictureTakingActivity.class);
+        intent.putExtra("direction", direction);
+        intent.putExtra("receiver", new ResultReceiver(handler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                super.onReceiveResult(resultCode, resultData);
+                callback.handle(resultData.getByteArray("data"));
             }
         });
         startActivity(intent);

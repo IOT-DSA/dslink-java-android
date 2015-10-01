@@ -28,4 +28,6 @@
     <string name="advanced_pref_category">Advanced</string>
     <string name="location_update_type">Location Update Type</string>
     <string name="read_speech">Speech Reader</string>
+    <string name="take_picture">Take Picture</string>
+    <string name="camera_error">Camera Error</string>
 </resources>
