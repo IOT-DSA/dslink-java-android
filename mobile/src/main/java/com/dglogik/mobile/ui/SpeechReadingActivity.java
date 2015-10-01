@@ -5,10 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 
+import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.DSContext;
 
+import org.dsa.iot.dslink.node.Node;
+import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.util.StringUtils;
 
 import java.util.ArrayList;
@@ -33,7 +35,22 @@ public class SpeechReadingActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        ResultReceiver receiver = (ResultReceiver) getIntent().getExtras().get("receiver");
+        ResultReceiver receiver = null;
+        Runnable handle = null;
+        final Wrapper<String> value = new Wrapper<>(null);
+        if (data.hasExtra("receiver")) {
+            receiver = (ResultReceiver) getIntent().getExtras().get("receiver");
+        } else if (DSContext.CONTEXT != null) {
+            handle = new Runnable() {
+                @Override
+                public void run() {
+                    Node node = DSContext.CONTEXT.currentDeviceNode.getChild("Recognized_Speech");
+                    if (node != null) {
+                        node.setValue(new Value(value.getValue()));
+                    }
+                }
+            };
+        }
 
         Runnable done = new Runnable() {
             @Override
@@ -86,11 +103,13 @@ public class SpeechReadingActivity extends Activity {
             }
         }
 
-        String value = possibles.get(highestScore);
-        bundle.putString("input", value);
-        DSContext.log("Voice Input: " + value);
+        value.setValue(possibles.get(highestScore));
+        bundle.putString("input", value.getValue());
+        DSContext.log("Voice Input: " + value.getValue());
         if (receiver != null) {
             receiver.send(RESULT_OK, bundle);
+        } else if (handle != null) {
+            handle.run();
         }
 
         done.run();
