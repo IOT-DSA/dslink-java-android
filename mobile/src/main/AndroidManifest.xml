@@ -70,6 +70,11 @@
             android:exported="true"
             android:label="@string/take_picture" />
 
+        <activity
+            android:name=".ui.ScanBarcodeActivity"
+            android:exported="true"
+            android:label="@string/barcode_scanner" />
+
         <service
           android:name=".ActivityRecognitionIntentService"
           android:label="ActivityRecognitionService"

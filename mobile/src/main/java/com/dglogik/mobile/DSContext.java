@@ -38,12 +38,14 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Display;
 import android.widget.Toast;
 
 import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.ui.ControllerActivity;
 import com.dglogik.mobile.ui.PictureTakingActivity;
+import com.dglogik.mobile.ui.ScanBarcodeActivity;
 import com.dglogik.mobile.ui.SpeechReadingActivity;
 import com.dglogik.mobile.wear.WearableSupport;
 import com.google.android.gms.common.ConnectionResult;
@@ -695,6 +697,26 @@ public class DSContext {
                 }
             });
 
+            final Action scanBarcodeAction = new Action(Permission.READ, new org.dsa.iot.dslink.util.handler.Handler<ActionResult>() {
+                @Override
+                public void handle(final ActionResult event) {
+                    event.setStreamState(StreamState.INITIALIZED);
+                    requestBarcodeScan(new org.dsa.iot.dslink.util.handler.Handler<Pair<String, String>>() {
+                        @Override
+                        public void handle(Pair<String, String> pair) {
+                            String code = pair.first;
+                            String format = pair.second;
+                            Table table = event.getTable();
+                            table.addRow(Row.make(new Value(code), new Value(format)));
+                            table.close();
+                        }
+                    });
+                }
+            });
+
+            scanBarcodeAction.addResult(new Parameter("code", ValueType.STRING));
+            scanBarcodeAction.addResult(new Parameter("format", ValueType.STRING));
+
             final Node flashlightNode = node.createChild("Flashlight").build();
             flashlightNode.setValueType(ValueType.makeBool("On", "Off"));
             flashlightNode.setWritable(Writable.WRITE);
@@ -722,6 +744,11 @@ public class DSContext {
             final Node takePictureNode = node.createChild("Take_Picture")
                     .setDisplayName("Take Picture")
                     .setAction(takePictureAction)
+                    .build();
+
+            final Node scanBarcodeNode = node.createChild("Scan_Barcode")
+                    .setDisplayName("Scan Barcode")
+                    .setAction(scanBarcodeAction)
                     .build();
         }
 
@@ -1114,6 +1141,16 @@ public class DSContext {
             }
         };
 
+        onCleanup(new Executable() {
+            @Override
+            public void run() {
+                try {
+                    sensorManager.unregisterListener(listener, sensor);
+                } catch (Exception ignored) {
+                }
+            }
+        });
+
         for (Node node : nodes) {
             node.getListener().setOnSubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
@@ -1140,6 +1177,20 @@ public class DSContext {
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 super.onReceiveResult(resultCode, resultData);
                 callback.handle(resultData.getString("input"));
+            }
+        });
+        startActivity(intent);
+    }
+
+    public void requestBarcodeScan(final org.dsa.iot.dslink.util.handler.Handler<Pair<String, String>> callback) {
+        Intent intent = new Intent(getApplicationContext(), ScanBarcodeActivity.class);
+        intent.putExtra("receiver", new ResultReceiver(handler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                super.onReceiveResult(resultCode, resultData);
+                callback.handle(
+                        new Pair<>(resultData.getString("code"), resultData.getString("format"))
+                );
             }
         });
         startActivity(intent);

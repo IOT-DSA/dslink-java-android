@@ -88,16 +88,17 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 23 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="slf4j-api" level="project" />
     <orderEntry type="library" exported="" name="bcprov-jdk15on-1.51" level="project" />
     <orderEntry type="library" exported="" name="guava-18.0" level="project" />
     <orderEntry type="library" exported="" name="dslink-commons" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.2.0" level="project" />
-    <orderEntry type="library" exported="" name="dslink-logging" level="project" />
     <orderEntry type="library" exported="" name="jackson-core" level="project" />
     <orderEntry type="library" exported="" name="annotations-13.0" level="project" />
-    <orderEntry type="library" exported="" name="jcommander" level="project" />
     <orderEntry type="library" exported="" name="dslink-runtime_shared" level="project" />
+    <orderEntry type="library" exported="" name="slf4j-api" level="project" />
+    <orderEntry type="library" exported="" name="zxing-integration" level="project" />
+    <orderEntry type="library" exported="" name="dslink-logging" level="project" />
+    <orderEntry type="library" exported="" name="jcommander" level="project" />
     <orderEntry type="library" exported="" name="dslink-sdk" level="project" />
     <orderEntry type="library" exported="" name="netty" level="project" />
     <orderEntry type="module" module-name="common" exported="" />
