@@ -38,7 +38,7 @@ public class SpeechReadingActivity extends Activity {
         ResultReceiver receiver = null;
         Runnable handle = null;
         final Wrapper<String> value = new Wrapper<>(null);
-        if (data.hasExtra("receiver")) {
+        if (getIntent() != null && getIntent().hasExtra("receiver")) {
             receiver = (ResultReceiver) getIntent().getExtras().get("receiver");
         } else if (DSContext.CONTEXT != null) {
             handle = new Runnable() {
