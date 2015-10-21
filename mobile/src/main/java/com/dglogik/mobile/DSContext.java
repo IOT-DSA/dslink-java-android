@@ -333,7 +333,7 @@ public class DSContext {
             preferences.edit().putString("link.key", keys.serialize()).apply();
         }
 
-        File file = new File(fileDir.getAbsolutePath() + "/" + "dslink.json");
+        File file = new File(fileDir.getAbsolutePath() + "/" + "nodes.json");
 
         // We have to delete this. It's a sad fact.
         if (file.exists()) {
@@ -830,6 +830,30 @@ public class DSContext {
             }));
         }
 
+        if (enableSensor("gravity", Sensor.TYPE_GRAVITY)) {
+            final Node x = node.createChild("Gravity_X").setValueType(ValueType.NUMBER).build();
+            final Node y = node.createChild("Gravity_Y").setValueType(ValueType.NUMBER).build();
+            final Node z = node.createChild("Gravity_Z").setValueType(ValueType.NUMBER).build();
+
+            x.setDisplayName("Gravity X");
+            y.setDisplayName("Gravity Y");
+            z.setDisplayName("Gravity Z");
+
+            Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+
+            addSensorHandler(new Node[]{x, y, z}, sensor, sensorEventListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(@NonNull SensorEvent event) {
+                    x.setValue(new Value(event.values[0]));
+                    y.setValue(new Value(event.values[1]));
+                    z.setValue(new Value(event.values[2]));
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            }));
+        }
 
         if (enableSensor("gyroscope", Sensor.TYPE_GYROSCOPE)) {
             final Node x = node.createChild("Gyroscope_X").setValueType(ValueType.NUMBER).build();

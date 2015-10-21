@@ -33,7 +33,8 @@ public class Constants {
             new NodeDescriptor("Notifications", "notifications"),
             new NodeDescriptor("Speech", "speech"),
             new NodeDescriptor("Current Application", "current_app"),
-            new NodeDescriptor("Camera", "camera")
+            new NodeDescriptor("Camera", "camera"),
+            new NodeDescriptor("Gravity", "gravity")
     });
 
     public static List<Preference> createNodePreferences(Context context) {
