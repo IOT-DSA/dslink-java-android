@@ -36,15 +36,14 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
+import android.view.SurfaceView;
 import android.widget.Toast;
 
 import com.dglogik.common.Wrapper;
 import com.dglogik.mobile.ui.ControllerActivity;
-import com.dglogik.mobile.ui.PictureTakingActivity;
 import com.dglogik.mobile.ui.ScanBarcodeActivity;
 import com.dglogik.mobile.ui.SpeechReadingActivity;
 import com.dglogik.mobile.wear.WearableSupport;
@@ -86,6 +85,7 @@ import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.json.JsonObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -149,7 +149,7 @@ public class DSContext {
                 if (realLink != null) {
                     try {
                         Serializer serializer = new Serializer(realLink.getNodeManager());
-                        reporter.putCustomData("nodes", serializer.serialize().encode());
+                        reporter.putCustomData("nodes", serializer.serialize().toString());
                     } catch (Exception ignored) {
                     }
                 }
@@ -689,8 +689,7 @@ public class DSContext {
                         @Override
                         public void handle(byte[] bytes) {
                             Table table = event.getTable();
-                            String out = Base64.encodeToString(bytes, Base64.DEFAULT);
-                            table.addRow(Row.make(new Value(out)));
+                            table.addRow(Row.make(new Value(bytes)));
                             table.close();
                         }
                     });
@@ -1179,6 +1178,7 @@ public class DSContext {
             node.getListener().setOnSubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
                 public void handle(Node node) {
+                    log("Subscribed to " + node.getPath());
                     n.setValue(n.getValue() + 1);
                     doCheck.run();
                 }
@@ -1187,6 +1187,7 @@ public class DSContext {
             node.getListener().setOnUnsubscribeHandler(new org.dsa.iot.dslink.util.handler.Handler<Node>() {
                 @Override
                 public void handle(Node node) {
+                    log("Unsubscribed to " + node.getPath());
                     n.setValue(n.getValue() - 1);
                     doCheck.run();
                 }
@@ -1220,17 +1221,17 @@ public class DSContext {
         startActivity(intent);
     }
 
+    private SurfaceView surfaceView;
+
     public void requestTakePicture(String direction, final org.dsa.iot.dslink.util.handler.Handler<byte[]> callback) {
-        Intent intent = new Intent(getApplicationContext(), PictureTakingActivity.class);
-        intent.putExtra("direction", direction);
-        intent.putExtra("receiver", new ResultReceiver(handler) {
+        execute(new Executable() {
             @Override
-            protected void onReceiveResult(int resultCode, Bundle resultData) {
-                super.onReceiveResult(resultCode, resultData);
-                callback.handle(resultData.getByteArray("data"));
+            public void run() {
+                turnOffFlashlight();
+                CameraSupport support = new CameraSupport(DSContext.this);
+                support.takePicture(CameraDirection.BACK, callback);
             }
         });
-        startActivity(intent);
     }
 
     private void addLazyValues(Node[] nodes, final Executable enable, final Executable disable) {
@@ -1312,6 +1313,8 @@ public class DSContext {
     }
 
     public void turnOnFlashlight() {
+        turnOffFlashlight();
+
         cam = Camera.open();
         Camera.Parameters p = cam.getParameters();
         p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
@@ -1321,9 +1324,11 @@ public class DSContext {
 
     public void turnOffFlashlight() {
         if (cam != null) {
-            cam.stopPreview();
-            cam.release();
-            cam = null;
+            try {
+                cam.stopPreview();
+                cam.release();
+                cam = null;
+            } catch (Exception e) {}
         }
     }
 
@@ -1445,7 +1450,13 @@ public class DSContext {
     public int currentNotificationId = 1;
 
     public void startLink() {
-        link.start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                link.start();
+                link.sleep();
+            }
+        }).start();
     }
 
     public void execute(Executable action) {

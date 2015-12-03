@@ -13,6 +13,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
 }
 
@@ -30,6 +31,10 @@ subprojects {
                 lintOptions {
                     disable "InvalidPackage", "IconColors", "OldTargetApi"
                     checkReleaseBuilds true
+                }
+                packagingOptions {
+                  exclude "META-INF/LICENSE"
+                  exclude "META-INF/NOTICE"
                 }
             }
         } else if ("com.android.build.gradle.LibraryPlugin".equals(plugin.class.name)) {

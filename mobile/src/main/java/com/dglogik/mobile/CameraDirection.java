@@ -1,11 +1,11 @@
 package com.dglogik.mobile;
 
-import android.hardware.Camera;
+import android.hardware.camera2.CameraCharacteristics;
 
 @SuppressWarnings({"deprecation"})
 public enum CameraDirection {
-    BACK(Camera.CameraInfo.CAMERA_FACING_BACK),
-    FRONT(Camera.CameraInfo.CAMERA_FACING_FRONT);
+    BACK(CameraCharacteristics.LENS_FACING_BACK),
+    FRONT(CameraCharacteristics.LENS_FACING_FRONT);
 
     public final int direction;
 

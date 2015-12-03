@@ -71,11 +71,6 @@
         </activity>
 
         <activity
-            android:name=".ui.PictureTakingActivity"
-            android:exported="true"
-            android:label="@string/take_picture" />
-
-        <activity
             android:name=".ui.ScanBarcodeActivity"
             android:exported="true"
             android:label="@string/barcode_scanner" />
