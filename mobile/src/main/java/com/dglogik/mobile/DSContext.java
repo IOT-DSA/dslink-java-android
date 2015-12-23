@@ -36,6 +36,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -81,11 +82,11 @@ import org.dsa.iot.dslink.node.actions.table.Table;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValuePair;
 import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.provider.WsProvider;
 import org.dsa.iot.dslink.serializer.Serializer;
 import org.dsa.iot.dslink.util.json.JsonObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -96,7 +97,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "ResourceType"})
 public class DSContext {
     public static final String TAG = "DSAndroid";
     public static DSContext CONTEXT;
@@ -255,7 +256,7 @@ public class DSContext {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void initialize() {
-        for (String key : new String[] {
+        for (String key : new String[]{
                 "brokerUrl",
                 "linkName",
                 "responderConnected",
@@ -340,6 +341,8 @@ public class DSContext {
             file.delete();
         }
 
+        WsProvider.setProvider(new AndroidWsProvider());
+
         Configuration config = new Configuration();
         config.setConnectionType(ConnectionType.WEB_SOCKET);
         config.setDsId(name);
@@ -415,7 +418,7 @@ public class DSContext {
         return eventListener;
     }
 
-    public void setupCurrentDevice(@NonNull Node node)  {
+    public void setupCurrentDevice(@NonNull Node node) {
         setupOpenApplicationProvider(node);
 
         if (preferences.getBoolean("providers.location", false) && !Utils.isRunningOnGlass()) {
@@ -689,7 +692,7 @@ public class DSContext {
                         @Override
                         public void handle(byte[] bytes) {
                             Table table = event.getTable();
-                            table.addRow(Row.make(new Value(bytes)));
+                            table.addRow(Row.make(new Value(Base64.encodeToString(bytes, Base64.DEFAULT))));
                             table.close();
                         }
                     });
