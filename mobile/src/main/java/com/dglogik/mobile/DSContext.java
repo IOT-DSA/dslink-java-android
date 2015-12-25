@@ -36,11 +36,9 @@ import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
-import android.view.SurfaceView;
 import android.widget.Toast;
 
 import com.dglogik.common.Wrapper;
@@ -178,7 +176,7 @@ public class DSContext {
                 })
                 .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
-                    public void onConnectionFailed(ConnectionResult connectionResult) {
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
                         if (connectionResult.getErrorCode() == FitnessStatusCodes.NEEDS_OAUTH_PERMISSIONS) {
                             try {
                                 connectionResult.startResolutionForResult(
@@ -692,7 +690,7 @@ public class DSContext {
                         @Override
                         public void handle(byte[] bytes) {
                             Table table = event.getTable();
-                            table.addRow(Row.make(new Value(Base64.encodeToString(bytes, Base64.DEFAULT))));
+                            table.addRow(Row.make(new Value(bytes)));
                             table.close();
                         }
                     });
@@ -1224,8 +1222,6 @@ public class DSContext {
         startActivity(intent);
     }
 
-    private SurfaceView surfaceView;
-
     public void requestTakePicture(String direction, final org.dsa.iot.dslink.util.handler.Handler<byte[]> callback) {
         execute(new Executable() {
             @Override
@@ -1331,7 +1327,7 @@ public class DSContext {
                 cam.stopPreview();
                 cam.release();
                 cam = null;
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         }
     }
 
