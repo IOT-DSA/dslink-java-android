@@ -1,5 +1,6 @@
 package com.dglogik.mobile;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
@@ -10,6 +11,7 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.media.Image;
 import android.media.ImageReader;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Size;
 import android.view.Surface;
@@ -28,6 +30,7 @@ public class CameraSupport {
         this.context = ctx;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @SuppressWarnings("ConstantConditions")
     public void takePicture(CameraDirection direction, final Handler<byte[]> handler) {
         CameraManager manager = (CameraManager) context.getApplicationContext().getSystemService(Context.CAMERA_SERVICE);
